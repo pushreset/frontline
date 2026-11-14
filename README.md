@@ -1,7 +1,8 @@
 # Ligne de Front · Front Line
 
-A solo tactical card game set in Normandy, summer 1944, in pixel art. It runs in the browser with no
-build step and no dependencies. Available in French and English.
+A solo tactical card game in pixel art, across several eras of history: **Verdun 1916** (First World
+War) and **Normandy 1944** (Second World War). It runs in the browser with no build step and no
+dependencies. Available in French and English.
 
 **Play**: https://pushreset.github.io/frontline/, or open `index.html` locally.
 
@@ -10,8 +11,9 @@ build step and no dependencies. Available in French and English.
 ### The goal
 
 Each battle is fought over **three terrains**. Every terrain has a **threshold** to reach in four
-attributes: **Tank**, **Infantry**, **Air** and **Strategy** (for example 2 / 3 / 0 / 1). You play the
-Allies against an AI that plays the German side with its own deck.
+attributes, which depend on the era: **Tank**, **Infantry**, **Air** and **Strategy** in Normandy,
+**Artillery**, **Infantry**, **Engineering** and **Morale** at Verdun (for example 2 / 3 / 0 / 1). You play
+the Allies (in 1916, the French) against an AI that plays the German side with its own deck.
 
 - Fill a terrain's whole threshold with your units and you **hold** it.
 - If you still hold it at the start of your next turn, it is **captured**: the opponent had a full
@@ -54,7 +56,32 @@ Every terrain also has a **trait** that changes how it plays: in the bocage each
 in the ruined village face-down cards count as 2 Infantry, nothing can be destroyed in a bunker, no
 tank can move in or out of the marsh, the hill lets your artillery hit any terrain, and so on.
 
-### Campaign
+### Campaigns
+
+The menu offers a **campaign** picker and, for a quick battle, an **era** picker. Each campaign keeps its
+own progress.
+
+#### Verdun 1916
+
+One long battle in one sector, on a staff map of the Meuse and its forts, from the Bois des Caures
+(21 February) to Louvemont (15 December). **15 battles**, a campaign lasts 7 to 9.
+
+- **Two acts.** Until July you **defend**: the enemy has the initiative and, at nightfall, if nobody holds
+  two terrains, the defender is **you**: holding until night is a win. From October you counter-attack,
+  with the initiative and the usual rule (the AI defends).
+- **Attrition instead of armour.** No tanks, hardly any aircraft. Shelling, gas and worn-out ground take
+  Infantry away from units for good (the steady fire of the 155 mm howitzer, a gas attack that hits
+  **both** sides except engineers, the no man's land that wears down your strongest unit every turn).
+  Relief (back to hand), stretcher-bearers, deep dugouts in a trench and Pétain's rotation take it back.
+- **Mines.** Tunnellers are a bluff with teeth: the moment they are turned face up, by you or by the
+  enemy, they blow the strongest enemy unit on their terrain.
+- **Asymmetric decks**: the French creeping barrage and trench cleaners, the German drumfire and
+  flamethrowers. Terrains: trench, no man's land, barbed wire, crater field, forts, ridges, razed
+  villages, shattered woods, communication trenches, depots.
+- Rewards: veterans, new cards (Stretcher-Bearers, Schilt Flamethrower, RICM, Carrier Pigeon) and powers
+  (Sacred Way, Rotation, 400 mm Railway Gun, Aerial Reconnaissance, None Shall Pass).
+
+#### Normandy 1944
 
 - **23 battles** from the three D-Day beaches (Utah, Omaha, Sword) to the liberation of Paris. A
   campaign lasts 8 to 10 of them.
@@ -75,7 +102,7 @@ tank can move in or out of the marsh, the hill lets your artillery hit any terra
 
 ### Quick battle and difficulty
 
-- **Quick battle**: three random terrains, no campaign bonuses.
+- **Quick battle**: pick an era, three random terrains of that era, no campaign bonuses.
 - **Three enemy levels.** The rules, thresholds and terrains never change, only how the AI decides:
   - *Rookie* hesitates, spreads out, rarely bluffs and spots your threats late;
   - *Regular* plays the best move of the moment;
@@ -89,14 +116,14 @@ Progress is saved automatically in the browser. Music and sound effects are gene
 
 | File | Role |
 |---|---|
-| `index.html` | the game (interface, campaign map, save) |
+| `index.html` | the game (menu, campaign map, battle interface, save) |
 | `engine.js` | rules and AI, no DOM, no campaign content: everything specific comes from the active pack |
 | `campaign.js` | campaign runs for any pack: open battles, final choices, fog of war, rewards |
 | `i18n.js` | interface texts and battle-log sentences, FR/EN |
 | `audio.js` | music and sound effects |
 | `assets.html` | gallery of a pack's illustrations (`assets.html?pack=normandie`) |
 | `packs/<id>/` | one campaign each (see below); `packs/index.cjs` lists them for node |
-| `packs/normandie/art.px.js` → `out/` | Normandy pixel art (pxl DSL); the built PNGs are committed in `out/` |
+| `packs/<id>/art.px.js` → `out/` | each campaign's pixel art (pxl DSL); the built PNGs are committed in `out/` |
 | `packs/test/pack.js` | hidden mini campaign the simulator plays, to prove the engine is campaign-agnostic |
 | `sim.cjs`, `balance.cjs` | headless AI-vs-AI simulator, see below |
 
@@ -111,13 +138,19 @@ powers bring their own behaviour as small functions ("hooks").
    - `pack.js`: identity. Title, subtitle, dates and finale text (all `{ fr, en }`), the 4 attribute
      names and their icons, the card types (name, `main` attribute for veterans, deploy `sound`), the
      art folder, the menu picture (`cover`) and the map (`image` + longitude/latitude frame).
+     Also its `era` (`{ key, fr, en, years }`: campaigns of the same `key` share one entry in the quick
+     battle picker, the first one gives the cards and terrains), and optionally its look: `theme` (CSS
+     colours: `olive`, `btn`, `btnHi`, `edge`, `bg1`-`bg3`, `panel`, `panelEdge`, `tile1`, `tile2`; the
+     defaults are Normandy's), `font: 'serif'` (titles in Georgia instead of the stencil) and `startSound`
+     (a sound of `audio.js` played when a battle starts).
    - `cards.js`: `cards`, the two `decks` (player, AI), the campaign `powers` and the `rewards` pools.
    - `terrains.js`: `traits` (how a terrain plays), `terrains` (name, threshold, trait, text) and
      `quick`, the terrains a quick battle draws from.
    - `battles.js`: the campaign graph. Each battle has a name, date, `day` (time must move forward on
      every link), `pos` on the map, `next`, a `pool` of 4 terrains and a brief. Battles nobody points to
      are the starting choices; a battle with no `next` ends the campaign. Optional `first`: who takes the
-     first turn (`0` the player, `1` the AI); without it, a coin toss.
+     first turn (`0` the player, `1` the AI); without it, a coin toss. Optional `defend: true`: at nightfall
+     without a majority, the player keeps the ground and wins (by default the AI does).
    - `art.px.js` → `out/`: pictures named `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's
      version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
      player, `coin_1.png` the AI). Build
@@ -152,7 +185,8 @@ firefly: {
   `tags`.
 - **Terrain traits**: `modify(g, unit, t, v)` for units on this terrain, `fieldAura(g, unit, t, v)` for
   units everywhere, `slotDelta`, `downValue` (worth of a face-down card), `drawBonus` once captured,
-  `hub` (adjacent to every terrain), `fog`, `blocksMove(g, unit)`, `immune`, `tags`.
+  `hub` (adjacent to every terrain), `fog`, `blocksMove(g, unit)`, `immune`, `tags`, `onTurnStart(g, t)`
+  (at the start of each turn of side `g.p`, while the terrain is open: Verdun's worn-out no man's land).
 - **Powers**: like orders, `targets(g)` + `onPlay(g, null, move)`; they never use up the turn.
 - **`g`** reads the board with `foes(t)`, `allies(t)`, `mine()`, `theirs()`, `live()`, `type(u)`,
   `vals(u, t)`, `totals(t)`, `count(t)`, `cap(t)`, `adjacent(a, b)`, `canMove(u, from, to)`, `safe(t)`,
@@ -160,7 +194,7 @@ firefly: {
   `malus`, `draw`, `smoke`, `putDown`, `toHand`. `g.hit(units)` / `g.hits([{ u, t }])` turn units into
   targets; `g.U(id)`, `g.T(t)`, `g.H(id)` build the click steps.
 
-`packs/normandie/` is the full reference; `packs/test/pack.js` shows mechanics Normandy does not have
+`packs/normandie/` and `packs/verdun/` are full references; `packs/test/pack.js` shows mechanics Normandy does not have
 (pushing an enemy back, conditional immunity, a ford, a bonus every turn) in a single file.
 
 ## Simulator

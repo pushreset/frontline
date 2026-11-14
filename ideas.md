@@ -11,7 +11,8 @@ Contraintes du moteur : 4 attributs, 3 terrains par bataille, 12 tours. Voir « 
 - **Mécaniques** : porte-avions qui donne +Air sur les autres terrains, kamikaze (se détruit pour détruire), jungle avec brouillard.
 - **Sons** : moteur naval à ajouter dans `audio.js`.
 
-### Première Guerre mondiale : les tranchées
+### Première Guerre mondiale : les tranchées — fait : `packs/verdun/` (Verdun 1916)
+Reste possible : une autre campagne 1914–1918 dans la même époque (la Marne, la Somme, Cambrai et les premiers chars), le sifflet et la sape sont déjà là.
 - **Attributs** : Artillerie, Infanterie, Génie, Moral.
 - **Batailles** : la Marne, Ypres, Verdun, la Somme, le Chemin des Dames, Cambrai (premiers chars), offensive des Cent-Jours.
 - **Terrains** : tranchée (immunité), no man's land (moins d'emplacements), cratère, fort, barbelés (bloque les mouvements).
