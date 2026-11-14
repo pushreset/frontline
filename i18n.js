@@ -10,6 +10,14 @@ const I18N = (() => {
     fr: {
       title: 'Ligne de Front', resume: w => `Reprendre — ${w}`, campaign: 'Campagne', quick: 'Bataille rapide',
       tagline: "Batailles de cartes à travers l'histoire", chooseCampaign: 'Choisis ta campagne', chooseEra: 'Choisis ton époque', back: 'Retour', battles: n => `${n} batailles`,
+      // phone layout
+      hourShort: (h, n) => `Heure <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">Toi <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> IA</span>`,
+      journal: 'Journal', flipShort: 'Retourner', hPlaceM: 'Touche un terrain « Poser ici ».', faceUpM: 'Visible', faceDownM: 'Cachée', supplySubM: 'défausse, pioche 2', barInfoM: 'Touche une carte. Appui long : détail.', orderLong: 'Ordre · appui long', close: 'Fermer', playCard: 'Jouer cette carte',
+      usefulOn: 'Pouvoir utile sur', playableOn: 'Jouable sur', usefulNone: "Aucune cible pour l'instant : posée, elle ne déclenchera pas son pouvoir.",
+      thrRow: 'Seuil', aiPlaced: 'IA posé', youPlaced: 'Toi posé', aiLacks: n => `IA manque <b>${n} pt${n > 1 ? 's' : ''}</b>`, youLacks: n => `Toi manque <b>${n} pt${n > 1 ? 's' : ''}</b>`,
+      modNote: (fx, p, name, attr, x, y) => `${fx} : ${p ? "l'unité adverse" : 'ton unité'} ${name} compte ${x} ${attr} au lieu de ${y}.`,
+      rotate: 'Tourne ton téléphone : le jeu se joue en portrait.', mapHint: 'Glisse pour explorer, pince pour zoomer', quit: 'Quitter la bataille',
+      zoomIn: 'Zoomer', zoomOut: 'Dézoomer', prev: 'Carte précédente', next: 'Carte suivante',
       defend: 'Défense', defendTip: "Tiens jusqu'à la nuit : si personne n'a deux terrains, tu gardes tes positions et tu gagnes.", noMajorityYou: "Personne n'a 2 terrains : le défenseur (toi) tient ses positions.",
       reset: 'Nouvelle campagne', confirm: 'Confirmer ?', colon: ' : ', music: 'Musique', sounds: 'Sons', yes: 'oui', no: 'non', lang: 'English',
       help: 'Aide', helpTip: 'Survole un terrain : les 1 ou 2 cartes de ta main les plus utiles à y jouer sont signalées.', tip1: '★ Meilleur choix', tip2: 'Bon choix',
@@ -63,6 +71,14 @@ const I18N = (() => {
     en: {
       title: 'Front Line', resume: w => `Resume — ${w}`, campaign: 'Campaign', quick: 'Quick battle',
       tagline: 'Card battles through history', chooseCampaign: 'Choose your campaign', chooseEra: 'Choose your era', back: 'Back', battles: n => `${n} battles`,
+      // phone layout
+      hourShort: (h, n) => `Hour <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">You <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> AI</span>`,
+      journal: 'Log', flipShort: 'Flip', hPlaceM: 'Tap a terrain marked “Play here”.', faceUpM: 'Face up', faceDownM: 'Face down', supplySubM: 'discard, draw 2', barInfoM: 'Tap a card. Long press: details.', orderLong: 'Order · long press', close: 'Close', playCard: 'Play this card',
+      usefulOn: 'Power useful on', playableOn: 'Playable on', usefulNone: 'No target for now: played, it will not trigger its power.',
+      thrRow: 'Threshold', aiPlaced: 'AI has', youPlaced: 'You have', aiLacks: n => `AI misses <b>${n} pt${n > 1 ? 's' : ''}</b>`, youLacks: n => `You miss <b>${n} pt${n > 1 ? 's' : ''}</b>`,
+      modNote: (fx, p, name, attr, x, y) => `${fx}: ${p ? 'the enemy' : 'your'} ${name} counts ${x} ${attr} instead of ${y}.`,
+      rotate: 'Turn your phone: the game is played in portrait.', mapHint: 'Drag to explore, pinch to zoom', quit: 'Leave the battle',
+      zoomIn: 'Zoom in', zoomOut: 'Zoom out', prev: 'Previous card', next: 'Next card',
       defend: 'Defence', defendTip: 'Hold until nightfall: if nobody has two terrains, you keep your ground and win.', noMajorityYou: 'Nobody holds 2 terrains: the defender (you) keeps its ground.',
       reset: 'New campaign', confirm: 'Confirm?', colon: ': ', music: 'Music', sounds: 'Sounds', yes: 'on', no: 'off', lang: 'Français',
       help: 'Help', helpTip: 'Hover a terrain: the 1 or 2 most useful cards to play there are flagged.', tip1: '★ Best pick', tip2: 'Good pick',

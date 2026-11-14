@@ -1,0 +1,15 @@
+{
+  "name": "Ligne de Front · Front Line",
+  "short_name": "Front Line",
+  "description": "Solo tactical card game in pixel art, across the eras of history.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0b0a",
+  "theme_color": "#0b0b0a",
+  "icons": [
+    { "src": "icons/out/sprites/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/out/sprites/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

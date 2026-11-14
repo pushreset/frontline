@@ -112,6 +112,18 @@ One long battle in one sector, on a staff map of the Meuse and its forts, from t
 
 Progress is saved automatically in the browser. Music and sound effects are generated with Web Audio.
 
+### Phone and offline
+
+- **Phones, portrait only** (below 600 px wide): three terrain columns side by side, units in 2 × 2 squares,
+  the hand as a fan, the same action bar in two lines. Tap a card then a terrain to play; **long press**
+  (400 ms) on a card or a unit for its details, **tap a terrain** for its sheet (threshold, what each side has
+  after the terrain's effect, what it misses, and why). The battle log, sound, language, enemy level and
+  restart live in the menu sheet. The Android back button cancels the current step or closes the sheet.
+  Held sideways, the phone asks to be turned. The campaign map drags with a finger and zooms with a pinch.
+- **Install it** (Add to Home Screen): it opens full screen, in portrait, and works **offline**. The service
+  worker (`sw.js`) fetches from the network first and keeps a copy of everything it loads; the installed app
+  also fetches every campaign picture once in the background. Above 600 px wide, nothing changes.
+
 ## Files
 
 | File | Role |
@@ -122,6 +134,7 @@ Progress is saved automatically in the browser. Music and sound effects are gene
 | `i18n.js` | interface texts and battle-log sentences, FR/EN |
 | `audio.js` | music and sound effects |
 | `assets.html` | gallery of a pack's illustrations (`assets.html?pack=normandie`) |
+| `manifest.webmanifest`, `sw.js`, `icons/` | installable app (PWA): manifest, offline service worker, icons (`icons/icon.px.js` → `icons/out/`) |
 | `packs/<id>/` | one campaign each (see below); `packs/index.cjs` lists them for node |
 | `packs/<id>/art.px.js` → `out/` | each campaign's pixel art (pxl DSL); the built PNGs are committed in `out/` |
 | `packs/test/pack.js` | hidden mini campaign the simulator plays, to prove the engine is campaign-agnostic |
