@@ -35,7 +35,7 @@
   .u.ghost { border:2px dashed #e6cf7a; opacity:.75; }
   .pill { font:bold 11px/1.5 var(--ui); font-style:normal; letter-spacing:0; text-transform:none; padding:1px 8px; border-radius:9px; white-space:nowrap; background:#e6cf7a; color:#1a1a12; }
   .pill.here { background:#8fc0ea; color:#10161c; }
-  .u .pill { position:absolute; left:50%; transform:translateX(-50%); top:-10px; z-index:1; } .u.ghost .pill { top:auto; bottom:-9px; }
+  .u .pill, .pill.stake { position:absolute; left:50%; transform:translateX(-50%); top:-10px; z-index:1; } .u.ghost .pill { top:auto; bottom:-9px; }
   .slot.blocked { display:flex; align-items:center; justify-content:center; text-align:center; font:10px var(--ui); color:#7d7a63;
                   background:repeating-linear-gradient(135deg,#1d1f17 0 6px,#24271c 6px 12px); }
   .slots { display:flex; gap:5px; justify-content:center; height:104px; }
@@ -134,6 +134,21 @@
   .nightfall { position:absolute; inset:-8px; z-index:4; display:flex; align-items:center; justify-content:center; font:bold 40px Georgia,serif; letter-spacing:4px;
                color:#f0d98a; background:#060a18cc; pointer-events:none; animation:night 1.4s both; }
   @keyframes night { 0% { opacity:0; } 25%, 70% { opacity:1; } 100% { opacity:0; } }
+  /* Who starts: a coin over the darkened screen. Tossed (.spin: it flips in the air and lands on the starter's face)
+     or, when the scenario decides, simply laid down (.laid). Resting state = the final face: no motion needed to read it. */
+  #toss { position:fixed; inset:0; z-index:9; display:none; flex-direction:column; align-items:center; justify-content:center; gap:28px; background:#0c0f09; }
+  #toss.show { display:flex; }
+  .coin { position:relative; width:160px; height:160px; transform-style:preserve-3d; transform:perspective(700px) rotateX(var(--end)); }
+  .coin i { position:absolute; inset:0; background:center/100% no-repeat; image-rendering:pixelated; backface-visibility:hidden; }
+  .coin i + i { transform:rotateX(180deg); }
+  #toss p { margin:0; font:bold 26px Georgia,serif; letter-spacing:2px; color:var(--paper); text-shadow:0 2px 0 #000; }
+  .spin .coin { animation:toss 1.5s cubic-bezier(.3,.5,.4,1) both; } .spin p { animation:fadein .4s 1.5s both; }
+  .laid .coin { animation:laid .45s ease-out both; } .laid p { animation:fadein .4s .4s both; }
+  @keyframes toss { 0% { transform:perspective(700px) translateY(70px) scale(.7) rotateX(calc(var(--end) - 1800deg)); }
+    45% { transform:perspective(700px) translateY(-150px) scale(1.2) rotateX(calc(var(--end) - 760deg)); }
+    84% { transform:perspective(700px) rotateX(var(--end)); } 92% { transform:perspective(700px) translateY(-12px) rotateX(var(--end)); } }
+  @keyframes laid { from { opacity:0; transform:perspective(700px) translateY(-40px) scale(1.3) rotateX(var(--end)); } }
+  #brief img.ic { width:16px; image-rendering:pixelated; vertical-align:-3px; }
   /* A unit leaving the board never just vanishes: destroyed = it shakes, flashes and bursts; back to hand = it slides toward its owner. */
   .u.gone, .u.away { position:fixed; z-index:5; flex:none; pointer-events:none; }
   .u.gone .pill, .u.away .pill { display:none; }
@@ -152,7 +167,7 @@
   /* Screens: one of menu / map / game is visible, driven by body[data-screen]. */
   #menu, #map { position:fixed; inset:0; display:none; }
   body[data-screen=menu] #menu, body[data-screen=map] #map { display:flex; }
-  body:not([data-screen=game]) #top, body:not([data-screen=game]) #wrap, body:not([data-screen=game]) #end { display:none !important; }
+  body:not([data-screen=game]) #top, body:not([data-screen=game]) #wrap, body:not([data-screen=game]) #end, body:not([data-screen=game]) #toss { display:none !important; }
   #menu { flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000 center/cover no-repeat; image-rendering:pixelated; }
   #menu::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 45%,#0007,#000d); }
   #menu > * { position:relative; }
@@ -210,17 +225,18 @@
   </main>
 </div>
 <div id="end"></div>
+<div id="toss"></div>
 <div id="peek" class="card"></div>
-<script src="engine.js?v=4"></script>
+<script src="engine.js?v=5"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=4"></script>
-<script src="packs/normandie/cards.js?v=4"></script>
-<script src="packs/normandie/terrains.js?v=4"></script>
-<script src="packs/normandie/battles.js?v=4"></script>
-<script src="campaign.js?v=4"></script>
-<script src="audio.js?v=4"></script>
-<script src="i18n.js?v=4"></script>
+<script src="packs/normandie/pack.js?v=5"></script>
+<script src="packs/normandie/cards.js?v=5"></script>
+<script src="packs/normandie/terrains.js?v=5"></script>
+<script src="packs/normandie/battles.js?v=5"></script>
+<script src="campaign.js?v=5"></script>
+<script src="audio.js?v=5"></script>
+<script src="i18n.js?v=5"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
@@ -240,7 +256,7 @@ let s, sel = null, hiddenMode = false, flipHint = false, busy = false, pick = nu
 // Animation state: intro = deal the terrains on this render; fx = captures to animate on the next render;
 // endShown = false while the board stays visible after the decisive capture.
 let intro = false, fx = null, endShown = true;
-const FX_MS = 1600, NIGHT_MS = 1000, STEP_MS = 900, LOOK_MS = 1500, INTRO_MS = 2300;
+const FX_MS = 1600, NIGHT_MS = 1000, STEP_MS = 900, LOOK_MS = 1500, INTRO_MS = 2300, TOSS_MS = 2700, LAID_MS = 1600;
 const fxMs = f => !f ? 0 : f.night ? NIGHT_MS + STEP_MS * (f.caps.length - 1) + FX_MS : FX_MS;
 const C = CAMPAIGN, SAVE = 'ldf-v1', I = I18N, L = I18N.t;
 // Language: saved choice, else English unless the browser is French.
@@ -260,6 +276,7 @@ save.pack = PACKS[save.pack] && !PACKS[save.pack].hidden ? save.pack : PACK_IDS[
 usePack(save.pack);
 const runNow = () => save.runs[E.PACK.id] || (save.runs[E.PACK.id] = C.newRun()); // run of the active pack
 const camp = () => save.cur && save.cur.mode === 'campagne';
+const total = () => s.winner === 0 && s.terrains.every(T => T.captured === 0); // total victory: all three terrains
 const persist = () => { try { localStorage.setItem(SAVE, JSON.stringify(save)); } catch { /* no storage: play without save */ } };
 const screen = name => { document.body.dataset.screen = name; SND.setMood(name === 'game' ? 'battle' : 'calm'); if (name === 'menu') renderMenu(); if (name === 'map') renderMap(); };
 const terrainArt = key => `${ART()}scenes/t_${E.TERRAINS[key].art || key}.png`;
@@ -306,14 +323,31 @@ function peek(e) {
   box.style.top = Math.min(innerHeight - h - 8, Math.max(8, r.top + r.height / 2 - h / 2)) + 'px';
 }
 
+const coinArt = p => `${ART()}sprites/coin_${p}.png`; // the two faces of the initiative coin: 0 the player, 1 the enemy
+// Who starts, shown before the terrains are dealt: the coin is tossed, or laid down when the scenario decides. Returns how long it lasts.
+function toss(first, tossed) {
+  $('toss').className = 'show ' + (tossed ? 'spin' : 'laid');
+  $('toss').innerHTML = `<div class="coin" style="--end:${first * 180}deg"><i style="background-image:url(${coinArt(0)})"></i><i style="background-image:url(${coinArt(1)})"></i></div>
+    <p>${L((tossed ? 'toss' : 'script') + (first ? 'Ai' : 'You'))}</p>`;
+  if (tossed) SND.play('coin');
+  SND.play('card', tossed ? 1.25 : 0.3);
+  return tossed ? TOSS_MS : LAID_MS;
+}
+// Both modes play with the total victory rule. Who starts: the battle's scenario in a campaign (first: 0 the player,
+// 1 the AI), else a coin toss, thrown again on every new attempt.
 function startBattle(mode, battle) {
   usePack(save.pack);
-  s = mode === 'campagne' ? E.newGame(C.draw(C.byId[battle]), { cards: runNow().cards, powers: runNow().powers }) : E.newGame(E.randomTerrains());
+  const camp = mode === 'campagne', script = camp ? C.byId[battle].first : undefined, first = script ?? (Math.random() < 0.5 ? 0 : 1);
+  s = E.newGame(camp ? C.draw(C.byId[battle]) : E.randomTerrains(), camp ? { cards: runNow().cards, powers: runNow().powers } : {}, { total: true, first });
+  s.log.push({ e: 'first', p: first });
   save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
-  busy = intro = true; persist(); screen('game'); render(); intro = false;
-  s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
-  const mine = s;
-  setTimeout(() => { if (s === mine) { busy = false; render(); } }, INTRO_MS);
+  busy = true; persist(); screen('game'); render();
+  const mine = s, later = (f, ms) => setTimeout(() => { if (s === mine) f(); }, ms);
+  later(() => {
+    $('toss').className = ''; intro = true; render(); intro = false;
+    s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
+    later(() => { busy = false; render(); if (s.turn === 1) aiTurn(); }, INTRO_MS);
+  }, toss(first, script == null));
 }
 function resume() {
   s = save.cur.s; usePack(s.pack || 'normandie'); sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
@@ -373,14 +407,15 @@ function renderMap() {
     <svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>` +
     C.BATTLES.map(b => { const [x, y] = xy(b);
       return `<button class="node ${st(b)} ${b.id === pick ? 'sel' : ''} ${x > 90 ? 'east' : ''}" data-pick="${b.id}" style="left:${x}%;top:${y}%"><i></i><span>${I.battle(b).name}</span></button>`; }).join('');
-  const b = B(pick), state = st(b), r = run.rewards[b.id], choices = C.open(run.path).length;
+  const b = B(pick), state = st(b), r = run.rewards[b.id], bonus = (run.bonus || {})[b.id], choices = C.open(run.path).length;
   const army = [...run.cards.map(c => `<span>${nameV(c.key, 0, c.vet)}</span>`), ...run.powers.map(k => `<span class="p">⚡ ${I.powerName(k)}</span>`)];
   $('brief').innerHTML = `<h2>${b.name}</h2><div class="date">${b.date}</div><p>${b.brief}</p>
     <div class="vals">${L('profile')}${L('colon')}${profile(b)}</div>
+    <div>${L('init')}${L('colon')}${(b.first == null ? [0, 1] : [b.first]).map(p => `<img class="ic" src="${coinArt(p)}" alt="">`).join(' ')} <b>${L(b.first === 0 ? 'initYou' : b.first === 1 ? 'initAi' : 'initToss')}</b></div>
     <div>${L('pool')}</div>
     <div class="pool">${b.pool.map(k => `<div><img src="${terrainArt(k)}" alt="">${I.terrainName(k)}</div>`).join('')}</div>
-    ${C.last(b.id) ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}`
-      : state === 'won' ? `<h3>${L('rewardGot')}</h3>${rewardHTML(r)}`
+    ${C.last(b.id) ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}<small>${L('totalHint')}</small>`
+      : state === 'won' ? `<h3>${L('rewardGot')}</h3>${rewardHTML(r)}${bonus ? `<h3>${L('bonusGot')}</h3>${rewardHTML(bonus)}` : ''}`
       : state === 'gone' ? `<p class="gone">${L('gone')}</p>` : `<p class="fog">${L('rewardFog')}</p>`}
     ${state === 'open' ? `<button data-go="launch" class="on">${L('launch')}</button>${choices > 1 ? `<small>${L('commit')}</small>` : ''}` : ''}
     ${C.done(run) ? `<p>${L('endDone')}</p><button data-go="reset">${L('reset')}</button>` : ''}
@@ -455,7 +490,7 @@ function render() {
   view = s.winner === null ? E.blind(s, 0) : s; pvBase = pm ? sim(pm) : null; pvKey = ''; tips = {}; tipT = null;
   document.querySelector('main').dataset.st = $('bar').dataset.st = st;
   const caps = p => s.terrains.filter(T => T.captured === p).length;
-  const camp = save.cur.mode === 'campagne';
+  const camp = save.cur.mode === 'campagne', atStake = s.winner === null && E.settled(s); // two terrains taken: the battle is won, the third decides the total victory
   $('bname').textContent = camp ? B(save.cur.battle).name : L('quick');
   $('toMenu').textContent = L('menu'); $('toMap').textContent = L('map'); if (!$('restart').dataset.armed) $('restart').textContent = L('restart');
   $('toMap').style.display = camp ? '' : 'none';
@@ -500,6 +535,7 @@ function render() {
         <img class="art" src="${terrainArt(T.key)}" alt="">
         ${lack(1)}<div class="vals thr" title="${L('thr')}">${valsHTML(th)}</div>${lack(0)}
         ${stamp ? `<div class="stamp s${T.captured === null ? 'x' : T.captured}">${L(stamp)}</div>` : ''}
+        ${atStake && T.captured === null ? `<span class="pill stake" title="${L('securedTip')}">${L('secured')}</span>` : ''}
         ${k >= 0 && !fx.night && T.captured !== null ? `<div class="rise s${T.captured}">${L(T.captured ? 'fxLose' : 'fxWin')}</div>` : ''}
       </div>
       <div class="slots ${intro ? 'late' : ''}">${row(0)}</div></div>`;
@@ -535,11 +571,12 @@ function render() {
 
   $('end').className = s.winner !== null && endShown ? 'show' : '';
   if (s.winner !== null && endShown) {
-    const win = s.winner === 0, done = camp && win && C.last(save.cur.battle);
-    $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${done ? I.pack('finale') : L(win ? 'victory' : 'defeat')}</h2>
-      <div>${L(s.timeout ? 'byNight' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
+    const win = s.winner === 0, done = camp && win && C.last(save.cur.battle), bonus = camp && win && (runNow().bonus || {})[save.cur.battle];
+    $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${done ? I.pack('finale') : L(total() ? 'totalVictory' : win ? 'victory' : 'defeat')}</h2>
+      <div>${L(s.timeout ? 'byNight' : total() ? 'byThree' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
       ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L('noMajority')}</div>` : ''}
       ${camp && win && save.cur.got ? `<p>${save.cur.got.t === 'none' ? L('rewardNone') : `${L('endReward')} <b>${rewardName(save.cur.got)}</b>`}</p>` : ''}
+      ${camp && bonus ? `<p>${L('endBonus')} <b>${rewardName(bonus)}</b></p>` : ''}
       ${done ? `<p>${L('endDone')}</p>` : camp && win ? `<p>${L('endWin')}</p>` : camp ? `<p>${L('endLose')}</p>` : ''}
       <div class="row">${camp ? (win ? `<button data-go="map" class="on">${L('backMap')}</button>`
         : `<button data-go="again" class="on">${L('again')}</button><button data-go="map">${L('map')}</button>`)
@@ -591,7 +628,7 @@ function act(m) {
 }
 // After every action: record a campaign win, save, redraw.
 function played() {
-  if (s.winner === 0 && camp() && !runNow().path.includes(save.cur.battle)) save.cur.got = C.win(runNow(), save.cur.battle) || { t: 'none' };
+  if (s.winner === 0 && camp() && !runNow().path.includes(save.cur.battle)) save.cur.got = C.win(runNow(), save.cur.battle, total()) || { t: 'none' };
   persist(); render();
 }
 function aiTurn(wait = 0) {

@@ -627,6 +627,41 @@ sprite("i_strat", `
   .kkk...kkk.
   kk.......kk`)
 
+// ------------------------------------------------------------------ initiative coin (32x32)
+// One face per side, tossed at the start of a battle: coin_0 = the player (Allied star), coin_1 = the enemy (eagle).
+// edge / rim (lit from the top left) / groove / face, then the emblem.
+const coin = (edge, rim, lit, face) => (c) => {
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+    const d = Math.hypot(x - 15.5, y - 15.5)
+    if (d <= 15.6) c.px(x, y, d > 14.6 ? edge : d > 12.6 ? (x + y < 28 ? lit : rim) : d > 11.7 ? edge : face)
+  }
+}
+// Five-pointed star filled at pixel centres: symmetric by construction (a rounded poly() is not).
+const star = (cx, cy, R, r, col) => (c) => {
+  const P = Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; return [cx + d * Math.cos(a), cy + d * Math.sin(a)] })
+  const inside = (x, y) => P.reduce((n, [x1, y1], i) => { const [x2, y2] = P[(i + 1) % 10]; return (y1 > y) !== (y2 > y) && x < x1 + (y - y1) * (x2 - x1) / (y2 - y1) ? !n : n }, false)
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (inside(x + 0.5, y + 0.5)) c.px(x, y, col)
+}
+sprite("coin_0", { w: 32, h: 32 }, coin("v", "o", "l", "O"), star(16, 17, 11, 4.4, "w"))
+sprite("_eagle", { mx: true }, `
+  ........kk
+  ........kk
+  .........k
+  kkkkkkkkkk
+  kkkkkkkkkk
+  .kkkkkkkkk
+  .k.kkkkkkk
+  .k.k.kkkkk
+  ...k.k.kkk
+  .....k.kkk
+  ........kk
+  ......kk.k
+  .....kk..k
+  ........kk
+  .......kkk
+  .......kkk`)
+sprite("coin_1", { w: 32, h: 32 }, coin("z", "A", "a", "Z"), stamp("_eagle", 6, 9), px(13, 10, "k"))
+
 // ------------------------------------------------------------------ campaign map (320x140)
 // Same frame as campaign.js project(): lon -2.0..2.5, lat 49.8..48.5. Seen from above, staff-map style:
 // bocage patchwork, rivers, forests, towns. Battle markers and names are HTML on top.

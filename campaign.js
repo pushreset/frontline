@@ -34,27 +34,31 @@ const CAMPAIGN = (() => {
     if (r < 0.8) { const a = left('power', C.POWERS); return a.length ? { t: 'power', key: one(a) } : vet; }
     return { t: 'none' };
   }
+  // What the run already has or is being offered: never rolled again.
+  const taken = run => [...run.cards.map(c => ({ t: c.vet ? 'vet' : 'card', key: c.key })), ...run.powers.map(key => ({ t: 'power', key })),
+    ...open(run.path).map(x => run.rewards[x]).filter(Boolean)];
   function reveal(run) {
-    const owned = [...run.cards.map(c => ({ t: c.vet ? 'vet' : 'card', key: c.key })), ...run.powers.map(key => ({ t: 'power', key }))];
-    for (const id of open(run.path)) if (byId[id].next.length && !run.rewards[id]) {
-      const offered = open(run.path).map(x => run.rewards[x]).filter(Boolean);
-      run.rewards[id] = pick(run, [...owned, ...offered]);
-    }
+    for (const id of open(run.path)) if (byId[id].next.length && !run.rewards[id]) run.rewards[id] = pick(run, taken(run));
     return run;
   }
   const newRun = () => reveal({ rewards: {}, path: [], cards: [], powers: [] });
   // What a reward adds to the run (to the deck or to the powers).
-  function gain(run, id) {
-    const r = run.rewards[id];
+  function gain(run, r) {
     if (!r) return;
     if (r.t === 'vet') run.cards.push({ key: r.key, vet: true });
     else if (r.t === 'card') run.cards.push({ key: r.key });
     else if (r.t === 'power') run.powers.push(r.key);
   }
   // Victory in a campaign battle: commit to it, collect its reward, reveal what lies just ahead.
-  function win(run, id) {
+  // total (all three terrains captured): one more reinforcement, rolled now and never "nothing" (run.bonus[id]).
+  // Not on the last battle: nothing left to reinforce.
+  function win(run, id, total) {
     if (run.path.includes(id)) return null;
-    run.path.push(id); gain(run, id); reveal(run);
+    run.path.push(id); gain(run, run.rewards[id]); reveal(run);
+    if (total && !last(id)) {
+      let r; do r = pick(run, taken(run)); while (r.t === 'none');
+      (run.bonus = run.bonus || {})[id] = r; gain(run, r);
+    }
     return run.rewards[id] || null;
   }
   const open = path => path.length ? byId[path[path.length - 1]].next : roots;

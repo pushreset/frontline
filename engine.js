@@ -170,6 +170,8 @@ const E = (() => {
     });
   }
 
+  const caps = (s, p) => s.terrains.filter(T => T.captured === p).length;
+  const settled = s => !!s.total && caps(s, 0) >= 2; // total victory rule: the player has already won, only the third terrain is at stake
   function startTurn(s) {
     const p = s.turn;
     s.smoke[p] = false;
@@ -177,7 +179,10 @@ const E = (() => {
       // ripe = held since the end of p's previous turn: the opponent had a full turn to answer.
       if (T.captured === null && T.holder === p && T.ripe) { T.captured = p; log(s, { e: 'capture', p, t: T.key }); }
     });
-    if (s.terrains.filter(T => T.captured === p).length >= 2) { s.winner = p; return; }
+    // Total victory (s.total, the player only): two terrains win the battle but it goes on for the third,
+    // until someone captures it or night falls. The AI still wins on two.
+    if (caps(s, p) >= (s.total && p === 0 ? 3 : 2)) { s.winner = p; return; }
+    if (settled(s) && caps(s, 1) === 1) { s.winner = 0; return; }
     const g = new G(s, p);
     for (let t = 0; t < 3; t++) if (live(s, t)) for (const u of [...s.terrains[t].side[p]]) { const C = CARDS[u.key]; if (C.onTurnStart) C.onTurnStart(g, u); }
     control(s, p);
@@ -202,7 +207,7 @@ const E = (() => {
     const p = s.turn;
     control(s, p);
     s.terrains.forEach(T => { if (T.captured === null && T.holder === p) T.ripe = true; });
-    if (++s.players[p].turns >= RULES.turns && p === 1) return timeout(s);
+    if (++s.players[p].turns >= RULES.turns && p !== (s.first || 0)) return timeout(s); // night falls once the second player has had the last turn
     s.turn = 1 - p;
     startTurn(s);
   }
@@ -263,14 +268,16 @@ const E = (() => {
   }
 
   // bonus (campaign): { cards: [{ key, vet }], powers: [name] } for player 0.
-  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}) {
+  // total: the player (0) plays on after two captures, for the total victory (three terrains).
+  // first: who takes the first turn (0 the player, 1 the AI).
+  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}, { total = false, first = 0 } = {}) {
     let id = 0;
     const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].map(key => ({ key }))];
     const s = {
       pack: PACK.id,
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
       players: lists.map((list, p) => ({ list, powers: p ? [] : [...(bonus.powers || [])], deck: shuffle(list.map(c => ({ id: id++, ...c }))), hand: [], discard: [], turns: 0 })),
-      turn: 0, winner: null, timeout: false, smoke: [false, false], log: [],
+      total, first, turn: first, winner: null, timeout: false, smoke: [false, false], log: [],
     };
     // ponytail: no mulligan — add when hand quality shows up as a problem in playtests.
     draw(s, 0, 5); draw(s, 1, 5);
@@ -305,8 +312,11 @@ const E = (() => {
     hard: { def: 1.4, hold: 40, late: 15, hand: 0.15, spread: 0, bluff: 0, aggro: 10, roll: 24, k: 6, slack: 2 },
   };
   function score(s, p, w = LEVELS.normal) {
-    if (s.winner !== null) return s.winner === p ? 1e4 : -1e4;
-    const o = 1 - p, caps = s.terrains.filter(T => T.captured !== null).length;
+    // Settled battle: still the player's win (±1e4), but what is left to fight for is the total victory:
+    // the usual judgement on top while it lasts, ±1e3 once it is over (three terrains or not).
+    const won = settled(s) ? (p ? -1e4 : 1e4) : 0;
+    if (s.winner !== null) return won ? won + (caps(s, 0) === 3 === !p ? 1e3 : -1e3) : s.winner === p ? 1e4 : -1e4;
+    const o = 1 - p, done = s.terrains.filter(T => T.captured !== null).length;
     const late = RULES.turns - s.players[p].turns <= 2; // night is close: percentages decide
     let v = w.hand * s.players[p].hand.length + w.spread * s.terrains.filter(T => T.captured === null && T.side[p].length).length;
     s.terrains.forEach((T, t) => {
@@ -317,9 +327,9 @@ const E = (() => {
       const tot = totals(s, t, p), over = sum(thr(s, t).map((th, i) => Math.max(0, tot[i] - th)));
       x += over * (b > 0.5 ? 0.5 : -0.7); // waste, unless the terrain is contested
       if (late) x += a > b ? w.late : a < b ? -w.late : 0;
-      v += x * (1 + 0.5 * caps); // remaining terrains become decisive
+      v += x * (1 + 0.5 * done); // remaining terrains become decisive
     });
-    return v;
+    return won + v;
   }
   // p's guess of the opponent's hidden cards: starting deck (public) minus what p has seen, re-dealt.
   // Card counting, not cheating: the real hand and deck order are never read.
@@ -355,13 +365,13 @@ const E = (() => {
     // Régulier players, on worlds where the opponent's hand and both draw orders are re-dealt.
     const tried = ranked.slice(0, w.k);
     for (const r of tried) {
-      if (r.v >= 1e4) return r.m;
+      if (r.v >= 1e4 && !settled(b)) return r.m;
       r.wins = 0;
       for (let i = 0; i < w.roll; i++) {
         const c = guess(b, p);
         play(c, r.m);
         while (c.winner === null) play(c, aiMove(blind(c, c.turn)));
-        if (c.winner === p) r.wins++;
+        if (settled(b) ? caps(c, 0) === 3 === !p : c.winner === p) r.wins++; // settled: what is left to win is the third terrain
       }
     }
     const top = Math.max(...tried.map(r => r.wins));
@@ -371,7 +381,7 @@ const E = (() => {
   return {
     use, RULES, ORDER, get TURNS() { return RULES.turns; }, get PACK() { return PACK; },
     get CARDS() { return CARDS; }, get TERRAINS() { return TERRAINS; }, get POWERS() { return POWERS; }, get MAIN() { return MAIN; },
-    newGame, randomTerrains, moves, play, aiMove, score, LEVELS, blind, vals, totals, thr, lack, fills, surplus, pct, cap, control,
+    newGame, randomTerrains, moves, play, aiMove, score, LEVELS, blind, vals, totals, thr, lack, fills, surplus, pct, cap, control, settled,
   };
 })();
 if (typeof module !== 'undefined') module.exports = E;

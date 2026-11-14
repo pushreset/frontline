@@ -50,6 +50,7 @@ const SND = (() => {
   // ---- effects -------------------------------------------------------------------------------
   const FX = {
     click: t => tone(1200, t, 0.03, { type: 'square', gain: 0.03 }),
+    coin: t => { tone(2637, t, 0.5, { type: 'triangle', gain: 0.1, wet: true }); tone(3520, t, 0.35, { gain: 0.05 }); }, // ting of a flipped coin
     card: t => noise(t, 0.14, { type: 'bandpass', f: 3500, to: 1200, q: 0.8, gain: 0.25 }),
     shuffle: t => { for (let i = 0; i < 4; i++) FX.card(t + i * 0.09); },
     flip: t => { noise(t, 0.05, { type: 'highpass', f: 3000, gain: 0.2 }); tone(660, t + 0.05, 0.12, { type: 'triangle', gain: 0.08, to: 990 }); },

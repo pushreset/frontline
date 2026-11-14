@@ -16,7 +16,12 @@ Allies against an AI that plays the German side with its own deck.
 - Fill a terrain's whole threshold with your units and you **hold** it.
 - If you still hold it at the start of your next turn, it is **captured**: the opponent had a full
   turn to strike back and failed. A captured terrain is closed for the rest of the battle.
-- **Capture two terrains to win.**
+- **Capture two terrains to win.** The AI wins on the spot. You play on for the third one: all three
+  is a **total victory** (in a campaign: one more reinforcement). The battle ends when the third
+  terrain is captured, by either side, or at nightfall.
+- **Who starts** is decided before the terrains are dealt: a coin is tossed (Allied star, you start;
+  eagle, the AI starts) in a quick battle, while each campaign battle follows its scenario (you, the AI,
+  or the same coin toss).
 - If nobody has two by **nightfall** (12 turns each), each open terrain goes to the side that filled
   the larger share of its threshold. Without a majority of two terrains, the defender (the AI) keeps
   its ground and wins.
@@ -111,9 +116,11 @@ powers bring their own behaviour as small functions ("hooks").
      `quick`, the terrains a quick battle draws from.
    - `battles.js`: the campaign graph. Each battle has a name, date, `day` (time must move forward on
      every link), `pos` on the map, `next`, a `pool` of 4 terrains and a brief. Battles nobody points to
-     are the starting choices; a battle with no `next` ends the campaign.
+     are the starting choices; a battle with no `next` ends the campaign. Optional `first`: who takes the
+     first turn (`0` the player, `1` the AI); without it, a coin toss.
    - `art.px.js` → `out/`: pictures named `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's
-     version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, and `sprites/i_<icon>.png`. Build
+     version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
+     player, `coin_1.png` the AI). Build
      with `node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/<id>/art.px.js --no-preview`.
      A card or terrain can borrow another picture with `art: '<key>'`.
 2. **Register it**: add its files to `packs/index.cjs` (node) and as `<script>` tags in `index.html`

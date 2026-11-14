@@ -31,8 +31,31 @@ for (const [id, P] of Object.entries(PACKS)) {
     b.pool.forEach(k => assert(P.terrains[k], `${id}/${b.id}: unknown terrain ${k}`));
     for (const k of ['name', 'date', 'brief']) both(b[k], `${b.id} ${k}`);
     for (const n of b.next) assert(C.byId[n] && C.byId[n].day >= b.day, `${id}: ${b.id} -> ${n} goes back in time`);
+    assert([0, 1, undefined].includes(b.first), `${id}/${b.id}: first is 0 (player), 1 (AI) or absent (coin toss)`);
   }
   assert.equal(C.BATTLES.filter(b => C.status(b.id, []) === 'gone').length, 0, `${id}: every battle reachable at the start`);
+}
+{ // Total victory (newGame's third argument): the player plays on after two captures, the AI never does.
+  E.use('normandie');
+  const at = (total, caps, turn) => { // a battle with these terrains captured, as judged at the start of `turn`'s turn
+    const s = E.newGame(undefined, {}, { total });
+    s.terrains.forEach((T, t) => { T.captured = caps[t]; });
+    s.turn = 1 - turn; E.play(s, { kind: 'pass' }); // the pass hands the turn over
+    return s.winner;
+  };
+  assert.equal(at(false, [0, 0, null], 0), 0, 'old rule: two terrains end the battle');
+  assert.equal(at(true, [0, 0, null], 0), null, 'total: two terrains, the battle goes on');
+  assert.equal(at(true, [0, 0, null], 1), null, 'total: the AI plays on too');
+  assert.equal(at(true, [0, 0, 0], 0), 0, 'total: third terrain to the player');
+  assert.equal(at(true, [0, 0, 1], 1), 0, 'total: third terrain to the AI, the player still wins');
+  assert.equal(at(true, [1, 1, null], 1), 1, 'total: the AI wins on two');
+  // Who starts (newGame's `first`): that side takes the first turn, night falls after 12 turns each either way.
+  for (const first of [0, 1]) {
+    const s = E.newGame(undefined, {}, { first });
+    assert.equal(s.turn, first, 'the first player takes the first turn');
+    for (let i = 0; i < 2 * E.TURNS; i++) { assert.equal(s.winner, null, 'no night before 12 turns each'); E.play(s, { kind: 'pass' }); }
+    assert(s.timeout && s.players.every(P => P.turns === E.TURNS), 'night after 12 turns each');
+  }
 }
 { // Normandy map: 3 beaches, runs of 8-10 battles ending in Paris, sibling branches closed on victory.
   E.use('normandie'); C.use('normandie');
@@ -234,34 +257,40 @@ if (process.argv[3] === 'partie') {
 // Campaign mode: balance of each battle, then whole runs with and without the rewards.
 if (process.argv[3] === 'campagne') {
   const N = +process.argv[2] || 500;
-  const game = (keys, bonus) => { const s = E.newGame(keys, bonus); while (s.winner === null) E.play(s, E.aiMove(s)); return s; };
-  console.log(`Campagne, ${N} batailles IA contre IA par étape, sans renfort (cible : joueur 45-60 %, temps <= 30 %)`);
+  const game = (keys, bonus, opts) => { const s = E.newGame(keys, bonus, opts); while (s.winner === null) E.play(s, E.aiMove(s)); return s; };
+  const sweep = s => s.winner === 0 && s.terrains.every(T => T.captured === 0);
+  // Each battle in both orders (N battles each). The target is checked on the battle's scenario:
+  // the player starts, the AI starts, or a coin toss (the mean of both).
+  console.log(`Campagne, ${N} batailles IA contre IA par étape et par ordre, sans renfort (cible selon le scénario : joueur 45-60 %, temps <= 30 %)`);
   for (const b of C.BATTLES) {
-    let w = 0, to = 0, len = 0;
-    for (let i = 0; i < N; i++) { const s = game(C.draw(b)); if (s.winner === 0) w++; if (s.timeout) to++; len += s.players[0].turns; }
-    const pw = 100 * w / N, pt = 100 * to / N, ok = pw >= 45 && pw <= 60 && pt <= 30;
-    console.log(`${ok ? ' ' : '!'} ${I.battle(b).name.padEnd(24)} joueur ${pw.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N).toFixed(1)} tours`);
+    const w = [0, 0]; let to = 0, len = 0;
+    for (let i = 0; i < 2 * N; i++) { const s = game(C.draw(b), {}, { first: i % 2 }); if (s.winner === 0) w[i % 2]++; if (s.timeout) to++; len += s.players[0].turns; }
+    const pw = w.map(x => 100 * x / N), pt = 50 * to / N, sc = b.first == null ? (pw[0] + pw[1]) / 2 : pw[b.first], ok = sc >= 45 && sc <= 60 && pt <= 30;
+    console.log(`${ok ? ' ' : '!'} ${I.battle(b).name.padEnd(24)} joueur d'abord ${pw[0].toFixed(0).padStart(3)} %  IA d'abord ${pw[1].toFixed(0).padStart(3)} %  scénario ${['joueur', 'IA    '][b.first] || 'jeton '} ${sc.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N / 2).toFixed(1)} tours`);
   }
   // Runs: random route, every battle won eventually (its reward is collected), the player is a Régulier.
   // Same battle played with the run's rewards and without, to measure what the rewards are worth.
+  // Total victory rule on: a battle won with all three terrains also brings its bonus reinforcement.
+  // Who starts follows each battle's scenario.
   const R = Math.max(20, N / 5), by = [], kinds = {};
   let lens = 0;
   for (let r = 0; r < R; r++) {
     const run = C.newRun();
     for (let k = 0; ; k++) {
       const now = C.open(run.path), id = now[Math.floor(Math.random() * now.length)], keys = C.draw(C.byId[id]);
-      const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0 });
-      x.n++; if (game(keys, run).winner === 0) x.w++; if (game(keys).winner === 0) x.w0++;
-      const got = C.win(run, id), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
+      const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0, t: 0 });
+      const opts = { total: true, first: C.byId[id].first ?? (Math.random() < 0.5 ? 0 : 1) }, s = game(keys, run, opts), tot = sweep(s);
+      x.n++; if (s.winner === 0) x.w++; if (tot) x.t++; if (game(keys, {}, opts).winner === 0) x.w0++;
+      const got = C.win(run, id, tot), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
       if (C.last(id)) break;
     }
     lens += run.path.length;
   }
   console.log(`\n${R} campagnes complètes (route au hasard), ${(lens / R).toFixed(1)} batailles en moyenne. Récompenses : ` + Object.entries(kinds).filter(([k]) => k !== 'paris').map(([k, v]) => `${k} ${v}`).join(', '));
-  console.log('Étapes        avec renforts   sans   écart (cible en fin de campagne : +5 à +15 pts)');
+  console.log('Étapes        avec renforts   sans   écart (cible en fin de campagne : +5 à +15 pts)   victoires totales');
   for (const [name, lo, hi] of [['début 1-3', 0, 3], ['milieu 4-6', 3, 6], ['fin 7-10', 6, 10]]) {
-    const x = by.slice(lo, hi).reduce((a, y) => ({ w: a.w + y.w, w0: a.w0 + y.w0, n: a.n + y.n }), { w: 0, w0: 0, n: 0 });
-    if (x.n) console.log(`${name.padEnd(12)} ${(100 * x.w / x.n).toFixed(0).padStart(10)} %  ${(100 * x.w0 / x.n).toFixed(0).padStart(5)} %  ${(100 * (x.w - x.w0) / x.n).toFixed(0).padStart(5)} pts`);
+    const x = by.slice(lo, hi).reduce((a, y) => ({ w: a.w + y.w, w0: a.w0 + y.w0, n: a.n + y.n, t: a.t + y.t }), { w: 0, w0: 0, n: 0, t: 0 });
+    if (x.n) console.log(`${name.padEnd(12)} ${(100 * x.w / x.n).toFixed(0).padStart(10)} %  ${(100 * x.w0 / x.n).toFixed(0).padStart(5)} %  ${(100 * (x.w - x.w0) / x.n).toFixed(0).padStart(5)} pts ${(100 * x.t / x.n).toFixed(0).padStart(40)} %`);
   }
   process.exit(0);
 }
