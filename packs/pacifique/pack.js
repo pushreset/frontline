@@ -23,7 +23,7 @@
   art: 'packs/pacifique/out/',
   cover: 'suribachi',
   // Longitudes east of Greenwich, past 180°: Midway (177.4° W) is 182.6.
-  map: { image: 'map_pacifique', lon: [118, 186], lat: [36, -16] },
+  map: { image: 'map_pacifique', lon: [118, 186], lat: [40, -16] },
   theme: { olive: '#2f5f6b', btn: '#2b4a52', btnHi: '#3a5f68', edge: '#6f9aa0', bg1: '#2e4a50', bg2: '#1c2f34', bg3: '#0f1a1d',
            panel: '#18282c', panelEdge: '#3f6168', tile1: '#4a4433', tile2: '#2e2a1f' },
   startSound: 'horn',           // played when a battle starts: a ship's horn
