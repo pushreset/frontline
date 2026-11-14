@@ -67,7 +67,7 @@
   /* Animations: one CSS class on the render that follows the event (render() rebuilds the board each time). */
   /* Battle start: terrains dealt face down and flipped one by one, then slots and hand. */
   .terrain.intro { animation:deal .8s calc(var(--i) * .55s) both; }
-  .terrain.intro::after { content:''; position:absolute; inset:0; border-radius:6px; background:#000 url(out/scenes/c_back.png) center/cover; image-rendering:pixelated; animation:back .8s calc(var(--i) * .55s) both; }
+  .terrain.intro::after { content:''; position:absolute; inset:0; border-radius:6px; background:#000 var(--back) center/cover; image-rendering:pixelated; animation:back .8s calc(var(--i) * .55s) both; }
   @keyframes deal { 0% { opacity:0; transform:perspective(900px) translateY(-60px) rotateY(180deg); } 30% { opacity:1; transform:perspective(900px) rotateY(180deg); } 100% { transform:perspective(900px); } }
   @keyframes back { 0%, 64% { opacity:1; } 65%, 100% { opacity:0; } }
   .late { animation:fadein .5s calc(1.8s + var(--i, 0) * .07s) both; }
@@ -106,6 +106,7 @@
   #menu h1 { margin:0; font-size:64px; letter-spacing:8px; text-transform:uppercase; color:var(--paper); text-shadow:0 3px 0 #000; }
   #menu .sub { margin:0 0 18px; color:#f0d98a; letter-spacing:4px; text-transform:uppercase; }
   #menu button { width:300px; font-size:18px; padding:10px; } #menu .row { display:flex; gap:10px; } #menu .row button { width:145px; font-size:14px; } #menu small { color:#b9b091; }
+  #menu .packs { display:flex; gap:10px; } #menu .packs button { width:200px; font-size:16px; } #menu .packs small { display:block; font-size:12px; }
   #map { gap:16px; padding:16px; background:#14160f; }
   #mapbox { flex:1; position:relative; align-self:center; aspect-ratio:320/140; max-height:100%; }
   #mapbox img { width:100%; height:100%; display:block; image-rendering:pixelated; border:2px solid #6d6a4c; border-radius:6px; }
@@ -157,15 +158,30 @@
 </div>
 <div id="end"></div>
 <div id="peek" class="card"></div>
-<script src="engine.js"></script>
-<script src="campaign.js"></script>
-<script src="audio.js"></script>
-<script src="i18n.js"></script>
+<script src="engine.js?v=3"></script>
+<!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
+     ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
+<script src="packs/normandie/pack.js?v=3"></script>
+<script src="packs/normandie/cards.js?v=3"></script>
+<script src="packs/normandie/terrains.js?v=3"></script>
+<script src="packs/normandie/battles.js?v=3"></script>
+<script src="campaign.js?v=3"></script>
+<script src="audio.js?v=3"></script>
+<script src="i18n.js?v=3"></script>
 <script>
-// Battle UI + Normandy campaign map + localStorage save.
-const ICON = ['char', 'inf', 'air', 'strat'].map(n => `<img src="out/sprites/i_${n}.png" alt="">`); // drawn in art.px.js
+// Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
+// ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
+const PACK_IDS = Object.keys(PACKS).filter(id => !PACKS[id].hidden);
+let ICON = []; // attribute icons of the active pack (value chips)
+const ART = () => E.PACK.art;
+function usePack(id) {
+  if (E.PACK && E.PACK.id === id) return;
+  E.use(id); C.use(id);
+  ICON = E.PACK.icons.map(n => `<img src="${ART()}sprites/i_${n}.png" alt="">`);
+  document.body.style.setProperty('--back', `url(${ART()}scenes/c_back.png)`);
+}
 const $ = id => document.getElementById(id);
-let s, sel = null, hiddenMode = false, busy = false, pick = 'omaha';
+let s, sel = null, hiddenMode = false, busy = false, pick = null;
 // Animation state: intro = deal the terrains on this render; fx = captures to animate on the next render;
 // endShown = false while the board stays visible after the decisive capture.
 let intro = false, fx = null, endShown = true;
@@ -180,13 +196,18 @@ const B = id => I.battle(C.byId[id]);
 // The engine state is plain JSON, so the whole battle is saved after every action.
 let save = (() => { try { return JSON.parse(localStorage.getItem(SAVE)) || null; } catch { return null; } })() || { won: [], cur: null };
 save.diff = save.diff || 'normal'; // saves from before difficulty levels
-// Campaign run (campaign.js): rewards, path taken, cards and powers earned. Older saves start a new run.
-if (!save.run) save.run = C.newRun();
+// One campaign run per pack (campaign.js): rewards, path taken, cards and powers earned.
+// Older saves held a single Normandy run (save.run) or a list of won battles (save.won).
+save.runs = save.runs || {};
+if (save.run) { save.runs.normandie = save.run; delete save.run; }
 delete save.won;
+save.pack = PACKS[save.pack] && !PACKS[save.pack].hidden ? save.pack : PACK_IDS[0];
+usePack(save.pack);
+const runNow = () => save.runs[E.PACK.id] || (save.runs[E.PACK.id] = C.newRun()); // run of the active pack
 const camp = () => save.cur && save.cur.mode === 'campagne';
 const persist = () => { try { localStorage.setItem(SAVE, JSON.stringify(save)); } catch { /* no storage: play without save */ } };
 const screen = name => { document.body.dataset.screen = name; SND.setMood(name === 'game' ? 'battle' : 'calm'); if (name === 'menu') renderMenu(); if (name === 'map') renderMap(); };
-const terrainArt = key => `out/scenes/t_${key}.png`;
+const terrainArt = key => `${ART()}scenes/t_${E.TERRAINS[key].art || key}.png`;
 
 const myTurn = () => s.winner === null && s.turn === 0 && !busy;
 // Legal moves matching the selected card, the visible/face-down toggle and the clicks so far.
@@ -195,7 +216,7 @@ const cands = () => !sel ? [] : E.moves(s).filter(m => m.c === sel.c
   && sel.pre.every((x, i) => m.steps[i] === x));
 const nextSteps = c => new Set((c || cands()).map(m => m.steps[sel.pre.length]).filter(Boolean));
 // Illustrations built by pxl from art.px.js; enemy units use the feldgrau variant, face-down cards the back.
-const art = (key, owner, down) => `out/scenes/c_${down ? 'back' : key + (owner && E.CARDS[key].type !== 'Ordre' ? '_x' : '')}.png`;
+const art = (key, owner, down) => `${ART()}scenes/c_${down ? 'back' : (E.CARDS[key].art || key) + (owner && E.CARDS[key].type !== E.ORDER ? '_x' : '')}.png`;
 // Board units drop the icon (too narrow): column position + colour carry the attribute.
 const valsHTML = (v, icon = true) => v.map((x, a) => `<i class="c${a}a ${x ? '' : 'z'}" title="${I.attrName(a)}">${icon ? ICON[a] : ''}${x}</i>`).join('');
 
@@ -227,7 +248,8 @@ function peek(e) {
 }
 
 function startBattle(mode, battle) {
-  s = mode === 'campagne' ? E.newGame(C.draw(C.byId[battle]), { cards: save.run.cards, powers: save.run.powers }) : E.newGame(E.randomTerrains());
+  usePack(save.pack);
+  s = mode === 'campagne' ? E.newGame(C.draw(C.byId[battle]), { cards: runNow().cards, powers: runNow().powers }) : E.newGame(E.randomTerrains());
   save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
   busy = intro = true; persist(); screen('game'); render(); intro = false;
   s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
@@ -235,7 +257,7 @@ function startBattle(mode, battle) {
   setTimeout(() => { if (s === mine) { busy = false; render(); } }, INTRO_MS);
 }
 function resume() {
-  s = save.cur.s; sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
+  s = save.cur.s; usePack(s.pack || 'normandie'); sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
   if (s.winner === null && s.turn === 1) aiTurn(); // saved while the AI was thinking
 }
 // Two-click confirmation inside the page (no confirm() dialog).
@@ -248,11 +270,14 @@ function armed(btn) {
 
 function renderMenu() {
   const live = save.cur && save.cur.s.winner === null;
-  const where = live ? (save.cur.mode === 'campagne' ? B(save.cur.battle).name : L('quick')) : '';
-  $('menu').style.backgroundImage = `url(${terrainArt('omaha_dog')})`;
-  $('menu').innerHTML = `<h1>${L('title')}</h1><p class="sub">${L('sub')}</p>
+  const P0 = live && PACKS[save.cur.s.pack || 'normandie'];
+  const where = live ? (save.cur.mode === 'campagne' ? I.tx(P0.battles.find(b => b.id === save.cur.battle).name) : L('quick')) : '';
+  usePack(save.pack);
+  $('menu').style.backgroundImage = `url(${terrainArt(E.PACK.cover)})`;
+  $('menu').innerHTML = `<h1>${L('title')}</h1><p class="sub">${I.pack('sub')}</p>
+    ${PACK_IDS.length > 1 ? `<div class="packs">${PACK_IDS.map(id => `<button data-pack="${id}" class="${id === save.pack ? 'on' : ''}">${I.pack('title', PACKS[id])}<small>${I.pack('dates', PACKS[id])}</small></button>`).join('')}</div>` : ''}
     ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}
-    <button data-go="campaign">${L('campaign')} <small>(${L('stage', save.run.path.length + (save.run.path.includes('paris') ? 0 : 1))})</small></button>
+    <button data-go="campaign">${L('campaign')} <small>(${L('stage', runNow().path.length + (C.done(runNow()) ? 0 : 1))})</small></button>
     <button data-go="quick">${L('quick')}</button>
     <button data-go="reset">${L('reset')}</button>
     <div class="row"><button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button></div>
@@ -272,20 +297,20 @@ const rewardName = r => r.t === 'power' ? '⚡ ' + I.powerName(r.key) : nameV(r.
 // Ground profile of a battle: the 1-2 attributes its terrain pool asks for clearly more than the
 // campaign average (every battle needs infantry, so raw totals would all read "Infanterie").
 const need = b => [0, 1, 2, 3].map(a => b.pool.reduce((n, k) => n + E.TERRAINS[k].thr[a], 0));
-const AVG = [0, 1, 2, 3].map(a => C.BATTLES.reduce((n, b) => n + need(b)[a], 0) / C.BATTLES.length);
 function profile(b) {
-  const r = need(b).map((x, a) => x / AVG[a]), top = [0, 1, 2, 3].filter(a => r[a] >= 1.12).sort((x, y) => r[y] - r[x]).slice(0, 2);
+  const avg = [0, 1, 2, 3].map(a => C.BATTLES.reduce((n, x) => n + need(x)[a], 0) / C.BATTLES.length);
+  const r = need(b).map((x, a) => x / avg[a]), top = [0, 1, 2, 3].filter(a => r[a] >= 1.12).sort((x, y) => r[y] - r[x]).slice(0, 2);
   return top.length ? top.map(a => `<i class="c${a}a">${ICON[a]}${I.attrName(a)}</i>`).join('') : `<span>${L('balanced')}</span>`;
 }
 function renderMap() {
-  const run = save.run, st = b => C.status(b.id, run.path), xy = b => C.project(b.pos).map(v => 100 * v);
+  const run = runNow(), st = b => C.status(b.id, run.path), xy = b => C.project(b.pos).map(v => 100 * v);
   const last = run.path[run.path.length - 1];
   const links = C.BATTLES.flatMap(b => b.next.map(n => { const [x1, y1] = xy(b), [x2, y2] = xy(C.byId[n]);
     const taken = run.path.includes(b.id) && run.path.includes(n), ahead = b.id === last;
     const dead = st(b) === 'gone' || st(C.byId[n]) === 'gone' || (run.path.includes(b.id) && b.id !== last && !taken);
     const [col, op] = taken || ahead ? ['#f0d98a', 1] : dead ? ['#1c1a10', 0.15] : ['#1c1a10', 0.55];
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-opacity="${op}" stroke-width="${taken ? 3.5 : 2.5}" ${taken ? '' : 'stroke-dasharray="7 5"'} vector-effect="non-scaling-stroke"/>`; })).join('');
-  $('mapbox').innerHTML = `<img src="out/scenes/map_normandie.png" alt="${L('mapAlt')}">
+  $('mapbox').innerHTML = `<img src="${ART()}scenes/${E.PACK.map.image}.png" alt="${L('mapAlt')}">
     <svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>` +
     C.BATTLES.map(b => { const [x, y] = xy(b);
       return `<button class="node ${st(b)} ${b.id === pick ? 'sel' : ''} ${x > 90 ? 'east' : ''}" data-pick="${b.id}" style="left:${x}%;top:${y}%"><i></i><span>${I.battle(b).name}</span></button>`; }).join('');
@@ -295,11 +320,11 @@ function renderMap() {
     <div class="vals">${L('profile')}${L('colon')}${profile(b)}</div>
     <div>${L('pool')}</div>
     <div class="pool">${b.pool.map(k => `<div><img src="${terrainArt(k)}" alt="">${I.terrainName(k)}</div>`).join('')}</div>
-    ${b.id === 'paris' ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}`
+    ${C.last(b.id) ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}`
       : state === 'won' ? `<h3>${L('rewardGot')}</h3>${rewardHTML(r)}`
       : state === 'gone' ? `<p class="gone">${L('gone')}</p>` : `<p class="fog">${L('rewardFog')}</p>`}
     ${state === 'open' ? `<button data-go="launch" class="on">${L('launch')}</button>${choices > 1 ? `<small>${L('commit')}</small>` : ''}` : ''}
-    ${run.path.includes('paris') ? `<p>${L('endDone')}</p><button data-go="reset">${L('reset')}</button>` : ''}
+    ${C.done(run) ? `<p>${L('endDone')}</p><button data-go="reset">${L('reset')}</button>` : ''}
     <div class="sp"></div>
     <h3>${L('army')}</h3><div class="army">${army.join('') || `<small>${L('armyEmpty')}</small>`}</div>
     <div><button data-go="lang" class="lng"></button> <button data-go="menu">${L('menu')}</button></div>`;
@@ -358,13 +383,13 @@ function render() {
     <button data-act="hidden" class="${hiddenMode ? 'on' : ''}" title="${L('hiddenTip')}">${L('hidden')}${L('colon')}${L(hiddenMode ? 'yes' : 'no')}</button>
     <button data-act="supply" ${sel && myTurn() ? '' : 'disabled'} title="${L('supplyTip')}">${L('supply')}</button>
     <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>
-    ${(camp ? save.run.powers : []).map(w => { const ok = myTurn() && E.moves(s).some(m => m.c === 'p:' + w);
+    ${(camp ? runNow().powers : []).map(w => { const ok = myTurn() && E.moves(s).some(m => m.c === 'p:' + w);
       return `<button data-power="${w}" class="pw ${sel && sel.c === 'p:' + w ? 'on' : ''}" title="${I.powerText(w)}" ${ok ? '' : 'disabled'}>⚡ ${I.powerName(w)}</button>`; }).join('')}`;
 
   $('end').className = s.winner !== null && endShown ? 'show' : '';
   if (s.winner !== null && endShown) {
-    const win = s.winner === 0, done = camp && win && save.cur.battle === 'paris';
-    $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${L(done ? 'paris' : win ? 'victory' : 'defeat')}</h2>
+    const win = s.winner === 0, done = camp && win && C.last(save.cur.battle);
+    $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${done ? I.pack('finale') : L(win ? 'victory' : 'defeat')}</h2>
       <div>${L(s.timeout ? 'byNight' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
       ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L('noMajority')}</div>` : ''}
       ${camp && win && save.cur.got ? `<p>${save.cur.got.t === 'none' ? L('rewardNone') : `${L('endReward')} <b>${rewardName(save.cur.got)}</b>`}</p>` : ''}
@@ -403,7 +428,7 @@ function act(m) {
   else if (m.kind === 'hidden' || m.kind === 'pass') SND.play('card');
   else if (m.kind === 'power') SND.play(m.w === 'naval' ? 'whistle' : m.w === 'couverture' ? 'plane' : m.w === 'barrage' ? 'boom' : 'drumroll');
   else if (m.kind === 'reveal') SND.play('flip');
-  else if (m.kind === 'deploy') { SND.play('card'); SND.play(type === 'Char' ? 'tank' : type === 'Air' ? 'plane' : 'boots', 0.1); }
+  else if (m.kind === 'deploy') { SND.play('card'); SND.play((E.PACK.types[type] || {}).sound || 'boots', 0.1); }
   else if (key === 'artillerie') { SND.play('whistle'); boomed = true; }
   else if (key === 'bombardement') { SND.play('plane'); SND.play('boom', 1); boomed = true; }
   else if (key === 'fumee') SND.play('smoke');
@@ -418,7 +443,7 @@ function act(m) {
 }
 // After every action: record a campaign win, save, redraw.
 function played() {
-  if (s.winner === 0 && camp() && !save.run.path.includes(save.cur.battle)) save.cur.got = C.win(save.run, save.cur.battle) || { t: 'none' };
+  if (s.winner === 0 && camp() && !runNow().path.includes(save.cur.battle)) save.cur.got = C.win(runNow(), save.cur.battle) || { t: 'none' };
   persist(); render();
 }
 function aiTurn(wait = 0) {
@@ -453,7 +478,7 @@ $('front').addEventListener('mouseover', peek);
 $('front').addEventListener('mouseleave', () => $('peek').classList.remove('show'));
 document.addEventListener('click', e => {
   if (e.target.closest('button,[data-pick]')) SND.play('click');
-  const go = e.target.closest('[data-go],[data-pick],#toMenu,#toMap,#restart');
+  const go = e.target.closest('[data-go],[data-pick],[data-pack],#toMenu,#toMap,#restart');
   if (go) {
     const g = go.dataset.go || go.id;
     if (g === 'lang') {
@@ -466,10 +491,11 @@ document.addEventListener('click', e => {
     if (g === 'mus' || g === 'sfx') { const k = g === 'mus' ? 'music' : 'sfx'; SND.set(k, !SND.pref[k]); return sndLabels(); }
     if (go.dataset.pick) { pick = go.dataset.pick; return renderMap(); }
     if (g === 'resume') return resume();
-    if (g === 'campaign') { pick = save.cur && camp() ? save.cur.battle : C.open(save.run.path)[0] || 'paris'; return screen('map'); }
+    if (g === 'campaign') { usePack(save.pack); pick = save.cur && camp() && save.cur.s.pack === save.pack ? save.cur.battle : C.open(runNow().path)[0] || C.BATTLES.find(b => C.last(b.id)).id; return screen('map'); }
     if (g === 'quick') return startBattle('rapide');
-    if (g === 'reset') { if (armed(go)) { save = { cur: null, diff: save.diff, run: C.newRun() }; persist(); pick = C.open([])[0]; screen(document.body.dataset.screen); } return; }
-    if (g === 'launch') return C.status(pick, save.run.path) === 'open' && startBattle('campagne', pick);
+    if (g === 'reset') { if (armed(go)) { usePack(save.pack); save.cur = null; save.runs[save.pack] = C.newRun(); persist(); pick = C.open([])[0]; screen(document.body.dataset.screen); } return; }
+    if (g === 'launch') return C.status(pick, runNow().path) === 'open' && startBattle('campagne', pick);
+    if (go.dataset.pack) { save.pack = go.dataset.pack; persist(); return renderMenu(); }
     if (g === 'again' || (g === 'restart' && armed(go))) return startBattle(save.cur.mode, save.cur.battle);
     if (g === 'map' || g === 'toMap') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); if (save.cur) pick = save.cur.battle; return screen('map'); }
     if (g === 'menu' || g === 'toMenu') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('menu'); }

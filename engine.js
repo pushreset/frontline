@@ -1,113 +1,37 @@
 'use strict';
-// Ligne de Front — rules engine + level-1 AI, GDD v0.1.
-// No DOM: shared by index.html (classic <script>) and sim.cjs (node), so the
-// "simulateur sans interface" and the vertical slice test the same rules.
+// Ligne de Front — rules engine + AI. Knows nothing about any campaign: cards, terrains, decks and
+// powers come from a pack (packs/<id>/), whose behaviour lives in hooks receiving `g` (class G below).
+// No DOM: shared by index.html (classic <script>) and sim.cjs (node).
 const E = (() => {
-  const ATTRS = ['Char', 'Infanterie', 'Air', 'Stratégie'];
   // Balance knobs, mutable so balance.cjs can sweep them. Defaults = the rules index.html plays.
   // thrDelta shifts every non-zero threshold (min 1); replace = deploy onto a full side by discarding one of your units.
   const RULES = { turns: 12, thrDelta: 0, slots: 4, replace: true };
+  const ORDER = 'Ordre';   // the one card type the engine knows: orders are played, not deployed
+  const ZERO = [0, 0, 0, 0];
+  // What the AI (and the player's preview) sees instead of an enemy face-down card.
+  const UNKNOWN = { type: '?', v: [0, 0, 0, 0] };
 
-  const U = (name, axis, type, v, text = '') => ({ name, axis, type, v, text });
-  const O = (name, text) => ({ name, type: 'Ordre', v: [0, 0, 0, 0], text });
-  const CARDS = {
-    sherman: U('Sherman M4', 'Panzer IV', 'Char', [3, 0, 0, 1]),
-    firefly: U('Sherman Firefly', 'StuG III', 'Char', [2, 0, 0, 0], 'À la pose : détruit un Char adverse de valeur Char 2 ou moins sur ce terrain.'),
-    section: U("Section d'infanterie", 'Grenadiers', 'Infanterie', [0, 3, 0, 1]),
-    rangers: U('Rangers', 'Gebirgsjäger', 'Infanterie', [0, 2, 0, 1], 'Peut occuper un 5e emplacement quand le terrain est plein.'),
-    mortiers: U('Mortiers', 'Granatwerfer', 'Infanterie', [0, 2, 0, 0], 'À la pose : une unité adverse sur ce terrain perd 1 Infanterie.'),
-    paras: U('Parachutistes', 'Fallschirmjäger', 'Infanterie', [0, 2, 1, 0], 'Posés face cachée, ils se retournent seuls au début de ton tour suivant.'),
-    p47: U('P-47 Thunderbolt', 'Fw 190', 'Air', [1, 0, 2, 0], 'À la pose : retourne une carte face cachée adverse sur ce terrain.'),
-    spitfire: U('Spitfire', 'Bf 109', 'Air', [0, 0, 3, 0], 'Les unités Air adverses sur ce terrain perdent 1 Air.'),
-    genie: U('Génie militaire', 'Pionniers', 'Soutien', [1, 1, 0, 1], "À la pose : déplace une de tes unités vers un terrain adjacent."),
-    officier: U('Officier de liaison', 'Officier de liaison', 'Soutien', [0, 1, 0, 2], 'Ton surplus sur ce terrain compte +2 en cas de contestation.'),
-    resistance: U('Résistance', 'Contre-espions', 'Soutien', [0, 1, 0, 2], "Retournée par une unité adverse : détruit cette unité."),
-    observateur: U('Observateur', 'Observateur', 'Soutien', [0, 0, 0, 2], 'Tes Artilleries peuvent viser un terrain non adjacent à tes unités.'),
-    artillerie: O('Artillerie lourde', 'Détruit une unité adverse non Char de valeur totale 3 ou moins (terrain où tu as une unité, ou adjacent).'),
-    bombardement: O('Bombardement aérien', 'Si tu as 2 Air devant un terrain : détruit une unité adverse sur ce terrain.'),
-    recon: O('Reconnaissance', 'Retourne une carte face cachée. Pioche 1.'),
-    opsecrete: O('Opération secrète', 'Pose 2 cartes face cachée sur deux terrains différents.'),
-    sabotage: O('Sabotage', 'Renvoie une carte face cachée adverse dans la main de son propriétaire.'),
-    echange: O('Échange de front', 'Échange deux de tes unités situées sur deux terrains différents.'),
-    redeploy: O('Redéploiement', "Déplace jusqu'à 2 de tes unités vers un même terrain adjacent."),
-    fumee: O('Écran de fumée', "Jusqu'à ton prochain tour, l'adversaire ne peut pas te prendre un terrain que tu tiens."),
-    // Campaign rewards: player-only cards, never in the AI's deck.
-    jumbo: U('Sherman Jumbo', 'Sherman Jumbo', 'Char', [4, 0, 0, 1], 'Blindage renforcé : ne peut pas être détruit.'),
-    typhoon: U('Hawker Typhoon', 'Hawker Typhoon', 'Air', [0, 0, 2, 0], 'À la pose : détruit un Char adverse de valeur totale 3 ou moins sur ce terrain.'),
-    commandos: U('Commandos', 'Commandos', 'Infanterie', [0, 2, 0, 1], 'À la pose : détruit une carte face cachée adverse sur ce terrain.'),
-    ambulance: U('Ambulance', 'Ambulance', 'Soutien', [0, 1, 0, 1], 'À la pose : pioche 2 cartes.'),
-    // What the AI (and the player's preview) sees instead of an enemy face-down card.
-    inconnu: U('???', '???', 'Soutien', [0, 0, 0, 0]),
-  };
-
-  // Campaign powers: once per battle, free (they do not use up the turn's action).
-  const POWERS = {
-    naval: { name: 'Appui naval', text: 'Détruit une unité adverse de valeur totale 4 ou moins (pas sur un bunker).' },
-    renforts: { name: 'Renforts', text: 'Pioche 2 cartes.' },
-    renseignement: { name: 'Renseignement', text: 'Retourne toutes les cartes face cachée adverses.' },
-    barrage: { name: 'Tir de barrage', text: 'Chaque unité adverse sur un terrain perd 1 Infanterie.' },
-    couverture: { name: 'Couverture aérienne', text: "Jusqu'à ton prochain tour, l'adversaire ne peut pas te prendre un terrain que tu tiens." },
-  };
-  // Veteran = +1 in the main attribute of its type.
-  const MAIN = { Char: 0, Infanterie: 1, Air: 2, Soutien: 3 };
-
-  // Château-QG skipped: campaign-only.
-  // Thresholds rebalanced for "face-down = 0" (balance.cjs): GDD values -2 per attribute, -1 for Bocage and Forêt.
-  const TERRAINS = {
-    bocage: { name: 'Bocage', thr: [2, 3, 0, 1], text: 'Haies : chaque Char posé ici vaut 1 Char de moins.' },
-    pont: { name: 'Le Pont', thr: [3, 1, 1, 1], text: 'Goulet : 3 emplacements par camp au lieu de 4.' },
-    village: { name: 'Village en ruines', thr: [1, 3, 0, 2], text: 'Combat de rue : les cartes face cachée valent 2 en Infanterie.' },
-    plage: { name: 'Plage', thr: [1, 3, 1, 1], text: 'Tête de pont : une fois capturée, tu pioches 1 carte de plus par tour.' },
-    colline: { name: 'Colline', thr: [1, 1, 1, 2], text: "Point haut : tant que tu la tiens, ton Artillerie vise n'importe quel terrain." },
-    aerodrome: { name: 'Aérodrome', thr: [1, 1, 2, 1], text: 'Piste : une fois capturé, tes unités Air valent +1 Air ailleurs.' },
-    carrefour: { name: 'Carrefour', thr: [2, 1, 1, 1], text: 'Nœud routier : adjacent aux deux autres terrains.' },
-    foret: { name: 'Forêt enneigée', thr: [1, 3, 0, 2], text: "Brouillard : toute unité posée ici l'est face cachée mais garde ses valeurs. Pouvoirs inactifs." },
-    marais: { name: 'Marais', thr: [1, 2, 1, 1], text: "Enlisement : aucun Char n'y entre ni n'en sort par déplacement." },
-  };
-  // Campaign variants: same trait as `base` (text repeated so the card reads on its own), own threshold,
-  // optional own slot count. 'bunker' is a campaign-only trait.
-  const V = (base, name, thr, extra = {}) => ({ base, name, thr, text: TERRAINS[base] ? TERRAINS[base].text : '', ...extra });
-  const BETON = 'Béton : aucune unité ici ne peut être détruite.';
-  Object.assign(TERRAINS, {
-    omaha_dog: V('plage', 'Omaha – Dog Green', [1, 3, 1, 1]),
-    omaha_easy: V('plage', 'Omaha – Easy Red', [2, 2, 1, 1]),
-    port_cherbourg: V('plage', 'Port de Cherbourg', [2, 2, 1, 2], { text: 'Port : une fois capturé, tu pioches 1 carte de plus par tour.' }),
-    wn62: V('bunker', "Point d'appui WN62", [1, 3, 0, 2], { text: BETON }),
-    fort_roule: V('bunker', 'Fort du Roule', [2, 2, 0, 2], { text: BETON }),
-    pointe_hoc: V('colline', 'Pointe du Hoc', [1, 3, 0, 2], { slots: 3, text: "Falaise : 3 emplacements. Tant que tu la tiens, ton Artillerie vise n'importe quel terrain." }),
-    cote_112: V('colline', 'Cote 112', [2, 1, 1, 2]),
-    mont_ormel: V('colline', 'Mont-Ormel', [1, 2, 1, 2]),
-    bocage_dense: V('bocage', 'Bocage dense', [1, 4, 0, 1]),
-    chemin_creux: V('bocage', 'Chemin creux', [2, 2, 0, 2], { slots: 3, text: 'Haies, goulet : 3 emplacements, chaque Char posé ici vaut 1 Char de moins.' }),
-    pegasus: V('pont', 'Pegasus Bridge', [1, 2, 0, 1], { slots: 2, text: 'Coup de main : 2 emplacements par camp.' }),
-    pont_mine: V('pont', 'Pont miné', [2, 1, 0, 2]),
-    chaussee: V('pont', 'Chaussée de Carentan', [2, 2, 0, 1]),
-    pont_vernon: V('pont', 'Pont de Vernon', [3, 2, 1, 2], { slots: 4, text: 'Large fleuve : 4 emplacements, gros seuil.' }),
-    sainte_mere: V('village', 'Sainte-Mère-Église', [1, 3, 1, 1]),
-    caen: V('village', 'Caen en ruines', [2, 3, 0, 2]),
-    saint_lo: V('village', 'Saint-Lô', [1, 3, 0, 3]),
-    paris: V('village', 'Paris – Hôtel de Ville', [1, 3, 0, 3]),
-    carpiquet: V('aerodrome', 'Carpiquet', [1, 2, 2, 1]),
-    cerisy: V('foret', 'Forêt de Cerisy', [1, 3, 0, 2]),
-  });
-
-  const UNITS14 = ['sherman', 'sherman', 'section', 'section', 'firefly', 'rangers', 'mortiers', 'paras', 'p47', 'spitfire', 'genie', 'officier', 'resistance', 'observateur'];
-  const DECKS = [
-    [...UNITS14, 'artillerie', 'bombardement', 'recon', 'opsecrete', 'redeploy', 'fumee'],
-    [...UNITS14, 'artillerie', 'bombardement', 'recon', 'sabotage', 'echange', 'fumee'],
-  ];
+  // ---- active pack ------------------------------------------------------------------------------
+  let PACK, CARDS, TERRAINS, TRAITS, DECKS, POWERS, MAIN, MALUS, AURAS, FIELDS;
+  function use(id) {
+    const P = (globalThis.PACKS || {})[id];
+    if (!P) throw new Error(`unknown pack ${id}`);
+    PACK = P;
+    CARDS = { ...P.cards, inconnu: UNKNOWN };
+    TERRAINS = P.terrains; TRAITS = P.traits || {}; DECKS = P.decks; POWERS = P.powers || {};
+    MAIN = Object.fromEntries(Object.entries(P.types).filter(([, ty]) => ty.main != null).map(([k, ty]) => [k, ty.main]));
+    MALUS = P.malusAttr ?? 1;
+    AURAS = Object.values(CARDS).filter(C => C.aura).map(C => C.aura);
+    FIELDS = Object.values(TRAITS).filter(T => T.fieldAura).map(T => T.fieldAura);
+    return P;
+  }
 
   const sum = a => a.reduce((x, y) => x + y, 0);
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const nameOf = (key, owner) => (owner ? CARDS[key].axis : CARDS[key].name) || CARDS[key].name;
-  // Trait kind of a terrain: campaign variants (Omaha, Pegasus Bridge…) inherit their base terrain's trait.
-  const K = T => TERRAINS[T.key].base || T.key;
+  const trait = T => TRAITS[TERRAINS[T.key].trait] || {};
   const live = (s, t) => s.terrains[t].captured === null;
-  const cap = (s, t) => TERRAINS[s.terrains[t].key].slots || RULES.slots - (K(s.terrains[t]) === 'pont' ? 1 : 0);
-  // Béton: nothing on a bunker terrain can be destroyed by Artillerie, Bombardement or Firefly.
-  const bunker = (s, t) => K(s.terrains[t]) === 'bunker';
-  const armored = u => u.key === 'jumbo'; // Jumbo: never destroyed
-  const adjacent = (s, a, b) => a !== b && (Math.abs(a - b) === 1 || K(s.terrains[a]) === 'carrefour' || K(s.terrains[b]) === 'carrefour');
+  const cap = (s, t) => TERRAINS[s.terrains[t].key].slots || RULES.slots + (trait(s.terrains[t]).slotDelta || 0);
+  const adjacent = (s, a, b) => a !== b && (Math.abs(a - b) === 1 || !!trait(s.terrains[a]).hub || !!trait(s.terrains[b]).hub);
 
   function find(s, id) {
     for (let t = 0; t < 3; t++) for (let p = 0; p < 2; p++) {
@@ -117,25 +41,29 @@ const E = (() => {
   }
 
   function vals(s, u, t) {
-    const T = s.terrains[t];
-    // Face-down = pure bluff: worth nothing until its owner spends an action to reveal it (Village trait aside).
-    // Forest fog hides units from the opponent but they still fight (otherwise every unit there costs 2 actions).
-    const fog = K(T) === 'foret' && CARDS[u.key].type !== 'Ordre' && u.key !== 'inconnu';
-    if (u.down && !fog) return [0, K(T) === 'village' ? 2 : 0, 0, 0];
-    const C = CARDS[u.key], v = C.v.slice();
+    const T = s.terrains[t], tr = trait(T), C = CARDS[u.key];
+    // Face-down = pure bluff: worth nothing until its owner spends an action to reveal it (unless the terrain
+    // says otherwise). Fog hides units from the opponent but they still fight.
+    const fog = tr.fog && C.type !== ORDER && u.key !== 'inconnu';
+    if (u.down && !fog) return (tr.downValue || ZERO).slice();
+    const v = C.v.slice();
     if (u.vet) v[MAIN[C.type]]++;
-    if (C.type === 'Char' && K(T) === 'bocage') v[0] = Math.max(0, v[0] - 1);
-    v[1] = Math.max(0, v[1] - u.malus);
-    if (C.type === 'Air') {
-      if (T.side[1 - u.owner].some(e => !e.down && e.key === 'spitfire')) v[2] = Math.max(0, v[2] - 1);
-      if (K(T) !== 'aerodrome' && s.terrains.some(X => K(X) === 'aerodrome' && X.captured === u.owner)) v[2]++;
-    }
+    const g = new G(s, u.owner);
+    if (tr.modify) tr.modify(g, u, t, v);
+    v[MALUS] = Math.max(0, v[MALUS] - u.malus);
+    // ponytail: hot path of the AI (thousands of calls per decision), hence plain loops.
+    for (let i = 0; i < AURAS.length; i++) AURAS[i](g, u, t, v);
+    for (let i = 0; i < FIELDS.length; i++) FIELDS[i](g, u, t, v);
     return v;
   }
-  const totals = (s, t, p) => s.terrains[t].side[p].reduce((acc, u) => { vals(s, u, t).forEach((x, a) => acc[a] += x); return acc; }, [0, 0, 0, 0]);
+  function totals(s, t, p) {
+    const side = s.terrains[t].side[p], acc = [0, 0, 0, 0];
+    for (let i = 0; i < side.length; i++) { const v = vals(s, side[i], t); acc[0] += v[0]; acc[1] += v[1]; acc[2] += v[2]; acc[3] += v[3]; }
+    return acc;
+  }
   const thr = (s, t) => TERRAINS[s.terrains[t].key].thr.map(x => x && Math.max(1, x + RULES.thrDelta));
   const fills = (s, t, p) => { const tot = totals(s, t, p); return thr(s, t).every((x, a) => tot[a] >= x); };
-  const surplus = (s, t, p) => sum(totals(s, t, p)) - sum(thr(s, t)) + 2 * s.terrains[t].side[p].filter(u => !u.down && u.key === 'officier').length;
+  const surplus = (s, t, p) => sum(totals(s, t, p)) - sum(thr(s, t)) + sum(s.terrains[t].side[p].filter(u => !u.down).map(u => CARDS[u.key].surplus || 0));
   const pct = (s, t, p) => { const tot = totals(s, t, p), th = thr(s, t); return sum(th.map((x, a) => Math.min(x, tot[a]))) / sum(th); };
 
   // Battle log as events ({ e, p, card, t }); the UI turns them into sentences in the current language.
@@ -149,7 +77,7 @@ const E = (() => {
     if (!f) return;
     const side = s.terrains[f.t].side[f.p];
     side.splice(side.indexOf(f.u), 1);
-    s.players[f.p].discard.push({ id, key: f.u.key });
+    s.players[f.p].discard.push(f.u.vet ? { id, key: f.u.key, vet: true } : { id, key: f.u.key }); // a veteran stays one
     log(s, { e: 'destroy', p: f.p, card: f.u.key, t: s.terrains[f.t].key });
   }
   function flip(s, id, by) {
@@ -157,20 +85,68 @@ const E = (() => {
     if (!f || !f.u.down) return;
     f.u.down = false;
     log(s, { e: 'reveal', p: f.p, card: f.u.key, t: s.terrains[f.t].key });
-    if (CARDS[f.u.key].type === 'Ordre') return destroy(s, id); // a bluffed order is worth nothing once seen
-    // ponytail: "à la pose" powers do not re-trigger on flip (would need target prompts mid-effect). Passive powers do.
-    if (f.u.key === 'resistance' && by != null) {
-      const b = find(s, by);
-      if (b && b.p !== f.p) destroy(s, by);
-    }
+    if (CARDS[f.u.key].type === ORDER) return destroy(s, id); // a bluffed order is worth nothing once seen
+    // ponytail: powers on play do not re-trigger on flip (would need target prompts mid-effect). Passive hooks do.
+    const C = CARDS[f.u.key];
+    if (C.onFlipped) C.onFlipped(new G(s, f.p), f.u, by);
   }
   function moveUnit(s, id, to) {
     const f = find(s, id), side = s.terrains[f.t].side[f.p];
     side.splice(side.indexOf(f.u), 1);
     s.terrains[to].side[f.p].push(f.u);
   }
-  const marsh = (s, u, a, b) => CARDS[u.key].type === 'Char' && (K(s.terrains[a]) === 'marais' || K(s.terrains[b]) === 'marais');
-  const canMove = (s, u, from, to) => live(s, from) && live(s, to) && adjacent(s, from, to) && !marsh(s, u, from, to) && s.terrains[to].side[u.owner].length < cap(s, to);
+  const put = (s, p, card, t, down) => { const u = { ...card, owner: p, down, malus: 0 }; s.terrains[t].side[p].push(u); return u; };
+  const take = (s, p, id) => { const H = s.players[p].hand; return H.splice(H.findIndex(c => c.id === id), 1)[0]; };
+  const blocks = (s, u, a, b) => { const g = new G(s, u.owner), A = trait(s.terrains[a]), B = trait(s.terrains[b]); return !!(A.blocksMove && A.blocksMove(g, u)) || !!(B.blocksMove && B.blocksMove(g, u)); };
+  const canMove = (s, u, from, to) => live(s, from) && live(s, to) && adjacent(s, from, to) && !blocks(s, u, from, to) && s.terrains[to].side[u.owner].length < cap(s, to);
+
+  // ---- g: what a pack's hooks see. p = the side the hook acts for. -----------------------------
+  // Units are board objects { id, key, owner, down, malus, vet }; t = terrain index 0-2.
+  class G {
+    constructor(s, p) { this.s = s; this.p = p; }
+    // reading the board
+    terrains() { return this.s.terrains; }
+    live() { return [0, 1, 2].filter(t => live(this.s, t)); }
+    side(t, p) { return this.s.terrains[t].side[p]; }
+    foes(t) { return this.s.terrains[t].side[1 - this.p]; }
+    allies(t) { return this.s.terrains[t].side[this.p]; }
+    mine() { return this.units(this.p); }
+    theirs() { return this.units(1 - this.p); }
+    units(p) { const out = []; for (const t of this.live()) for (const u of this.s.terrains[t].side[p]) out.push({ u, t }); return out; }
+    find(id) { return find(this.s, id); }
+    hand() { return this.s.players[this.p].hand; }
+    type(u) { return CARDS[u.key].type; }
+    has(u, tag) { return (CARDS[u.key].tags || []).includes(tag); }
+    vals(u, t) { return vals(this.s, u, t); }
+    totals(t, p = this.p) { return totals(this.s, t, p); }
+    sum(a) { return sum(a); }
+    count(t, p = this.p) { return this.s.terrains[t].side[p].length; }
+    cap(t) { return cap(this.s, t); }
+    adjacent(a, b) { return adjacent(this.s, a, b); }
+    trait(t) { return TERRAINS[this.s.terrains[t].key].trait; }
+    traitHas(t, tag) { return (trait(this.s.terrains[t]).tags || []).includes(tag); }
+    safe(t) { return !!trait(this.s.terrains[t]).immune; }     // nothing can be destroyed on this terrain
+    tough(u) { const im = CARDS[u.key].immune; return typeof im === 'function' ? !!im(this, u) : !!im; } // this unit cannot be destroyed (immune: true or (g, unit) => bool)
+    canMove(u, from, to) { return canMove(this.s, u, from, to); }
+    blocks(u, a, b) { return blocks(this.s, u, a, b); }
+    smoked() { return this.s.smoke[this.p]; }
+    // changing the board
+    destroy(id) { destroy(this.s, id); }
+    flip(id, by) { flip(this.s, id, by); }
+    move(id, to) { moveUnit(this.s, id, to); }
+    swap(a, b) { const ta = find(this.s, a).t, tb = find(this.s, b).t; moveUnit(this.s, a, tb); moveUnit(this.s, b, ta); }
+    malus(id, n = 1) { find(this.s, id).u.malus += n; }
+    draw(n) { draw(this.s, this.p, n); }
+    smoke() { this.s.smoke[this.p] = true; }
+    putDown(handId, t) { put(this.s, this.p, take(this.s, this.p, handId), t, true); }
+    toHand(id) { const f = find(this.s, id), side = this.s.terrains[f.t].side[f.p]; side.splice(side.indexOf(f.u), 1); this.s.players[f.p].hand.push(f.u.vet ? { id: f.u.id, key: f.u.key, vet: true } : { id: f.u.id, key: f.u.key }); }
+    // building targets: { args, steps }, steps = the clicks the UI asks for (u<id> unit, t<n> terrain, h<id> hand card)
+    U(id) { return 'u' + id; }
+    T(t) { return 't' + t; }
+    H(id) { return 'h' + id; }
+    hit(units) { return units.map(u => ({ args: { u: u.id }, steps: ['u' + u.id] })); }
+    hits(xs) { return xs.map(x => ({ args: { u: x.u.id }, steps: ['u' + x.u.id] })); }
+  }
 
   // Tenu / Libre state machine (GDD "Tenir et capturer"). Runs after every action.
   function control(s, actor) {
@@ -199,9 +175,10 @@ const E = (() => {
       if (T.captured === null && T.holder === p && T.ripe) { T.captured = p; log(s, { e: 'capture', p, t: T.key }); }
     });
     if (s.terrains.filter(T => T.captured === p).length >= 2) { s.winner = p; return; }
-    for (let t = 0; t < 3; t++) if (live(s, t)) for (const u of [...s.terrains[t].side[p]]) if (u.down && u.key === 'paras') flip(s, u.id, null);
+    const g = new G(s, p);
+    for (let t = 0; t < 3; t++) if (live(s, t)) for (const u of [...s.terrains[t].side[p]]) { const C = CARDS[u.key]; if (C.onTurnStart) C.onTurnStart(g, u); }
     control(s, p);
-    draw(s, p, 1 + s.terrains.filter(T => K(T) === 'plage' && T.captured === p).length);
+    draw(s, p, 1 + sum(s.terrains.map(T => T.captured === p ? trait(T).drawBonus || 0 : 0)));
   }
 
   function timeout(s) {
@@ -230,132 +207,64 @@ const E = (() => {
   // Every legal action for the current player. `steps` is the click sequence the UI
   // walks through (h<id> hand card, t<n> terrain, u<id> unit); the AI just ignores it.
   function moves(s) {
-    const p = s.turn, o = 1 - p, H = s.players[p].hand, out = [];
+    const p = s.turn, H = s.players[p].hand, out = [], g = new G(s, p);
     const T = [0, 1, 2].filter(t => live(s, t));
-    const mine = [], theirs = [];
-    for (const t of T) {
-      for (const u of s.terrains[t].side[p]) mine.push({ u, t });
-      for (const u of s.terrains[t].side[o]) theirs.push({ u, t });
-    }
     const n = t => s.terrains[t].side[p].length;
-    for (const x of mine) if (x.u.down) out.push({ kind: 'reveal', u: x.u.id, steps: ['u' + x.u.id] });
+    for (const t of T) for (const u of s.terrains[t].side[p]) if (u.down) out.push({ kind: 'reveal', u: u.id, steps: ['u' + u.id] });
     for (const c of H) {
       const C = CARDS[c.key];
       out.push({ kind: 'supply', c: c.id, steps: ['supply'] });
       for (const t of T) {
-        const forest = K(s.terrains[t]) === 'foret', free = n(t) < cap(s, t);
+        const fog = !!trait(s.terrains[t]).fog, free = n(t) < cap(s, t);
         if (free) out.push({ kind: 'hidden', c: c.id, t, steps: ['t' + t] });
-        if (C.type === 'Ordre') continue;
-        // ponytail: a replacing unit does not trigger its "à la pose" power (no second target prompt).
+        if (C.type === ORDER) continue;
+        // ponytail: a replacing unit does not trigger its targeted power (no second target prompt).
         if (!free && RULES.replace) for (const x of s.terrains[t].side[p]) out.push({ kind: 'deploy', c: c.id, t, rep: x.id, steps: ['t' + t, 'u' + x.id] });
-        if (!free && !(c.key === 'rangers' && !forest && n(t) === cap(s, t))) continue;
+        if (!free && !(C.extraSlot && !fog && n(t) === cap(s, t))) continue;
         const base = { kind: 'deploy', c: c.id, t }, st = ['t' + t];
         out.push({ ...base, steps: st });
-        if (forest) continue; // lands face-down, power inactive
-        const foes = s.terrains[t].side[o];
-        const targets =
-          c.key === 'firefly' ? bunker(s, t) ? [] : foes.filter(e => !e.down && !armored(e) && CARDS[e.key].type === 'Char' && vals(s, e, t)[0] <= 2)
-          : c.key === 'typhoon' ? bunker(s, t) ? [] : foes.filter(e => !e.down && !armored(e) && CARDS[e.key].type === 'Char' && sum(vals(s, e, t)) <= 3)
-          : c.key === 'commandos' ? bunker(s, t) ? [] : foes.filter(e => e.down)
-          : c.key === 'mortiers' ? foes.filter(e => !e.down)
-          : c.key === 'p47' ? foes.filter(e => e.down) : [];
-        for (const e of targets) out.push({ ...base, u: e.id, steps: [...st, 'u' + e.id] });
-        if (c.key === 'genie') for (const x of mine) for (const to of T)
-          if (canMove(s, x.u, x.t, to) && (to !== t || n(t) + 1 < cap(s, t)))
-            out.push({ ...base, u: x.u.id, t2: to, steps: [...st, 'u' + x.u.id, 't' + to] });
+        if (fog || !C.targets) continue; // in the fog it lands face down, power inactive
+        for (const x of C.targets(g, t, c)) out.push({ ...base, ...x.args, steps: [...st, ...x.steps] });
       }
-      if (C.type !== 'Ordre') continue;
-      const ord = (x, steps) => out.push({ kind: 'order', c: c.id, ...x, steps });
-      const hit = list => list.forEach(x => ord({ u: x.u.id }, ['u' + x.u.id]));
-      if (c.key === 'artillerie') {
-        const far = mine.some(x => !x.u.down && x.u.key === 'observateur') || s.terrains.some(X => K(X) === 'colline' && (X.holder === p || X.captured === p));
-        hit(theirs.filter(x => !bunker(s, x.t) && !x.u.down && CARDS[x.u.key].type !== 'Char' && sum(vals(s, x.u, x.t)) <= 3 && (far || mine.some(m => m.t === x.t || adjacent(s, m.t, x.t)))));
-      } else if (c.key === 'bombardement') hit(theirs.filter(x => !bunker(s, x.t) && !armored(x.u) && totals(s, x.t, p)[2] >= 2));
-      else if (c.key === 'recon') hit([...mine, ...theirs].filter(x => x.u.down));
-      else if (c.key === 'sabotage') hit(theirs.filter(x => x.u.down));
-      else if (c.key === 'fumee') ord({}, ['play']);
-      else if (c.key === 'opsecrete') {
-        for (const a of H) for (const b of H) if (a !== b && a !== c && b !== c)
-          for (const t1 of T) for (const t2 of T) if (t1 !== t2 && n(t1) < cap(s, t1) && n(t2) < cap(s, t2))
-            ord({ a: a.id, t1, b: b.id, t2 }, ['h' + a.id, 't' + t1, 'h' + b.id, 't' + t2]);
-      } else if (c.key === 'echange') {
-        for (const x of mine) for (const y of mine) if (x.t !== y.t && !marsh(s, x.u, x.t, y.t) && !marsh(s, y.u, x.t, y.t))
-          ord({ a: x.u.id, b: y.u.id }, ['u' + x.u.id, 'u' + y.u.id]);
-      } else if (c.key === 'redeploy') {
-        for (const d of T) {
-          const cand = mine.filter(x => canMove(s, x.u, x.t, d));
-          for (const x of cand) {
-            ord({ us: [x.u.id], t: d }, ['u' + x.u.id, 't' + d]);
-            if (cap(s, d) - n(d) >= 2) for (const y of cand) if (x !== y) ord({ us: [x.u.id, y.u.id], t: d }, ['u' + x.u.id, 'u' + y.u.id, 't' + d]);
-          }
-        }
-      }
+      if (C.type === ORDER && C.targets) for (const x of C.targets(g, c)) out.push({ kind: 'order', c: c.id, ...x.args, steps: x.steps });
     }
     // Powers: `steps` are only the targets, the UI selects the power with its own button.
-    const pw = (w, x, steps) => out.push({ kind: 'power', c: 'p:' + w, w, ...x, steps });
-    for (const w of s.players[p].powers || []) {
-      if (w === 'naval') theirs.filter(x => !bunker(s, x.t) && !armored(x.u) && sum(vals(s, x.u, x.t)) <= 4).forEach(x => pw(w, { u: x.u.id }, ['u' + x.u.id]));
-      else if (w === 'barrage') T.filter(t => s.terrains[t].side[o].length).forEach(t => pw(w, { t }, ['t' + t]));
-      else if (w === 'renseignement') { if (theirs.some(x => x.u.down)) pw(w, {}, []); }
-      else if (w === 'couverture') { if (!s.smoke[p]) pw(w, {}, []); }
-      else if (w === 'renforts') pw(w, {}, []);
-    }
+    for (const w of s.players[p].powers || []) for (const x of POWERS[w].targets(g)) out.push({ kind: 'power', c: 'p:' + w, w, ...x.args, steps: x.steps });
     // Nothing but powers left (empty hand): passing must stay possible.
     if (!out.some(m => m.kind !== 'power')) out.unshift({ kind: 'pass', steps: ['pass'] });
     return out;
   }
 
   function play(s, m) {
-    const p = s.turn, P = s.players[p];
-    const take = id => P.hand.splice(P.hand.findIndex(c => c.id === id), 1)[0];
-    const put = (card, t, down) => { const u = { ...card, owner: p, down, malus: 0 }; s.terrains[t].side[p].push(u); return u; };
-    if (m.kind === 'supply') { P.discard.push(take(m.c)); draw(s, p, 2); log(s, { e: 'supply', p }); }
-    else if (m.kind === 'hidden') { put(take(m.c), m.t, true); log(s, { e: 'hidden', p, t: s.terrains[m.t].key }); }
+    const p = s.turn, P = s.players[p], g = new G(s, p);
+    if (m.kind === 'supply') { P.discard.push(take(s, p, m.c)); draw(s, p, 2); log(s, { e: 'supply', p }); }
+    else if (m.kind === 'hidden') { put(s, p, take(s, p, m.c), m.t, true); log(s, { e: 'hidden', p, t: s.terrains[m.t].key }); }
     else if (m.kind === 'reveal') flip(s, m.u, null);
     else if (m.kind === 'deploy') {
       if (m.rep != null) destroy(s, m.rep);
-      const down = K(s.terrains[m.t]) === 'foret', u = put(take(m.c), m.t, down);
+      const down = !!trait(s.terrains[m.t]).fog, u = put(s, p, take(s, p, m.c), m.t, down), C = CARDS[u.key];
       log(s, { e: down ? 'fog' : 'deploy', p, card: u.key, t: s.terrains[m.t].key });
-      if (!down && m.u != null) {
-        if (u.key === 'firefly') destroy(s, m.u);
-        if (u.key === 'mortiers') find(s, m.u).u.malus++;
-        if (u.key === 'p47') flip(s, m.u, u.id);
-        if (u.key === 'genie') moveUnit(s, m.u, m.t2);
-        if (u.key === 'typhoon' || u.key === 'commandos') destroy(s, m.u);
-      }
-      if (!down && u.key === 'ambulance') draw(s, p, 2);
+      if (!down && C.onPlay) C.onPlay(g, u, m);
     } else if (m.kind === 'order') {
-      const c = take(m.c);
+      const c = take(s, p, m.c);
       P.discard.push(c);
       log(s, { e: 'order', p, card: c.key });
-      if (c.key === 'artillerie' || c.key === 'bombardement') destroy(s, m.u);
-      else if (c.key === 'recon') { flip(s, m.u, null); draw(s, p, 1); }
-      else if (c.key === 'sabotage') {
-        const f = find(s, m.u), side = s.terrains[f.t].side[f.p];
-        side.splice(side.indexOf(f.u), 1);
-        s.players[f.p].hand.push({ id: f.u.id, key: f.u.key });
-      } else if (c.key === 'fumee') s.smoke[p] = true;
-      else if (c.key === 'opsecrete') { put(take(m.a), m.t1, true); put(take(m.b), m.t2, true); }
-      else if (c.key === 'echange') { const ta = find(s, m.a).t, tb = find(s, m.b).t; moveUnit(s, m.a, tb); moveUnit(s, m.b, ta); }
-      else if (c.key === 'redeploy') m.us.forEach(id => moveUnit(s, id, m.t));
+      if (CARDS[c.key].onPlay) CARDS[c.key].onPlay(g, null, m);
     } else if (m.kind === 'power') { // free: no endTurn, the player still has the turn's action
       P.powers = P.powers.filter(x => x !== m.w);
       log(s, { e: 'power', p, pw: m.w });
-      if (m.w === 'naval') destroy(s, m.u);
-      else if (m.w === 'renforts') draw(s, p, 2);
-      else if (m.w === 'renseignement') { for (const T of s.terrains) for (const u of [...T.side[1 - p]]) if (u.down) flip(s, u.id, null); }
-      else if (m.w === 'barrage') s.terrains[m.t].side[1 - p].forEach(u => u.malus++);
-      else if (m.w === 'couverture') s.smoke[p] = true;
+      POWERS[m.w].onPlay(g, null, m);
       return control(s, p);
     } else log(s, { e: 'pass', p });
     endTurn(s);
   }
 
   // bonus (campaign): { cards: [{ key, vet }], powers: [name] } for player 0.
-  function newGame(keys = ['bocage', 'pont', 'village'], bonus = {}) {
+  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}) {
     let id = 0;
     const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].map(key => ({ key }))];
     const s = {
+      pack: PACK.id,
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
       players: lists.map((list, p) => ({ list, powers: p ? [] : [...(bonus.powers || [])], deck: shuffle(list.map(c => ({ id: id++, ...c }))), hand: [], discard: [], turns: 0 })),
       turn: 0, winner: null, timeout: false, smoke: [false, false], log: [],
@@ -365,9 +274,9 @@ const E = (() => {
     startTurn(s);
     return s;
   }
-  const randomTerrains = () => shuffle(Object.keys(TERRAINS).filter(k => !TERRAINS[k].base)).slice(0, 3);
+  const randomTerrains = () => shuffle(PACK.quick.slice()).slice(0, 3);
 
-  // ---- AI level 1: one half-turn lookahead, never cheats -------------------
+  // ---- AI: never cheats -------------------------------------------------------------------------
   // Hand/deck cards are immutable {id,key}, so only arrays and board units are copied.
   const clone = s => ({
     ...s, log: [], smoke: [...s.smoke],
@@ -430,7 +339,7 @@ const E = (() => {
     const ranked = moves(b).filter(uniq).map(m => {
       const c = clone(b);
       play(c, m);
-      const bluff = m.kind === 'hidden' || m.t1 != null ? w.bluff : 0; // face-down play or Opération secrète
+      const bluff = m.kind === 'hidden' || m.t1 != null ? w.bluff : 0; // face-down play or a two-card face-down order
       const hits = w.aggro ? foes(b, p) - foes(c, p) + c.terrains.filter((T, t) => b.terrains[t].holder === 1 - p && T.holder !== 1 - p).length : 0;
       return { m, v: score(c, p, w) + bluff + (w.aggro || 0) * hits + Math.random() * 0.5 };
     }).sort((x, y) => y.v - x.v);
@@ -456,6 +365,10 @@ const E = (() => {
     return tried.find(r => r.wins >= top - w.slack).m; // tried is sorted: first = most aggressive-looking
   }
 
-  return { K, ATTRS, RULES, get TURNS() { return RULES.turns; }, CARDS, TERRAINS, POWERS, MAIN, newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, nameOf, control };
+  return {
+    use, RULES, ORDER, get TURNS() { return RULES.turns; }, get PACK() { return PACK; },
+    get CARDS() { return CARDS; }, get TERRAINS() { return TERRAINS; }, get POWERS() { return POWERS; }, get MAIN() { return MAIN; },
+    newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, control,
+  };
 })();
 if (typeof module !== 'undefined') module.exports = E;

@@ -1,6 +1,8 @@
 // Balance study: which knob brings the game back on target once face-down cards are worth 0?
 // Usage: node balance.cjs [battles per config = 500]
+require('./packs/index.cjs');
 const E = require('./engine.js');
+E.use('normandie'); // the balance study sweeps Normandy's rules
 const N = +process.argv[2] || 500;
 const UNITS = ['sherman', 'sherman', 'section', 'section', 'firefly', 'rangers', 'mortiers', 'paras', 'p47', 'spitfire', 'genie', 'officier', 'resistance', 'observateur'];
 const set = r => Object.assign(E.RULES, { turns: 12, thrDelta: 0, slots: 4, replace: true }, r);

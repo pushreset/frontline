@@ -1,21 +1,49 @@
 // GDD "prochaines étapes" #2: AI vs AI, measure first-player advantage, length, timeout rate.
-// Usage: node sim.cjs [battles=1000] [fixed]   ("fixed" = Bocage/Pont/Village only)
-//        node sim.cjs 200 niveaux               duels between difficulty levels + behaviour profile
-//        node sim.cjs 1 partie easy hard        one battle, told move by move
-//        node sim.cjs 300 campagne              balance of each campaign battle
+// Usage: node sim.cjs [battles=1000] [fixed] [pack]    ("fixed" = the pack's 3 default terrains)
+//        node sim.cjs 200 niveaux [pack]             duels between difficulty levels + behaviour profile
+//        node sim.cjs 1 partie easy hard [pack]      one battle, told move by move
+//        node sim.cjs 300 campagne [pack]            balance of each campaign battle, runs with vs without rewards
+//        node sim.cjs 300 empreinte                  fingerprint: one hash of 350 seeded battles (refactor safety net)
+// [pack] defaults to normandie.
 const assert = require('assert');
-const E = require('./engine.js');
+const PACKS = require('./packs/index.cjs');
+const E = require('./engine.js'), C = require('./campaign.js'), I = require('./i18n.js');
+const PACK = Object.keys(PACKS).find(id => process.argv.includes(id)) || 'normandie';
 
-// Translation check: every card, terrain, battle, UI string and log event exists in English.
-{
-  const I = require('./i18n.js'), C = require('./campaign.js');
-  for (const k of Object.keys(E.CARDS)) if (k !== 'inconnu') assert(I.EN.cards[k], `EN card ${k}`);
-  for (const k of Object.keys(E.TERRAINS)) assert(I.EN.terrains[k], `EN terrain ${k}`);
-  for (const b of C.BATTLES) assert(I.EN.battles[b.id], `EN battle ${b.id}`);
-  assert.deepEqual(Object.keys(I.UI.en).sort(), Object.keys(I.UI.fr).sort(), 'same UI keys in FR and EN');
-  assert.deepEqual(Object.keys(I.LOG.en).sort(), Object.keys(I.LOG.fr).sort(), 'same log events in FR and EN');
-  for (const k of Object.keys(E.CARDS)) if (E.CARDS[k].text) { I.lang = 'en'; assert(I.cardText(k) !== E.CARDS[k].text, `EN text for ${k}`); }
-  I.lang = 'fr';
+// Every pack: texts in FR and EN, terrains/cards/powers referenced exist, a campaign graph where every
+// battle is reachable from a start and leads to an end, time moving forward on every link.
+assert.deepEqual(Object.keys(I.UI.en).sort(), Object.keys(I.UI.fr).sort(), 'same UI keys in FR and EN');
+assert.deepEqual(Object.keys(I.LOG.en).sort(), Object.keys(I.LOG.fr).sort(), 'same log events in FR and EN');
+for (const [id, P] of Object.entries(PACKS)) {
+  const both = (o, what) => assert(o && o.fr && o.en, `${id}: FR and EN for ${what}`);
+  E.use(id); C.use(id);
+  for (const k of ['title', 'sub', 'dates', 'finale']) both(P[k], k);
+  assert(P.attrs.fr.length === 4 && P.attrs.en.length === 4 && P.icons.length === 4, `${id}: 4 attributes`);
+  for (const [k, ty] of Object.entries(P.types)) both(ty, `type ${k}`);
+  for (const [k, c] of Object.entries(P.cards)) { both(c.name, k); if (c.text) both(c.text, `${k} text`); assert(P.types[c.type], `${id}: type of ${k}`); assert(c.v.length === 4, `${id}: values of ${k}`); }
+  for (const [k, t] of Object.entries(P.terrains)) { both(t.name, k); both(t.text, `${k} text`); assert(P.traits[t.trait], `${id}: trait ${t.trait} of ${k}`); }
+  for (const [k, w] of Object.entries(P.powers || {})) { both(w.name, k); both(w.text, `${k} text`); }
+  for (const d of P.decks) d.forEach(k => assert(P.cards[k], `${id}: deck card ${k}`));
+  P.quick.forEach(k => assert(P.terrains[k], `${id}: quick terrain ${k}`));
+  for (const k of [...C.VETS, ...C.CARDS]) assert(P.cards[k], `${id}: reward card ${k}`);
+  for (const k of C.POWERS) assert(P.powers[k], `${id}: power ${k}`);
+  for (const b of C.BATTLES) {
+    b.pool.forEach(k => assert(P.terrains[k], `${id}/${b.id}: unknown terrain ${k}`));
+    for (const k of ['name', 'date', 'brief']) both(b[k], `${b.id} ${k}`);
+    for (const n of b.next) assert(C.byId[n] && C.byId[n].day >= b.day, `${id}: ${b.id} -> ${n} goes back in time`);
+  }
+  assert.equal(C.BATTLES.filter(b => C.status(b.id, []) === 'gone').length, 0, `${id}: every battle reachable at the start`);
+}
+{ // Normandy map: 3 beaches, runs of 8-10 battles ending in Paris, sibling branches closed on victory.
+  E.use('normandie'); C.use('normandie');
+  assert.deepEqual([...C.roots].sort(), ['omaha', 'sword', 'utah']);
+  const lens = new Set(), walk = (id, n) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1)) : (assert.equal(id, 'paris'), lens.add(n));
+  C.roots.forEach(r => walk(r, 1));
+  assert(Math.min(...lens) >= 8 && Math.max(...lens) <= 10, `run length ${[...lens]}`);
+  const path = ['omaha', 'bayeux'];
+  assert.equal(C.status('pointe_hoc', path), 'gone', 'sibling branch closed on victory');
+  assert.equal(C.status('epsom', path), 'open');
+  assert.equal(C.status('cote_112', path), 'fog');
 }
 
 // Rule check: a filled terrain is only Tenu, and falls at the holder's NEXT turn start.
@@ -58,28 +86,6 @@ const E = require('./engine.js');
   assert.equal(s.terrains[1].holder, 0, 'Pont 3/1/1/1 now filled');
 }
 
-// Campaign map: every battle reachable from a beach and leading to Paris, time moves forward on every
-// link, a run lasts 8-10 battles, every terrain exists, every battle has its English text.
-{
-  const C = require('./campaign.js'), I = require('./i18n.js');
-  for (const b of C.BATTLES) {
-    b.pool.forEach(k => assert(E.TERRAINS[k], `${b.id}: unknown terrain ${k}`));
-    assert(I.EN.battles[b.id], `EN battle ${b.id}`);
-    for (const n of b.next) assert(C.byId[n] && C.byId[n].day >= b.day, `${b.id} -> ${n}: goes back in time`);
-  }
-  assert.deepEqual(C.roots.sort(), ['omaha', 'sword', 'utah']);
-  const lens = new Set(), walk = (id, n) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1)) : (assert.equal(id, 'paris'), lens.add(n));
-  C.roots.forEach(r => walk(r, 1));
-  assert(Math.min(...lens) >= 8 && Math.max(...lens) <= 10, `run length ${[...lens]}`);
-  assert.equal(C.BATTLES.filter(b => C.status(b.id, []) === 'gone').length, 0, 'every battle reachable at the start');
-  const path = ['omaha', 'bayeux'];
-  assert.equal(C.status('pointe_hoc', path), 'gone', 'sibling branch closed on victory');
-  assert.equal(C.status('epsom', path), 'open');
-  assert.equal(C.status('cote_112', path), 'fog');
-  for (const k of [...C.CARDS]) assert(E.CARDS[k] && I.EN.cards[k], `reward card ${k}`);
-  for (const k of C.POWERS) assert(E.POWERS[k] && I.EN.powers[k], `power ${k}`);
-}
-
 // Rewards: veteran +1, Jumbo indestructible, Typhoon, free single-use power.
 {
   const mk = (keys, owner, base, extra = {}) => keys.map((key, i) => ({ id: base + i, key, owner, down: false, malus: 0, ...extra }));
@@ -104,6 +110,50 @@ const E = require('./engine.js');
   s.players[0].hand = [{ id: 1210, key: 'typhoon' }];
   const ty = E.moves(s).filter(m => m.kind === 'deploy' && m.t === 1 && m.u != null).map(m => m.u);
   assert.deepEqual(ty, [1201], 'Typhoon: StuG (2) yes, Panzer IV (4) no');
+}
+
+// Test pack: mechanics Normandy does not have work through the same hooks, with no engine change.
+{
+  E.use('test');
+  const mk = (keys, owner, base) => keys.map((key, i) => ({ id: base + i, key, owner, down: false, malus: 0 }));
+  const s = E.newGame(['plaine', 'hauteur', 'gue']);
+  s.terrains[0].side[1] = mk(['sagittarii'], 1, 500);
+  s.players[0].hand = [{ id: 510, key: 'equites' }];
+  const push = E.moves(s).find(m => m.kind === 'deploy' && m.t === 0 && m.u === 500);
+  assert(push && push.t2 === 1, 'Charge pushes an enemy unit to a neighbouring terrain');
+  E.play(s, push);
+  assert.equal(s.terrains[1].side[1][0].id, 500, 'pushed');
+  const t = E.newGame(['plaine', 'hauteur', 'gue']);
+  t.terrains[0].side[1] = mk(['legionnaire', 'legionnaire'], 1, 600);
+  t.terrains[1].side[1] = mk(['legionnaire'], 1, 610);
+  for (const T of t.terrains) for (const u of T.side[1]) u.malus = 2; // worth 2: in Arrow Storm range
+  t.players[0].hand = [{ id: 620, key: 'fleches' }];
+  const targets = E.moves(t).filter(m => m.kind === 'order').map(m => m.u);
+  assert.deepEqual(targets, [610], 'Testudo: legionaries side by side are immune, the lone one is not');
+  E.use('normandie');
+}
+
+// The rule checks above test Normandy cards; the modes below run on the chosen pack.
+if (PACK !== 'normandie') { E.use(PACK); C.use(PACK); }
+
+// Fingerprint: fixed seed, many battles (3 levels, campaign bonuses), one hash of every log.
+// A refactor that must not change the game keeps it identical: node sim.cjs 300 empreinte
+if (process.argv[3] === 'empreinte') {
+  const h = require('crypto').createHash('sha1'), N = +process.argv[2] || 300;
+  let seed = 12345; // mulberry32
+  Math.random = () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const game = (keys, lv, bonus) => { const s = E.newGame(keys, bonus); while (s.winner === null) E.play(s, E.aiMove(s, lv[s.turn])); h.update(JSON.stringify([keys, s.log, s.winner])); };
+  for (let i = 0; i < N; i++) game(E.randomTerrains(), [['easy', 'normal'], ['normal', 'easy'], ['normal', 'normal']][i % 3]);
+  for (let i = 0; i < 6; i++) game(E.randomTerrains(), i % 2 ? ['hard', 'normal'] : ['normal', 'hard']);
+  let run = C.newRun();
+  for (let i = 0; i < 40; i++) {
+    if (C.done(run)) run = C.newRun();
+    const now = C.open(run.path), id = now[i % now.length];
+    game(C.draw(C.byId[id]), ['normal', 'normal'], run);
+    C.win(run, id);
+  }
+  console.log('empreinte', h.digest('hex'));
+  process.exit(0);
 }
 
 // Difficulty levels: cross matches, sides alternated to cancel the first-player edge,
@@ -146,7 +196,7 @@ if (process.argv[3] === 'niveaux') {
 
 // One battle told move by move: node sim.cjs 1 partie [niveau joueur 1] [niveau joueur 2]
 if (process.argv[3] === 'partie') {
-  const I = require('./i18n.js'), lv = [process.argv[4] || 'normal', process.argv[5] || 'normal'];
+  const lv = [process.argv[4] || 'normal', process.argv[5] || 'normal'];
   I.lang = 'fr';
   const s = E.newGame(E.randomTerrains());
   console.log(`« Tu » = ${lv[0]} (joue en premier), « L'IA » = ${lv[1]}. Terrains : ${s.terrains.map(T => I.terrainName(T.key)).join(', ')}`);
@@ -161,7 +211,6 @@ if (process.argv[3] === 'partie') {
 
 // Campaign mode: balance of each battle, then whole runs with and without the rewards.
 if (process.argv[3] === 'campagne') {
-  const C = require('./campaign.js');
   const N = +process.argv[2] || 500;
   const game = (keys, bonus) => { const s = E.newGame(keys, bonus); while (s.winner === null) E.play(s, E.aiMove(s)); return s; };
   console.log(`Campagne, ${N} batailles IA contre IA par étape, sans renfort (cible : joueur 45-60 %, temps <= 30 %)`);
@@ -169,7 +218,7 @@ if (process.argv[3] === 'campagne') {
     let w = 0, to = 0, len = 0;
     for (let i = 0; i < N; i++) { const s = game(C.draw(b)); if (s.winner === 0) w++; if (s.timeout) to++; len += s.players[0].turns; }
     const pw = 100 * w / N, pt = 100 * to / N, ok = pw >= 45 && pw <= 60 && pt <= 30;
-    console.log(`${ok ? ' ' : '!'} ${b.name.padEnd(24)} joueur ${pw.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N).toFixed(1)} tours`);
+    console.log(`${ok ? ' ' : '!'} ${I.battle(b).name.padEnd(24)} joueur ${pw.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N).toFixed(1)} tours`);
   }
   // Runs: random route, every battle won eventually (its reward is collected), the player is a Régulier.
   // Same battle played with the run's rewards and without, to measure what the rewards are worth.
@@ -182,7 +231,7 @@ if (process.argv[3] === 'campagne') {
       const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0 });
       x.n++; if (game(keys, run).winner === 0) x.w++; if (game(keys).winner === 0) x.w0++;
       const got = C.win(run, id), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
-      if (id === 'paris') break;
+      if (C.last(id)) break;
     }
     lens += run.path.length;
   }
@@ -190,7 +239,7 @@ if (process.argv[3] === 'campagne') {
   console.log('Étapes        avec renforts   sans   écart (cible en fin de campagne : +5 à +15 pts)');
   for (const [name, lo, hi] of [['début 1-3', 0, 3], ['milieu 4-6', 3, 6], ['fin 7-10', 6, 10]]) {
     const x = by.slice(lo, hi).reduce((a, y) => ({ w: a.w + y.w, w0: a.w0 + y.w0, n: a.n + y.n }), { w: 0, w0: 0, n: 0 });
-    console.log(`${name.padEnd(12)} ${(100 * x.w / x.n).toFixed(0).padStart(10)} %  ${(100 * x.w0 / x.n).toFixed(0).padStart(5)} %  ${(100 * (x.w - x.w0) / x.n).toFixed(0).padStart(5)} pts`);
+    if (x.n) console.log(`${name.padEnd(12)} ${(100 * x.w / x.n).toFixed(0).padStart(10)} %  ${(100 * x.w0 / x.n).toFixed(0).padStart(5)} %  ${(100 * (x.w - x.w0) / x.n).toFixed(0).padStart(5)} pts`);
   }
   process.exit(0);
 }

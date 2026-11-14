@@ -1,5 +1,5 @@
 // Ligne de Front — card (64x40) and terrain (160x72) illustrations.
-// Build: node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build art.px.js --no-preview
+// Build (writes packs/normandie/out/): node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/normandie/art.px.js --no-preview
 // One restrained "état-major 1944" palette: olive, khaki, sepia, rust (GDD "Direction artistique").
 pal({
   k: "#14110f", M: "#2e2f2c",

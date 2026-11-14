@@ -85,10 +85,85 @@ Progress is saved automatically in the browser. Music and sound effects are gene
 | File | Role |
 |---|---|
 | `index.html` | the game (interface, campaign map, save) |
-| `engine.js` | rules and AI, no DOM |
-| `campaign.js` | campaign battles, map links, rewards |
-| `i18n.js` | English texts, FR/EN sentences |
+| `engine.js` | rules and AI, no DOM, no campaign content: everything specific comes from the active pack |
+| `campaign.js` | campaign runs for any pack: open battles, final choices, fog of war, rewards |
+| `i18n.js` | interface texts and battle-log sentences, FR/EN |
 | `audio.js` | music and sound effects |
-| `assets.html` | gallery of every illustration |
-| `art.px.js` → `out/` | pixel-art source (pxl DSL); the built PNGs are committed in `out/` |
-| `sim.cjs`, `balance.cjs` | headless AI-vs-AI simulator: `node sim.cjs 1000` (balance), `node sim.cjs 500 campagne` (each campaign battle, runs with vs without rewards), `node sim.cjs 200 niveaux` (difficulty levels), `node sim.cjs 1 partie easy hard` (one battle told move by move) |
+| `assets.html` | gallery of a pack's illustrations (`assets.html?pack=normandie`) |
+| `packs/<id>/` | one campaign each (see below); `packs/index.cjs` lists them for node |
+| `packs/normandie/art.px.js` → `out/` | Normandy pixel art (pxl DSL); the built PNGs are committed in `out/` |
+| `packs/test/pack.js` | hidden mini campaign the simulator plays, to prove the engine is campaign-agnostic |
+| `sim.cjs`, `balance.cjs` | headless AI-vs-AI simulator, see below |
+
+## Adding a campaign
+
+A campaign is a folder in `packs/`. Nothing in `engine.js` has to change: the cards, terrains and
+powers bring their own behaviour as small functions ("hooks").
+
+1. **Create `packs/<id>/`** with these files (or a single file, like `packs/test/pack.js`). Each one
+   adds to `globalThis.PACKS.<id>` and wraps its helpers in a `{ … }` block, because in the browser all
+   scripts share one global scope.
+   - `pack.js`: identity. Title, subtitle, dates and finale text (all `{ fr, en }`), the 4 attribute
+     names and their icons, the card types (name, `main` attribute for veterans, deploy `sound`), the
+     art folder, the menu picture (`cover`) and the map (`image` + longitude/latitude frame).
+   - `cards.js`: `cards`, the two `decks` (player, AI), the campaign `powers` and the `rewards` pools.
+   - `terrains.js`: `traits` (how a terrain plays), `terrains` (name, threshold, trait, text) and
+     `quick`, the terrains a quick battle draws from.
+   - `battles.js`: the campaign graph. Each battle has a name, date, `day` (time must move forward on
+     every link), `pos` on the map, `next`, a `pool` of 4 terrains and a brief. Battles nobody points to
+     are the starting choices; a battle with no `next` ends the campaign.
+   - `art.px.js` → `out/`: pictures named `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's
+     version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, and `sprites/i_<icon>.png`. Build
+     with `node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/<id>/art.px.js --no-preview`.
+     A card or terrain can borrow another picture with `art: '<key>'`.
+2. **Register it**: add its files to `packs/index.cjs` (node) and as `<script>` tags in `index.html`
+   and `assets.html`. Bump the `?v=` of the script tags on every release, otherwise browsers may mix old
+   and new files.
+3. **Check it**: `node sim.cjs 300 <id>` (balance), `node sim.cjs 300 campagne <id>` (each battle,
+   whole campaigns with and without rewards). The simulator first checks every pack: texts in FR and EN,
+   every referenced card or terrain exists, every battle reachable and leading to an end.
+
+### Hooks
+
+A card is data plus optional functions. They receive `g`, a helper bound to the game (`g.p` is the side
+the card acts for):
+
+```js
+firefly: {
+  name: { fr: 'Sherman Firefly', en: 'Sherman Firefly' }, enemy: { fr: 'StuG III', en: 'StuG III' },
+  type: 'Char', v: [2, 0, 0, 0],
+  text: { fr: 'À la pose : détruit un Char adverse…', en: 'On deploy: destroy an enemy Tank…' },
+  targets: (g, t) => g.safe(t) ? [] : g.hit(g.foes(t).filter(e => !e.down && g.type(e) === 'Char' && g.vals(e, t)[0] <= 2)),
+  onPlay: (g, me, m) => { if (m.u != null) g.destroy(m.u); },
+},
+```
+
+- **Cards**: `targets(g, t, card)` lists the choices when the unit is played on terrain `t` (orders:
+  `targets(g, card)`), each `{ args, steps }`; `onPlay(g, me, move)` applies the chosen one (`move.u`,
+  `move.t2`…). Passive hooks: `aura(g, unit, t, v)` changes any unit's values, `onTurnStart(g, me)`,
+  `onFlipped(g, me, by)`, `extraSlot`, `surplus` (bonus in a contest), `immune` (`true` or a function),
+  `tags`.
+- **Terrain traits**: `modify(g, unit, t, v)` for units on this terrain, `fieldAura(g, unit, t, v)` for
+  units everywhere, `slotDelta`, `downValue` (worth of a face-down card), `drawBonus` once captured,
+  `hub` (adjacent to every terrain), `fog`, `blocksMove(g, unit)`, `immune`, `tags`.
+- **Powers**: like orders, `targets(g)` + `onPlay(g, null, move)`; they never use up the turn.
+- **`g`** reads the board with `foes(t)`, `allies(t)`, `mine()`, `theirs()`, `live()`, `type(u)`,
+  `vals(u, t)`, `totals(t)`, `count(t)`, `cap(t)`, `adjacent(a, b)`, `canMove(u, from, to)`, `safe(t)`,
+  `tough(u)`, `has(u, tag)`, `traitHas(t, tag)`, and changes it with `destroy`, `flip`, `move`, `swap`,
+  `malus`, `draw`, `smoke`, `putDown`, `toHand`. `g.hit(units)` / `g.hits([{ u, t }])` turn units into
+  targets; `g.U(id)`, `g.T(t)`, `g.H(id)` build the click steps.
+
+`packs/normandie/` is the full reference; `packs/test/pack.js` shows mechanics Normandy does not have
+(pushing an enemy back, conditional immunity, a ford, a bonus every turn) in a single file.
+
+## Simulator
+
+`node sim.cjs …` plays AI against AI without the interface (`[pack]` defaults to `normandie`):
+
+| Command | What it tells you |
+|---|---|
+| `node sim.cjs 1000 [pack]` | balance: first-player edge, nightfall rate, battle length |
+| `node sim.cjs 500 campagne [pack]` | each campaign battle, then whole campaigns with vs without rewards |
+| `node sim.cjs 200 niveaux [pack]` | the three AI levels against each other, with a behaviour profile |
+| `node sim.cjs 1 partie easy hard [pack]` | one battle told move by move |
+| `node sim.cjs 300 empreinte` | one hash of 350 seeded battles: a refactor that must not change the game keeps it identical |

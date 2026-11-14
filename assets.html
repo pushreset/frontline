@@ -57,34 +57,44 @@
   <section><h2><span id="h-base"></span> <small id="n-base"></small></h2><div class="grid" id="base"></div></section>
   <section><h2><span id="h-camp"></span> <small id="n-camp"></small></h2><div class="grid" id="camp"></div></section>
   <section class="map"><h2><span id="h-map"></span> <small>320 × 140 px</small></h2>
-    <figure><img src="out/scenes/map_normandie.png" alt="Carte de Normandie, du Cotentin à Paris" style="--w:320"><figcaption><span id="g-mapnote"></span></figcaption></figure>
+    <figure><img id="g-map" alt="" style="--w:320"><figcaption><span id="g-mapnote"></span></figcaption></figure>
   </section>
   <section><h2><span id="h-icons"></span> <small>15 × 9 px environ</small></h2><div class="icons" id="icons"></div></section>
 </div>
 
-<script src="engine.js"></script>
-<script src="i18n.js"></script>
+<script src="engine.js?v=3"></script>
+<script src="packs/normandie/pack.js?v=3"></script>
+<script src="packs/normandie/cards.js?v=3"></script>
+<script src="packs/normandie/terrains.js?v=3"></script>
+<script src="packs/normandie/battles.js?v=3"></script>
+<script src="i18n.js?v=3"></script>
 <script>
-  const S = 'out/scenes/', T = E.TERRAINS, C = E.CARDS, I = I18N, L = I18N.t, $ = id => document.getElementById(id);
+  // Gallery of one campaign pack: assets.html?pack=<id> (default: the first one).
+  const want = new URLSearchParams(location.search).get('pack');
+  E.use(PACKS[want] ? want : Object.keys(PACKS)[0]);
+  const S = E.PACK.art + 'scenes/', T = E.TERRAINS, C = E.CARDS, I = I18N, L = I18N.t, $ = id => document.getElementById(id);
   try { I.lang = localStorage.getItem('ldf-lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'); } catch {}
   const fig = (src, w, title, sub) => `<figure><img src="${src}" alt="${title}" style="--w:${w}" loading="lazy"><figcaption><b>${title}</b><span>${sub}</span></figcaption></figure>`;
-  const units = Object.keys(C).filter(k => C[k].type !== 'Ordre' && k !== 'inconnu');
-  const orders = Object.keys(C).filter(k => C[k].type === 'Ordre');
-  const base = Object.keys(T).filter(k => !T[k].base), camp = Object.keys(T).filter(k => T[k].base);
+  const img = k => C[k].art || k;
+  const units = Object.keys(C).filter(k => C[k].type !== E.ORDER && k !== 'inconnu');
+  const orders = Object.keys(C).filter(k => C[k].type === E.ORDER);
+  const base = E.PACK.quick, camp = Object.keys(T).filter(k => !base.includes(k));
+  const traitName = k => T[T[k].trait] ? I.terrainName(T[k].trait) : T[k].trait[0].toUpperCase() + T[k].trait.slice(1);
   function render() {
     document.documentElement.lang = I.lang; document.title = L('gTitle');
     $('g-title').textContent = L('gTitle'); $('g-intro').textContent = L('gIntro'); $('g-lang').textContent = L('lang'); $('g-mapnote').textContent = L('gMapNote');
     for (const [id, k] of [['h-units', 'gUnits'], ['h-orders', 'gOrders'], ['h-base', 'gBase'], ['h-camp', 'gCamp'], ['h-map', 'gMap'], ['h-icons', 'gIcons']]) $(id).textContent = L(k);
     $('units').innerHTML = units.map(k => `<figure><div class="pair">
-        <img src="${S}c_${k}.png" alt="${I.cardName(k, 0)}" style="--w:64" loading="lazy"><img src="${S}c_${k}_x.png" alt="${I.cardName(k, 1)}" style="--w:64" loading="lazy"></div>
+        <img src="${S}c_${img(k)}.png" alt="${I.cardName(k, 0)}" style="--w:64" loading="lazy"><img src="${S}c_${img(k)}_x.png" alt="${I.cardName(k, 1)}" style="--w:64" loading="lazy"></div>
         <figcaption><b>${I.cardName(k, 0)} / ${I.cardName(k, 1)}</b><span>${I.typeName(C[k].type)} · 64 × 40 px · ${L('gSides')}</span></figcaption></figure>`).join('');
-    $('orders').innerHTML = orders.map(k => fig(`${S}c_${k}.png`, 64, I.cardName(k, 0), `${I.typeName('Ordre')} · 64 × 40 px`)).join('') + fig(`${S}c_back.png`, 64, L('gBack'), '64 × 40 px');
+    $('orders').innerHTML = orders.map(k => fig(`${S}c_${img(k)}.png`, 64, I.cardName(k, 0), `${I.typeName(E.ORDER)} · 64 × 40 px`)).join('') + fig(`${S}c_back.png`, 64, L('gBack'), '64 × 40 px');
     $('base').innerHTML = base.map(k => fig(`${S}t_${k}.png`, 160, I.terrainName(k), `${I.terrainText(k)} · 160 × 72 px`)).join('');
-    $('camp').innerHTML = camp.map(k => fig(`${S}t_${k}.png`, 160, I.terrainName(k), `${L('gVariant', T[T[k].base] ? I.terrainName(T[k].base) : L('bunker'))} · 160 × 72 px`)).join('');
+    $('camp').innerHTML = camp.map(k => fig(`${S}t_${k}.png`, 160, I.terrainName(k), `${L('gVariant', traitName(k))} · 160 × 72 px`)).join('');
     $('n-units').textContent = L('gCamps', units.length); $('n-orders').textContent = L('gIll', orders.length + 1);
     $('n-base').textContent = `${base.length} · 160 × 72 px`; $('n-camp').textContent = `${camp.length} · 160 × 72 px`;
     const COL = ['#93a84e', '#d2a544', '#73b4d6', '#b993dc'];
-    $('icons').innerHTML = ['char', 'inf', 'air', 'strat'].map((k, a) => `<div class="chip" style="background:${COL[a]}"><img src="out/sprites/i_${k}.png" alt="">${I.attrName(a)}</div>`).join('');
+    $('g-map').src = `${S}${E.PACK.map.image}.png`; $('g-map').alt = I.pack('title');
+    $('icons').innerHTML = E.PACK.icons.map((k, a) => `<div class="chip" style="background:${COL[a]}"><img src="${E.PACK.art}sprites/i_${k}.png" alt="">${I.attrName(a)}</div>`).join('');
   }
   $('g-lang').addEventListener('click', () => { I.lang = I.lang === 'fr' ? 'en' : 'fr'; try { localStorage.setItem('ldf-lang', I.lang); } catch {} render(); });
   // Integer zoom only: fractional scaling blurs pixel art.
