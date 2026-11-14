@@ -41,9 +41,9 @@
   .vals i img { height:.62em; margin-right:.2em; image-rendering:pixelated; }
   .u .vals { padding:3px; } .u .vals i { font-size:20px; line-height:1.15; } .u .vals i.z { background:#000; color:#fff; opacity:.45; }
   .vals.thr i { font-size:26px; line-height:1.35; } .vals.thr i.z { opacity:.3; }
-  .terrain { flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
+  .terrain { position:relative; flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
   .terrain.h0 { border-color:var(--me); box-shadow:0 0 14px #4f93c988; } .terrain.h1 { border-color:var(--ai); box-shadow:0 0 14px #d0663a88; }
-  .terrain.c0, .terrain.c1 { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
+  .terrain.c0 img.art, .terrain.c1 img.art { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
   .tname { display:flex; justify-content:space-between; align-items:baseline; font-size:17px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; }
   .badge { font-size:11px; letter-spacing:0; text-transform:none; padding:1px 7px; border-radius:9px; background:#0006; }
   .h0 .badge, .c0 .badge { background:var(--me); color:#fff; } .h1 .badge, .c1 .badge { background:var(--ai); color:#fff; }
@@ -62,7 +62,34 @@
   #end { position:fixed; inset:0; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
   #end.show { display:flex; } #end h2 { font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
   #end .row { display:flex; gap:10px; } #end p { max-width:520px; text-align:center; margin:0; }
+  #end.show { animation:fadein .6s both; }
   #bname { color:#f0d98a; font-style:italic; }
+  /* Animations: one CSS class on the render that follows the event (render() rebuilds the board each time). */
+  /* Battle start: terrains dealt face down and flipped one by one, then slots and hand. */
+  .terrain.intro { animation:deal .8s calc(var(--i) * .55s) both; }
+  .terrain.intro::after { content:''; position:absolute; inset:0; border-radius:6px; background:#000 url(out/scenes/c_back.png) center/cover; image-rendering:pixelated; animation:back .8s calc(var(--i) * .55s) both; }
+  @keyframes deal { 0% { opacity:0; transform:perspective(900px) translateY(-60px) rotateY(180deg); } 30% { opacity:1; transform:perspective(900px) rotateY(180deg); } 100% { transform:perspective(900px); } }
+  @keyframes back { 0%, 64% { opacity:1; } 65%, 100% { opacity:0; } }
+  .late { animation:fadein .5s calc(1.8s + var(--i, 0) * .07s) both; }
+  @keyframes fadein { from { opacity:0; transform:translateY(16px); } }
+  /* Capture: the card flips, a GAGNÉ / PERDU stamp slams down (and stays), a banner rises. */
+  .terrain.fx { animation:flip .7s var(--d) both; }
+  @keyframes flip { 50% { transform:perspective(900px) rotateY(90deg); } }
+  .stamp { position:absolute; left:50%; top:54%; z-index:2; transform:translate(-50%,-50%) rotate(-12deg); padding:2px 16px; border:4px solid; border-radius:6px;
+           font:bold 34px Georgia,serif; letter-spacing:4px; text-transform:uppercase; background:#000b; pointer-events:none; white-space:nowrap; }
+  .stamp.s0 { color:#8cc4f0; border-color:var(--me); } .stamp.s1 { color:#f39468; border-color:var(--ai); } .stamp.sx { color:var(--paper); border-color:#b9b091; }
+  .fx .stamp { animation:stamp .45s calc(var(--d) + .5s) both; }
+  .fx .badge { animation:fadein .3s calc(var(--d) + .6s) both; } /* no spoiler before the stamp */
+  @keyframes stamp { from { opacity:0; transform:translate(-50%,-50%) rotate(-12deg) scale(3); } 70% { opacity:1; transform:translate(-50%,-50%) rotate(-12deg) scale(.92); } }
+  .rise { position:absolute; left:0; right:0; top:-8px; z-index:3; text-align:center; font:bold 28px Georgia,serif; letter-spacing:2px; text-shadow:0 2px 0 #000,0 0 14px currentColor; pointer-events:none; animation:rise 1.8s .8s both; }
+  .rise.s0 { color:#a8d6ff; } .rise.s1 { color:#ff9f72; }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } 20%, 70% { opacity:1; transform:translateY(-26px); } to { opacity:0; transform:translateY(-46px); } }
+  /* Nightfall: the board goes dark for a moment, then the terrains are decided one by one. */
+  #front { position:relative; }
+  .nightfall { position:absolute; inset:-8px; z-index:4; display:flex; align-items:center; justify-content:center; font:bold 40px Georgia,serif; letter-spacing:4px;
+               color:#f0d98a; background:#060a18cc; pointer-events:none; animation:night 1.4s both; }
+  @keyframes night { 0% { opacity:0; } 25%, 70% { opacity:1; } 100% { opacity:0; } }
+  @media (prefers-reduced-motion: reduce) { *, ::after { animation:none !important; } }
   #peek { position:fixed; z-index:5; width:250px; pointer-events:none; display:none; cursor:default; box-shadow:0 10px 30px #000c; }
   #peek.show { display:flex; } #peek b { font-size:20px; } #peek small { font-size:12px; } #peek p { font-size:15px; flex:none; }
   #peek .vals i { font-size:22px; } #peek .note { font-size:13px; font-style:italic; opacity:.8; }
@@ -126,6 +153,11 @@
 const ICON = ['char', 'inf', 'air', 'strat'].map(n => `<img src="out/sprites/i_${n}.png" alt="">`); // drawn in art.px.js
 const $ = id => document.getElementById(id);
 let s, sel = null, hiddenMode = false, busy = false, pick = 'omaha';
+// Animation state: intro = deal the terrains on this render; fx = captures to animate on the next render;
+// endShown = false while the board stays visible after the decisive capture.
+let intro = false, fx = null, endShown = true;
+const FX_MS = 1600, NIGHT_MS = 1000, STEP_MS = 900, LOOK_MS = 1500, INTRO_MS = 2300;
+const fxMs = f => !f ? 0 : f.night ? NIGHT_MS + STEP_MS * (f.caps.length - 1) + FX_MS : FX_MS;
 const C = CAMPAIGN, SAVE = 'ldf-v1', I = I18N, L = I18N.t;
 // Language: saved choice, else English unless the browser is French.
 try { I.lang = localStorage.getItem('ldf-lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'); } catch { I.lang = 'fr'; }
@@ -176,11 +208,14 @@ function peek(e) {
 
 function startBattle(mode, battle) {
   s = E.newGame(mode === 'campagne' ? C.draw(C.byId[battle]) : E.randomTerrains());
-  save.cur = { mode, battle, s }; sel = null; busy = false; hiddenMode = false;
-  persist(); screen('game'); render();
+  save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
+  busy = intro = true; persist(); screen('game'); render(); intro = false;
+  s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
+  const mine = s;
+  setTimeout(() => { if (s === mine) { busy = false; render(); } }, INTRO_MS);
 }
 function resume() {
-  s = save.cur.s; sel = null; busy = false; screen('game'); render();
+  s = save.cur.s; sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
   if (s.winner === null && s.turn === 1) aiTurn(); // saved while the AI was thinking
 }
 // Two-click confirmation inside the page (no confirm() dialog).
@@ -249,24 +284,29 @@ function render() {
         <b>${secret ? '???' : I.cardName(u.key, u.owner)}</b>${u.down ? `<em>${L('faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span></div>`;
     }).join('') + '<div class="slot"></div>'.repeat(Math.max(0, E.cap(s, t) - T.side[p].length));
     const st = T.captured !== null ? 'c' + T.captured : T.holder !== null ? 'h' + T.holder : '';
+    const k = fx ? fx.caps.indexOf(t) : -1, d = fx && fx.night ? (NIGHT_MS + STEP_MS * k) / 1000 : 0;
+    const stamp = T.captured === 0 ? 'stampWin' : T.captured === 1 ? 'stampLose' : s.timeout ? 'stampTie' : '';
     const badge = L(T.captured === 0 ? 'cap0' : T.captured === 1 ? 'cap1' : T.holder === 0 ? 'hold0' : T.holder === 1 ? 'hold1' : 'free');
     return `<div class="col ${next.has('t' + t) ? 'target' : ''}" data-step="t${t}">
-      <div class="slots">${row(1)}</div>
-      <div class="terrain ${st}">
+      <div class="slots ${intro ? 'late' : ''}">${row(1)}</div>
+      <div class="terrain ${st} ${intro ? 'intro' : ''} ${k >= 0 ? 'fx' : ''}" style="--i:${t};--d:${d}s">
         <div class="tname"><span>${t + 1} · ${I.terrainName(T.key)}</span><span class="badge">${badge}</span></div>
         <div class="trait">${I.terrainText(T.key)}</div>
         <img class="art" src="${terrainArt(T.key)}" alt="">
         <div class="vals thr" title="${L('thr')}">${valsHTML(th)}</div>
+        ${stamp ? `<div class="stamp s${T.captured === null ? 'x' : T.captured}">${L(stamp)}</div>` : ''}
+        ${k >= 0 && !fx.night && T.captured !== null ? `<div class="rise s${T.captured}">${L(T.captured ? 'fxLose' : 'fxWin')}</div>` : ''}
       </div>
-      <div class="slots">${row(0)}</div></div>`;
-  }).join('');
+      <div class="slots ${intro ? 'late' : ''}">${row(0)}</div></div>`;
+  }).join('') + (fx && fx.night ? `<div class="nightfall">${L('night')}</div>` : '');
+  fx = null; // played once: later renders show the result without replaying the effect
 
-  $('hand').innerHTML = s.players[0].hand.map(h => {
+  $('hand').innerHTML = s.players[0].hand.map((h, i) => {
     const C = E.CARDS[h.key], order = C.type === 'Ordre';
-    return `<div class="card ${order ? 'order' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}">${cardInner(h.key, 0)}</div>`;
+    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" style="--i:${i}">${cardInner(h.key, 0)}</div>`;
   }).join('');
 
-  const hint = s.winner !== null ? '' : L(!myTurn() ? 'hAi' : !sel ? 'hPick' : !c.length ? (hiddenMode ? 'hNoSlot' : 'hNoTarget')
+  const hint = s.winner !== null ? (endShown ? '' : L('hEnd')) : busy && s.turn === 0 ? '' : L(!myTurn() ? 'hAi' : !sel ? 'hPick' : !c.length ? (hiddenMode ? 'hNoSlot' : 'hNoTarget')
     : sel.pre.length && c.some(m => m.rep != null) ? 'hReplace' : exact && c.length > 1 ? 'hPower' : 'hTarget');
   $('bar').innerHTML = `<span id="hint">${hint}</span>
     ${next.has('play') ? `<button data-step="play" class="on">${L('playOrder')}</button>` : ''}
@@ -275,11 +315,12 @@ function render() {
     <button data-act="supply" ${sel && myTurn() ? '' : 'disabled'} title="${L('supplyTip')}">${L('supply')}</button>
     <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>`;
 
-  $('end').className = s.winner !== null ? 'show' : '';
-  if (s.winner !== null) {
+  $('end').className = s.winner !== null && endShown ? 'show' : '';
+  if (s.winner !== null && endShown) {
     const win = s.winner === 0, done = camp && win && save.cur.battle === 'paris';
     $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${L(done ? 'paris' : win ? 'victory' : 'defeat')}</h2>
       <div>${L(s.timeout ? 'byNight' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
+      ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L('noMajority')}</div>` : ''}
       ${done ? `<p>${L('endDone')}</p>` : camp && win ? `<p>${L('endWin')}</p>` : camp ? `<p>${L('endLose')}</p>` : ''}
       <div class="row">${camp ? (win ? `<button data-go="map" class="on">${L('backMap')}</button>`
         : `<button data-go="again" class="on">${L('again')}</button><button data-go="map">${L('map')}</button>`)
@@ -303,7 +344,12 @@ const langLabels = () => { document.documentElement.lang = I.lang; document.titl
 // Play a move and the sounds it causes: the move itself, then what the log says happened.
 function act(m) {
   const P = s.players[s.turn], card = m.c != null && P.hand.find(h => h.id === m.c), key = card && card.key, n = s.log.length;
+  const before = s.terrains.map(T => T.captured);
   E.play(s, m);
+  // Terrains decided by this move: a capture, or all the open ones at nightfall (ties included).
+  const caps = [0, 1, 2].filter(t => before[t] === null && (s.terrains[t].captured !== null || s.timeout));
+  fx = caps.length ? { caps, night: s.timeout } : null;
+  if (s.timeout) caps.forEach((t, i) => { const c = s.terrains[t].captured; SND.play(c === 0 ? 'capture' : c === 1 ? 'lost' : 'card', (NIGHT_MS + STEP_MS * i) / 1000 + 0.5); });
   const type = key && E.CARDS[key].type;
   let boomed = false;
   if (m.kind === 'supply') SND.play('shuffle');
@@ -320,21 +366,27 @@ function act(m) {
     if (l.e === 'hold') SND.play('drumroll', 0.5);
     if (l.e === 'capture') SND.play(l.p === 0 ? 'capture' : 'lost', 0.6);
   }
-  if (s.winner !== null) SND.play(s.winner === 0 ? 'victory' : 'defeat', 1.4);
+  return fxMs(fx);
 }
 // After every action: record a campaign win, save, redraw.
 function played() {
   if (s.winner === 0 && save.cur.mode === 'campagne' && !save.won.includes(save.cur.battle)) save.won.push(save.cur.battle);
   persist(); render();
 }
-function aiTurn() {
+function aiTurn(wait = 0) {
   busy = true;
   const mine = s; // ignore the answer if the player left this battle meanwhile
-  setTimeout(() => { if (s !== mine) return; act(E.aiMove(s, save.diff)); busy = false; played(); }, 700);
+  setTimeout(() => { if (s === mine) commit(E.aiMove(s, save.diff)); }, 700 + wait);
 }
+// Any move (player or AI): input stays locked while its effect plays, then the AI answers,
+// the player gets the hand back, or (after a pause to look at the board) the end screen shows.
 function commit(m) {
-  act(m); sel = null; played();
-  if (s.winner === null && s.turn === 1) aiTurn();
+  const ms = act(m), mine = s, later = (f, t) => setTimeout(() => { if (s === mine) f(); }, t);
+  sel = null; endShown = s.winner === null; busy = s.winner !== null || s.turn === 1 || ms > 0;
+  played();
+  if (s.winner !== null) later(() => { endShown = true; SND.play(s.winner === 0 ? 'victory' : 'defeat'); render(); }, ms + LOOK_MS);
+  else if (s.turn === 1) aiTurn(ms);
+  else if (ms) later(() => { busy = false; render(); }, ms);
 }
 function step(x) {
   sel.pre.push(x);
