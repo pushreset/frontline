@@ -72,6 +72,10 @@ const SND = (() => {
       tone(70, t, 0.8, { gain: 0.6, to: 28 });
     },
     whistle: t => { tone(1500, t, 0.7, { gain: 0.06, to: 450, wet: true }); FX.boom(t + 0.75); },
+    // Officer's whistle before an assault: two trilled blasts (the pea makes the warble).
+    assault: t => { for (const [dt, d] of [[0, 0.35], [0.45, 0.9]]) tone(2300, t + dt, d, { type: 'triangle', gain: 0.07, a: 0.02, vib: 120, wet: true }); },
+    // Shovel biting into earth: short scrapes with a thud.
+    dig: t => { for (let i = 0; i < 3; i++) { noise(t + i * 0.28, 0.12, { type: 'bandpass', f: 1600, q: 2, gain: 0.18 }); noise(t + i * 0.28 + 0.1, 0.08, { f: 300, gain: 0.3 }); } },
     smoke: t => noise(t, 1.8, { type: 'bandpass', f: 900, to: 400, q: 0.5, gain: 0.25, a: 0.2 }),
     drumroll: t => { for (let i = 0; i < 12; i++) noise(t + i * 0.045, 0.05, { type: 'bandpass', f: 2200, q: 1.5, gain: 0.08 + i * 0.012 }); noise(t + 0.55, 0.25, { type: 'bandpass', f: 2000, gain: 0.25, wet: true }); },
     // Bugle calls: horn-ish triangle + quiet square, through the hall.

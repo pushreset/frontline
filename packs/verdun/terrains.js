@@ -1,6 +1,7 @@
 'use strict';
 // Verdun 1916 — terrains. Plain data plus hooks (functions receiving `g`, the engine helper: see README).
 (globalThis.PACKS = globalThis.PACKS || {}).verdun = globalThis.PACKS.verdun || {};
+{ // block: in the browser every <script> shares one global scope, keep helpers local
 // Traits = how a terrain plays (hooks), shared by the terrains that name them in `trait`:
 //   modify(g, unit, t, v) · fieldAura · slotDelta · downValue · drawBonus · hub · fog · blocksMove · immune · tags
 //   onTurnStart(g, t)  at the start of each turn of side g.p, while the terrain is open
@@ -67,4 +68,5 @@ PACKS.verdun.terrains = {
 };
 // Quick battle draws 3 of these (the first three are the default battle).
 PACKS.verdun.quick = ['tranchee', 'no_mans_land', 'barbeles', 'crateres', 'fort', 'cote', 'ruines', 'bois', 'boyau', 'depot'];
+}
 if (typeof module !== 'undefined') module.exports = PACKS.verdun;

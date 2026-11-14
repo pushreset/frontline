@@ -7,6 +7,8 @@
   sub: { fr: 'Normandie · été 1944', en: 'Normandy · summer 1944' },
   dates: { fr: 'juin – août 1944', en: 'June – August 1944' },
   finale: { fr: 'Paris libéré', en: 'Paris liberated' },         // title of the last victory screen
+  // Era: groups campaigns in the menu and picks the quick battle's cards and terrains.
+  era: { key: 'ww2', fr: 'Seconde Guerre mondiale', en: 'Second World War', years: '1939 – 1945' },
   // The 4 attributes, in threshold order, with their icon (out/sprites/i_<icon>.png).
   attrs: { fr: ['Char', 'Infanterie', 'Air', 'Stratégie'], en: ['Armour', 'Infantry', 'Air', 'Strategy'] },
   short: { fr: ['Char', 'Inf', 'Air', 'Strat'], en: ['Arm', 'Inf', 'Air', 'Strat'] }, // optional: names for small chips

@@ -9,6 +9,8 @@ const I18N = (() => {
   const UI = {
     fr: {
       title: 'Ligne de Front', resume: w => `Reprendre — ${w}`, campaign: 'Campagne', quick: 'Bataille rapide',
+      tagline: "Batailles de cartes à travers l'histoire", chooseCampaign: 'Choisis ta campagne', chooseEra: 'Choisis ton époque', back: 'Retour', battles: n => `${n} batailles`,
+      defend: 'Défense', defendTip: "Tiens jusqu'à la nuit : si personne n'a deux terrains, tu gardes tes positions et tu gagnes.", noMajorityYou: "Personne n'a 2 terrains : le défenseur (toi) tient ses positions.",
       reset: 'Nouvelle campagne', confirm: 'Confirmer ?', colon: ' : ', music: 'Musique', sounds: 'Sons', yes: 'oui', no: 'non', lang: 'English',
       help: 'Aide', helpTip: 'Survole un terrain : les 1 ou 2 cartes de ta main les plus utiles à y jouer sont signalées.', tip1: '★ Meilleur choix', tip2: 'Bon choix',
       diff: 'Ennemi', easy: 'Recrue', normal: 'Régulier', hard: 'Vétéran',
@@ -55,11 +57,13 @@ const I18N = (() => {
       // gallery
       gTitle: 'Ligne de Front – Atelier', gIntro: "Toutes les illustrations pixel art du prototype : cartes, terrains, carte de campagne et icônes. Taille d'origine indiquée sous chaque image, affichée en zoom entier pour garder les pixels nets.",
       gUnits: 'Unités', gOrders: 'Ordres et dos de carte', gBase: 'Terrains de base', gCamp: 'Terrains de campagne', gMap: 'Carte de campagne', gIcons: "Icônes d'attributs",
-      gBack: 'Dos de carte', gVariant: b => `Variante de ${b}`, gSides: 'allié / axe', gCamps: n => `${n} × 2 camps · 64 × 40 px`, gIll: n => `${n} illustrations`,
+      gBack: 'Dos de carte', gVariant: b => `Variante de ${b}`, gSides: 'joueur / ennemi', gCamps: n => `${n} × 2 camps · 64 × 40 px`, gIll: n => `${n} illustrations`,
       gMapNote: 'Carte de campagne : les batailles sont posées dessus en HTML dans le jeu.',
     },
     en: {
       title: 'Front Line', resume: w => `Resume — ${w}`, campaign: 'Campaign', quick: 'Quick battle',
+      tagline: 'Card battles through history', chooseCampaign: 'Choose your campaign', chooseEra: 'Choose your era', back: 'Back', battles: n => `${n} battles`,
+      defend: 'Defence', defendTip: 'Hold until nightfall: if nobody has two terrains, you keep your ground and win.', noMajorityYou: 'Nobody holds 2 terrains: the defender (you) keeps its ground.',
       reset: 'New campaign', confirm: 'Confirm?', colon: ': ', music: 'Music', sounds: 'Sounds', yes: 'on', no: 'off', lang: 'Français',
       help: 'Help', helpTip: 'Hover a terrain: the 1 or 2 most useful cards to play there are flagged.', tip1: '★ Best pick', tip2: 'Good pick',
       diff: 'Enemy', easy: 'Rookie', normal: 'Regular', hard: 'Veteran',
@@ -104,7 +108,7 @@ const I18N = (() => {
       downNote: 'Face down: worth 0, power inactive.', here: t => `Here, on ${t}:`,
       gTitle: 'Front Line – Workshop', gIntro: 'Every pixel-art illustration in the prototype: cards, terrains, campaign map and icons. Native size is shown under each image, displayed at integer zoom to keep pixels sharp.',
       gUnits: 'Units', gOrders: 'Orders and card back', gBase: 'Base terrains', gCamp: 'Campaign terrains', gMap: 'Campaign map', gIcons: 'Attribute icons',
-      gBack: 'Card back', gVariant: b => `Variant of ${b}`, gSides: 'Allied / Axis', gCamps: n => `${n} × 2 sides · 64 × 40 px`, gIll: n => `${n} illustrations`,
+      gBack: 'Card back', gVariant: b => `Variant of ${b}`, gSides: 'player / enemy', gCamps: n => `${n} × 2 sides · 64 × 40 px`, gIll: n => `${n} illustrations`,
       gMapNote: 'Campaign map: battles are placed on top in HTML in the game.',
     },
   };

@@ -18,6 +18,7 @@ for (const [id, P] of Object.entries(PACKS)) {
   const both = (o, what) => assert(o && o.fr && o.en, `${id}: FR and EN for ${what}`);
   E.use(id); C.use(id);
   for (const k of ['title', 'sub', 'dates', 'finale']) both(P[k], k);
+  if (!P.hidden) { both(P.era, 'era'); assert(P.era.key && P.era.years, `${id}: era key and years`); }
   assert(P.attrs.fr.length === 4 && P.attrs.en.length === 4 && P.icons.length === 4, `${id}: 4 attributes`);
   for (const [k, ty] of Object.entries(P.types)) both(ty, `type ${k}`);
   for (const [k, c] of Object.entries(P.cards)) { both(c.name, k); if (c.text) both(c.text, `${k} text`); assert(P.types[c.type], `${id}: type of ${k}`); assert(c.v.length === 4, `${id}: values of ${k}`); }

@@ -8,12 +8,16 @@
      Stardos Stencil Bold, SIL Open Font License (fonts/OFL.txt), served from the repo: no outside request. */
   @font-face { font-family:"Stardos Stencil"; font-weight:700; font-display:swap; src:url(fonts/StardosStencil-Bold.woff2) format("woff2"); }
   :root { --title:"Stardos Stencil",Georgia,serif; --me:#4f93c9; --ai:#d0663a; --paper:#dccba3; --ink:#2a2418; --olive:#5b6236;
-          --a0:#93a84e; --a1:#d2a544; --a2:#73b4d6; --a3:#b993dc; }
+          --a0:#93a84e; --a1:#d2a544; --a2:#73b4d6; --a3:#b993dc;
+          /* Era look: Normandy values here, a pack's `theme` overrides them (usePack), its `font: 'serif'` swaps the titles. */
+          --btn:#3a3d2c; --btnHi:#4c5038; --edge:#6d6a4c; --bg1:#3a4033; --bg2:#22261e; --bg3:#14160f;
+          --panel:#202318; --panelEdge:#4a4f38; --tile1:#35402a; --tile2:#262d1f; }
+  body[data-font=serif] { --title:Georgia,"Times New Roman",serif; }
   * { box-sizing:border-box; }
   body { margin:0; height:100vh; display:flex; flex-direction:column; color:#e6dcc0; font:14px/1.35 Georgia,serif;
-         background:radial-gradient(ellipse at 50% 40%,#3a4033 0%,#22261e 60%,#14160f 100%); overflow:hidden; }
-  button { font:inherit; color:var(--paper); background:#3a3d2c; border:1px solid #6d6a4c; border-radius:4px; padding:5px 12px; cursor:pointer; }
-  button:hover:not(:disabled) { background:#4c5038; } button:disabled { opacity:.35; cursor:default; }
+         background:radial-gradient(ellipse at 50% 40%,var(--bg1) 0%,var(--bg2) 60%,var(--bg3) 100%); overflow:hidden; }
+  button { font:inherit; color:var(--paper); background:var(--btn); border:1px solid var(--edge); border-radius:4px; padding:5px 12px; cursor:pointer; }
+  button:hover:not(:disabled) { background:var(--btnHi); } button:disabled { opacity:.35; cursor:default; }
   button.on { background:var(--olive); border-color:#c9c27a; }
   #top { display:flex; align-items:center; gap:18px; padding:8px 16px; background:#0006; border-bottom:1px solid #000; }
   #top h1 { margin:0; font-family:var(--title); font-size:19px; letter-spacing:2px; text-transform:uppercase; color:var(--paper); }
@@ -66,7 +70,7 @@
   .lack i.met { padding:0; color:inherit; } .lack i.unk { color:#f0956a; border:1px dashed #f0956a; }
   .lack i.fx { background:#5a2b20; color:#f7e2d6; font-size:11px; font-weight:normal; border-radius:11px; }
   .lack .tot { margin-left:auto; font-weight:normal; opacity:.8; white-space:nowrap; }
-  .terrain { position:relative; flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
+  .terrain { position:relative; flex:0 1 auto; background:linear-gradient(var(--tile1),var(--tile2)); border:2px solid var(--edge); border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
   .terrain.h0 { border-color:var(--me); box-shadow:0 0 14px #4f93c988; } .terrain.h1 { border-color:var(--ai); box-shadow:0 0 14px #d0663a88; }
   .terrain.c0 img.art, .terrain.c1 img.art { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
   .tname > span:first-child { font-family:var(--title); font-weight:700; }
@@ -81,17 +85,17 @@
   .terrain img.art { flex:0 1 auto; width:100%; height:auto; aspect-ratio:160/72; min-height:0; object-fit:cover; }
   /* Action bar: one bar above the hand, its content follows the turn state (data-st: wait / idle / card / pend). */
   #bar { align-self:center; width:100%; max-width:1000px; min-height:64px; display:flex; align-items:center; gap:12px; padding:8px 12px; margin-bottom:14px; /* room for the selected card, raised 14px */
-         border-radius:8px; background:#202318; border:1px solid #4a4f38; font-family:var(--ui); }
+         border-radius:8px; background:var(--panel); border:1px solid var(--panelEdge); font-family:var(--ui); }
   #bar[data-st=card] { background:#1b2229; border:2px solid #8fc0ea; } #bar[data-st=pend] { background:#2e2a18; border:2px solid #e6cf7a; }
   #bar .turn { font:italic 16px Georgia,serif; color:#f0d98a; white-space:nowrap; }
-  #bar .info { flex:1; border:1px dashed #6d6a4c; border-radius:6px; padding:9px 12px; font-size:13px; }
+  #bar .info { flex:1; border:1px dashed var(--edge); border-radius:6px; padding:9px 12px; font-size:13px; }
   #bar img.th { height:46px; border-radius:3px; image-rendering:pixelated; }
   #bar .what { flex:1; min-width:0; font-size:13px; } #bar .what b { font:bold 17px Georgia,serif; color:var(--paper); margin-right:8px; }
   #bar button { height:44px; padding:2px 14px; font:bold 13px/1.25 var(--ui); text-align:left; white-space:nowrap; }
   #bar button small { display:block; font-weight:normal; font-size:11px; opacity:.75; }
   #bar button.sec { background:#3a3622; border-color:#8a7f5a; } #bar button.sup { background:#3b4226; border-color:#8a9a52; }
-  #bar button.out { background:transparent; border-color:#4a4f38; }
-  #bar .seg { display:flex; gap:2px; padding:3px; border:1px solid #4a4f38; border-radius:6px; }
+  #bar button.out { background:transparent; border-color:var(--panelEdge); }
+  #bar .seg { display:flex; gap:2px; padding:3px; border:1px solid var(--panelEdge); border-radius:6px; }
   #bar .seg button { height:36px; border:0; background:none; } #bar .seg button.on { background:#6fa8dc; color:#10161c; }
   kbd { font:11px var(--ui); border:1px solid; border-radius:3px; padding:0 4px; margin-left:6px; opacity:.8; }
   #hand { display:flex; justify-content:center; gap:8px; height:218px; }
@@ -152,6 +156,7 @@
     45% { transform:perspective(700px) translateY(-150px) scale(1.2) rotateX(calc(var(--end) - 760deg)); }
     84% { transform:perspective(700px) rotateX(var(--end)); } 92% { transform:perspective(700px) translateY(-12px) rotateX(var(--end)); } }
   @keyframes laid { from { opacity:0; transform:perspective(700px) translateY(-40px) scale(1.3) rotateX(var(--end)); } }
+  #brief .def { border-left:3px solid var(--me); padding-left:8px; font-size:13px; }
   #brief img.ic { width:16px; image-rendering:pixelated; vertical-align:-3px; }
   /* A unit leaving the board never just vanishes: destroyed = it shakes, flashes and bursts; back to hand = it slides toward its owner. */
   .u.gone, .u.away { position:fixed; z-index:5; flex:none; pointer-events:none; }
@@ -172,16 +177,31 @@
   #menu, #map { position:fixed; inset:0; display:none; }
   body[data-screen=menu] #menu, body[data-screen=map] #map { display:flex; }
   body:not([data-screen=game]) #top, body:not([data-screen=game]) #wrap, body:not([data-screen=game]) #end, body:not([data-screen=game]) #toss { display:none !important; }
-  #menu { flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000 center/cover no-repeat; image-rendering:pixelated; }
-  #menu::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 45%,#0007,#000d); }
-  #menu > * { position:relative; }
-  #menu h1 { margin:0; font-family:var(--title); font-size:64px; letter-spacing:8px; text-transform:uppercase; color:var(--paper); text-shadow:0 3px 0 #000; }
-  #menu .sub { margin:0 0 18px; color:#f0d98a; letter-spacing:4px; text-transform:uppercase; }
+  /* Main menu: belongs to no era. Neutral charcoal and brass; behind it, one slanted strip per era's cover picture. */
+  #menu { flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#0b0b0a; overflow:hidden;
+          --btn:#2c2a26; --btnHi:#3d3a33; --edge:#8a7650; --olive:#5e4d2c; }
+  #menu > .covers { position:absolute; inset:0; display:flex; z-index:0; }
+  .covers div { flex:1; margin:0 -3%; background:center/cover no-repeat; image-rendering:pixelated; transform:skewX(-9deg); border-right:4px solid #0b0b0a; filter:saturate(.6) brightness(.75); }
+  #menu::before { content:''; position:absolute; inset:0; z-index:1; background:radial-gradient(ellipse at 50% 45%,#0009,#000e); }
+  #menu > :not(.covers) { position:relative; z-index:2; }
+  #menu h1 { margin:0; font:normal 60px Georgia,"Times New Roman",serif; font-variant:small-caps; letter-spacing:10px; color:var(--paper); text-shadow:0 3px 0 #000; }
+  #menu h2 { margin:0 0 8px; font:normal 30px Georgia,serif; font-variant:small-caps; letter-spacing:6px; color:var(--paper); }
+  #menu .sub { margin:0 0 18px; color:#d9b56a; letter-spacing:4px; text-transform:uppercase; font-size:13px; }
+  #menu .sub::before, #menu .sub::after { content:'—'; margin:0 12px; opacity:.6; }
   #menu button { width:300px; font-size:18px; padding:10px; } #menu .row { display:flex; gap:10px; } #menu .row button { width:145px; font-size:14px; } #menu small { color:#b9b091; }
-  #menu .packs { display:flex; gap:10px; } #menu .packs button { width:200px; font-size:16px; } #menu .packs small { display:block; font-size:12px; }
-  #map { gap:16px; padding:16px; background:#14160f; }
+  /* Campaign / era tiles: the era's own picture and lettering. */
+  #menu .tiles { display:flex; flex-wrap:wrap; justify-content:center; gap:18px; margin-bottom:10px; }
+  #menu button.tile { width:330px; height:190px; padding:0 0 12px; display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-start; gap:2px; text-align:left;
+                      background:#000 var(--img) center/cover no-repeat; image-rendering:pixelated; border:2px solid var(--edge); border-radius:8px; overflow:hidden; position:relative; transition:transform .12s; }
+  #menu button.tile::before { content:''; position:absolute; inset:0; background:linear-gradient(#0000 25%,#000d 80%); }
+  #menu button.tile:hover { transform:translateY(-4px); border-color:#f0d98a; background:#000 var(--img) center/cover no-repeat; }
+  .tile > * { position:relative; padding:0 14px; }
+  .tile .era { font-size:10px; letter-spacing:2px; white-space:nowrap; text-transform:uppercase; color:#d9b56a; }
+  .tile b { font-size:26px; line-height:1.1; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--paper); text-shadow:0 2px 0 #000; }
+  #menu .tile small { color:#d8cfae; font-size:13px; }
+  #map { gap:16px; padding:16px; background:var(--bg3); }
   #mapbox { flex:1; position:relative; align-self:center; aspect-ratio:320/140; max-height:100%; }
-  #mapbox img { width:100%; height:100%; display:block; image-rendering:pixelated; border:2px solid #6d6a4c; border-radius:6px; }
+  #mapbox img { width:100%; height:100%; display:block; image-rendering:pixelated; border:2px solid var(--edge); border-radius:6px; }
   #mapbox svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .node { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; background:none; border:0; padding:0; }
   .node i { width:22px; height:22px; border-radius:50%; border:3px solid #1c1a10; background:#8a8570; box-shadow:0 0 0 2px #0008; }
@@ -204,7 +224,7 @@
   #brief > .vals { align-items:center; } #brief > .vals i { flex:none; padding:0 8px; font-size:14px; }
   .pw { border:1px solid #c9a94a; border-radius:6px; padding:6px 8px; background:#3b3420; color:var(--paper); }
   .pw small { display:block; color:#d8cfae; font-size:12px; }
-  .army { display:flex; flex-wrap:wrap; gap:4px; } .army span { font-size:12px; padding:1px 6px; border-radius:9px; background:#0006; border:1px solid #6d6a4c; }
+  .army { display:flex; flex-wrap:wrap; gap:4px; } .army span { font-size:12px; padding:1px 6px; border-radius:9px; background:#0006; border:1px solid var(--edge); }
   .army span.p { border-color:#c9a94a; color:#f0d98a; }
   .card.vet, .u.vet { box-shadow:0 0 0 2px #e2bd4a inset, 0 0 10px #e2bd4a66; }
   #bar button.pw { padding:5px 10px; } #bar button.pw.on { background:#6b5a24; border-color:#f0d98a; }
@@ -231,20 +251,24 @@
 <div id="end"></div>
 <div id="toss"></div>
 <div id="peek" class="card"></div>
-<script src="engine.js?v=5"></script>
+<script src="engine.js?v=6"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=5"></script>
-<script src="packs/normandie/cards.js?v=5"></script>
-<script src="packs/normandie/terrains.js?v=5"></script>
-<script src="packs/normandie/battles.js?v=5"></script>
-<script src="campaign.js?v=5"></script>
-<script src="audio.js?v=5"></script>
-<script src="i18n.js?v=5"></script>
+<script src="packs/normandie/pack.js?v=6"></script>
+<script src="packs/normandie/cards.js?v=6"></script>
+<script src="packs/normandie/terrains.js?v=6"></script>
+<script src="packs/normandie/battles.js?v=6"></script>
+<script src="packs/verdun/pack.js?v=6"></script>
+<script src="packs/verdun/cards.js?v=6"></script>
+<script src="packs/verdun/terrains.js?v=6"></script>
+<script src="packs/verdun/battles.js?v=6"></script>
+<script src="campaign.js?v=6"></script>
+<script src="audio.js?v=6"></script>
+<script src="i18n.js?v=6"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
-const PACK_IDS = Object.keys(PACKS).filter(id => !PACKS[id].hidden);
+const PACK_IDS = Object.keys(PACKS).filter(id => !PACKS[id].hidden).sort((a, b) => parseInt(PACKS[a].era.years) - parseInt(PACKS[b].era.years)); // chronological
 let ICON = []; // attribute icons of the active pack (value chips)
 const ART = () => E.PACK.art;
 function usePack(id) {
@@ -252,7 +276,17 @@ function usePack(id) {
   E.use(id); C.use(id);
   ICON = E.PACK.icons.map(n => `<img src="${ART()}sprites/i_${n}.png" alt="">`);
   document.body.style.setProperty('--back', `url(${ART()}scenes/c_back.png)`);
+  // Era look: the pack's theme colours (CSS variables, the defaults are Normandy's) and title lettering.
+  const th = E.PACK.theme || {};
+  for (const k of THEME) th[k] ? document.body.style.setProperty('--' + k, th[k]) : document.body.style.removeProperty('--' + k);
+  document.body.dataset.font = E.PACK.font || '';
 }
+const THEME = ['olive', 'btn', 'btnHi', 'edge', 'bg1', 'bg2', 'bg3', 'panel', 'panelEdge', 'tile1', 'tile2'];
+// Eras: campaigns grouped by pack.era.key, in load order. A quick battle uses the first campaign of its era.
+const ERAS = [...new Set(PACK_IDS.map(id => PACKS[id].era.key))].map(key => PACK_IDS.find(id => PACKS[id].era.key === key));
+const coverOf = id => `${PACKS[id].art}scenes/t_${PACKS[id].terrains[PACKS[id].cover].art || PACKS[id].cover}.png`;
+const titleFont = P => P.font === 'serif' ? 'Georgia,serif' : '"Stardos Stencil",Georgia,serif';
+let menuView = 'main'; // main · campaign (pick a campaign) · quick (pick an era)
 const $ = id => document.getElementById(id);
 // sel = { c: hand card id | 'p:<power>', pre: clicks so far }; hiddenMode = the selected card goes face down (reset on every selection);
 // flipHint = highlight my face-down cards; view = the board as the player may know it; pvBase = previewed board in a pending power.
@@ -342,19 +376,21 @@ function toss(first, tossed) {
 function startBattle(mode, battle) {
   usePack(save.pack);
   const camp = mode === 'campagne', script = camp ? C.byId[battle].first : undefined, first = script ?? (Math.random() < 0.5 ? 0 : 1);
-  s = E.newGame(camp ? C.draw(C.byId[battle]) : E.randomTerrains(), camp ? { cards: runNow().cards, powers: runNow().powers } : {}, { total: true, first });
+  const defender = camp && C.byId[battle].defend ? 0 : 1; // defensive scenario: the player keeps the ground at nightfall
+  s = E.newGame(camp ? C.draw(C.byId[battle]) : E.randomTerrains(), camp ? { cards: runNow().cards, powers: runNow().powers } : {}, { total: true, first, defender });
   s.log.push({ e: 'first', p: first });
   save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
   busy = true; persist(); screen('game'); render();
   const mine = s, later = (f, ms) => setTimeout(() => { if (s === mine) f(); }, ms);
   later(() => {
     $('toss').className = ''; intro = true; render(); intro = false;
+    if (E.PACK.startSound) SND.play(E.PACK.startSound);
     s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
     later(() => { busy = false; render(); if (s.turn === 1) aiTurn(); }, INTRO_MS);
   }, toss(first, script == null));
 }
 function resume() {
-  s = save.cur.s; usePack(s.pack || 'normandie'); sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
+  s = save.cur.s; save.pack = s.pack || 'normandie'; usePack(save.pack); sel = null; busy = false; fx = null; endShown = true; screen('game'); render();
   if (s.winner === null && s.turn === 1) aiTurn(); // saved while the AI was thinking
 }
 // Two-click confirmation inside the page (no confirm() dialog).
@@ -369,17 +405,25 @@ function renderMenu() {
   const live = save.cur && save.cur.s.winner === null;
   const P0 = live && PACKS[save.cur.s.pack || 'normandie'];
   const where = live ? (save.cur.mode === 'campagne' ? I.tx(P0.battles.find(b => b.id === save.cur.battle).name) : L('quick')) : '';
-  usePack(save.pack);
-  $('menu').style.backgroundImage = `url(${terrainArt(E.PACK.cover)})`;
-  $('menu').innerHTML = `<h1>${L('title')}</h1><p class="sub">${I.pack('sub')}</p>
-    ${PACK_IDS.length > 1 ? `<div class="packs">${PACK_IDS.map(id => `<button data-pack="${id}" class="${id === save.pack ? 'on' : ''}">${I.pack('title', PACKS[id])}<small>${I.pack('dates', PACKS[id])}</small></button>`).join('')}</div>` : ''}
+  const tile = (id, attr, lines) => `<button class="tile" ${attr}="${id}" style="--img:url(${coverOf(id)})">${lines}</button>`;
+  const covers = `<div class="covers">${ERAS.map(id => `<div style="background-image:url(${coverOf(id)})"></div>`).join('')}</div>`;
+  const era = P => `${I.tx(P.era)} · ${P.era.years}`;
+  const stage = id => { const run = save.runs[id]; return run ? run.path.length + (run.path.some(b => !PACKS[id].battles.find(x => x.id === b).next.length) ? 0 : 1) : 1; };
+  $('menu').innerHTML = covers + (menuView === 'campaign' ? `<h2>${L('chooseCampaign')}</h2>
+    <div class="tiles">${PACK_IDS.map(id => { const P = PACKS[id];
+      return tile(id, 'data-camp', `<span class="era">${era(P)}</span><b style="font-family:${titleFont(P)}">${I.pack('title', P)}</b><small>${I.pack('dates', P)} · ${L('battles', P.battles.length)}</small><small>${L('campaign')} · ${L('stage', stage(id))}</small>`); }).join('')}</div>
+    <button data-go="menuBack">${L('back')}</button>`
+  : menuView === 'quick' ? `<h2>${L('chooseEra')}</h2>
+    <div class="tiles">${ERAS.map(id => { const P = PACKS[id];
+      return tile(id, 'data-quick', `<b style="font-family:${titleFont(P)}; font-size:21px">${I.tx(P.era)}</b><small>${P.era.years}</small>`); }).join('')}</div>
+    <button data-go="menuBack">${L('back')}</button>`
+  : `<h1>${L('title')}</h1><p class="sub">${L('tagline')}</p>
     ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}
-    <button data-go="campaign">${L('campaign')} <small>(${L('stage', runNow().path.length + (C.done(runNow()) ? 0 : 1))})</small></button>
-    <button data-go="quick">${L('quick')}</button>
-    <button data-go="reset">${L('reset')}</button>
+    <button data-go="menuCampaign">${L('campaign')}</button>
+    <button data-go="menuQuick">${L('quick')}</button>
     <div class="row"><button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button></div>
     <div class="row"><button data-go="lang" class="lng"></button><button data-go="diff" class="dif"></button></div>
-    <small id="diffTip"></small>`;
+    <small id="diffTip"></small>`);
   sndLabels(); langLabels();
 }
 
@@ -416,6 +460,7 @@ function renderMap() {
   $('brief').innerHTML = `<h2>${b.name}</h2><div class="date">${b.date}</div><p>${b.brief}</p>
     <div class="vals">${L('profile')}${L('colon')}${profile(b)}</div>
     <div>${L('init')}${L('colon')}${(b.first == null ? [0, 1] : [b.first]).map(p => `<img class="ic" src="${coinArt(p)}" alt="">`).join(' ')} <b>${L(b.first === 0 ? 'initYou' : b.first === 1 ? 'initAi' : 'initToss')}</b></div>
+    ${b.defend ? `<div class="def"><b>${L('defend')}</b>${L('colon')}${L('defendTip')}</div>` : ''}
     <div>${L('pool')}</div>
     <div class="pool">${b.pool.map(k => `<div><img src="${terrainArt(k)}" alt="">${I.terrainName(k)}</div>`).join('')}</div>
     ${C.last(b.id) ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}<small>${L('totalHint')}</small>`
@@ -425,7 +470,7 @@ function renderMap() {
     ${C.done(run) ? `<p>${L('endDone')}</p><button data-go="reset">${L('reset')}</button>` : ''}
     <div class="sp"></div>
     <h3>${L('army')}</h3><div class="army">${army.join('') || `<small>${L('armyEmpty')}</small>`}</div>
-    <div><button data-go="lang" class="lng"></button> <button data-go="menu">${L('menu')}</button></div>`;
+    <div><button data-go="lang" class="lng"></button> <button data-go="menu">${L('menu')}</button> ${C.done(run) ? '' : `<button data-go="reset">${L('reset')}</button>`}</div>`;
   langLabels();
 }
 
@@ -578,7 +623,7 @@ function render() {
     const win = s.winner === 0, done = camp && win && C.last(save.cur.battle), bonus = camp && win && (runNow().bonus || {})[save.cur.battle];
     $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${done ? I.pack('finale') : L(total() ? 'totalVictory' : win ? 'victory' : 'defeat')}</h2>
       <div>${L(s.timeout ? 'byNight' : total() ? 'byThree' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
-      ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L('noMajority')}</div>` : ''}
+      ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L(s.defender === 0 ? 'noMajorityYou' : 'noMajority')}</div>` : ''}
       ${camp && win && save.cur.got ? `<p>${save.cur.got.t === 'none' ? L('rewardNone') : `${L('endReward')} <b>${rewardName(save.cur.got)}</b>`}</p>` : ''}
       ${camp && bonus ? `<p>${L('endBonus')} <b>${rewardName(bonus)}</b></p>` : ''}
       ${done ? `<p>${L('endDone')}</p>` : camp && win ? `<p>${L('endWin')}</p>` : camp ? `<p>${L('endLose')}</p>` : ''}
@@ -693,7 +738,7 @@ $('front').addEventListener('mouseleave', () => showTips());
 $('front').addEventListener('mouseleave', () => $('peek').classList.remove('show'));
 document.addEventListener('click', e => {
   if (e.target.closest('button,[data-pick]')) SND.play('click');
-  const go = e.target.closest('[data-go],[data-pick],[data-pack],#toMenu,#toMap,#restart');
+  const go = e.target.closest('[data-go],[data-pick],[data-camp],[data-quick],#toMenu,#toMap,#restart');
   if (go) {
     const g = go.dataset.go || go.id;
     if (g === 'lang') {
@@ -707,11 +752,12 @@ document.addEventListener('click', e => {
     if (g === 'mus' || g === 'sfx') { const k = g === 'mus' ? 'music' : 'sfx'; SND.set(k, !SND.pref[k]); return sndLabels(); }
     if (go.dataset.pick) { pick = go.dataset.pick; return renderMap(); }
     if (g === 'resume') return resume();
-    if (g === 'campaign') { usePack(save.pack); pick = save.cur && camp() && save.cur.s.pack === save.pack ? save.cur.battle : C.open(runNow().path)[0] || C.BATTLES.find(b => C.last(b.id)).id; return screen('map'); }
-    if (g === 'quick') return startBattle('rapide');
+    if (g === 'menuCampaign' || g === 'menuQuick' || g === 'menuBack') { menuView = { menuCampaign: 'campaign', menuQuick: 'quick' }[g] || 'main'; return renderMenu(); }
+    if (go.dataset.camp || go.dataset.quick) { save.pack = go.dataset.camp || go.dataset.quick; persist(); }
+    if (go.dataset.quick) { menuView = 'main'; return startBattle('rapide'); }
+    if (go.dataset.camp) { menuView = 'main'; usePack(save.pack); pick = save.cur && camp() && save.cur.s.pack === save.pack ? save.cur.battle : C.open(runNow().path)[0] || C.BATTLES.find(b => C.last(b.id)).id; return screen('map'); }
     if (g === 'reset') { if (armed(go)) { usePack(save.pack); save.cur = null; save.runs[save.pack] = C.newRun(); persist(); pick = C.open([])[0]; screen(document.body.dataset.screen); } return; }
     if (g === 'launch') return C.status(pick, runNow().path) === 'open' && startBattle('campagne', pick);
-    if (go.dataset.pack) { save.pack = go.dataset.pack; persist(); return renderMenu(); }
     if (g === 'again' || (g === 'restart' && armed(go))) return startBattle(save.cur.mode, save.cur.battle);
     // The map opens on the battle just played, finished or not (a resumed battle never went through the map: pick was still unset).
     if (g === 'map' || g === 'toMap') { if (save.cur) pick = save.cur.battle; if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('map'); }
