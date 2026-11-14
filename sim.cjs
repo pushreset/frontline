@@ -178,6 +178,49 @@ for (const [id, P] of Object.entries(PACKS)) {
   E.use('normandie');
 }
 
+// Verdun: a defensive campaign then a counter-offensive, attrition (malus), mines, gas, deep dugouts.
+{
+  E.use('verdun'); C.use('verdun');
+  assert.deepEqual([...C.roots].sort(), ['bois_caures', 'herbebois']);
+  const lens = new Set(), walk = (id, n) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1)) : (assert.equal(id, 'louvemont'), lens.add(n));
+  C.roots.forEach(r => walk(r, 1));
+  assert(Math.min(...lens) >= 7 && Math.max(...lens) <= 9, `Verdun run length ${[...lens]}`);
+  assert(C.BATTLES.every(b => !!b.defend === (b.day < 200)), 'defend until the summer, attack in the autumn');
+  const mk = (keys, owner, base, down = false) => keys.map((key, i) => ({ id: base + i, key, owner, down, malus: 0 }));
+  const inf = (s, t, u) => E.vals(s, u, t)[1];
+  // Mine: revealing the tunnellers destroys the strongest enemy unit there.
+  let s = E.newGame(['boyau', 'cote', 'depot']);
+  s.terrains[0].side[0] = mk(['sapeurs'], 0, 700, true);
+  s.terrains[0].side[1] = mk(['poilus', 'officier'], 1, 710);
+  s.terrains[0].side[1][0].malus = 1; // worn poilus: worth 3, in range, and more Infantry than the captain
+  s.turn = 0; E.play(s, { kind: 'reveal', u: 700 });
+  assert.deepEqual(s.terrains[0].side[1].map(u => u.key), ['officier'], 'the mine blows the strongest enemy unit');
+  // Gas: every face-up unit on both sides loses 1 Infantry, engineers excepted.
+  s = E.newGame(['boyau', 'cote', 'depot']);
+  s.terrains[0].side[0] = mk(['poilus', 'terrassiers'], 0, 720);
+  s.terrains[0].side[1] = mk(['poilus'], 1, 730);
+  s.turn = 0; s.players[0].hand = [{ id: 740, key: 'gaz' }];
+  E.play(s, { kind: 'order', c: 740, t: 0 });
+  assert.deepEqual([...s.terrains[0].side[0], ...s.terrains[0].side[1]].map(u => u.malus), [1, 0, 1], 'gas hits both sides, not the engineers');
+  // Deep dugouts: the first loss does not count in a trench.
+  s = E.newGame(['tranchee', 'boyau', 'cote']);
+  s.terrains[0].side[0] = mk(['poilus'], 0, 750);
+  s.terrains[0].side[0][0].malus = 1; assert.equal(inf(s, 0, s.terrains[0].side[0][0]), 3, 'trench: first loss ignored');
+  s.terrains[0].side[0][0].malus = 2; assert.equal(inf(s, 0, s.terrains[0].side[0][0]), 2, 'trench: second loss counts');
+  // No man's land: at the start of a side's turn, its strongest infantry there wears down (trait onTurnStart).
+  s = E.newGame(['no_mans_land', 'boyau', 'cote'], {}, { first: 0 });
+  s.terrains[0].side[1] = mk(['poilus', 'officier'], 1, 760);
+  E.play(s, { kind: 'pass' });
+  assert.deepEqual(s.terrains[0].side[1].map(u => u.malus), [1, 0], 'attrition at the start of the AI turn, on its strongest infantry');
+  // Defence: without a majority at nightfall, the defender wins; the player when the scenario says so.
+  for (const defender of [0, 1]) {
+    s = E.newGame(['fort', 'boyau', 'cote'], {}, { defender });
+    while (s.winner === null) E.play(s, { kind: 'pass' });
+    assert(s.timeout && s.winner === defender, `nightfall without a majority: defender ${defender} wins`);
+  }
+  E.use('normandie'); C.use('normandie');
+}
+
 // The rule checks above test Normandy cards; the modes below run on the chosen pack.
 if (PACK !== 'normandie') { E.use(PACK); C.use(PACK); }
 
@@ -264,8 +307,8 @@ if (process.argv[3] === 'campagne') {
   console.log(`Campagne, ${N} batailles IA contre IA par étape et par ordre, sans renfort (cible selon le scénario : joueur 45-60 %, temps <= 30 %)`);
   for (const b of C.BATTLES) {
     const w = [0, 0]; let to = 0, len = 0;
-    for (let i = 0; i < 2 * N; i++) { const s = game(C.draw(b), {}, { first: i % 2 }); if (s.winner === 0) w[i % 2]++; if (s.timeout) to++; len += s.players[0].turns; }
-    const pw = w.map(x => 100 * x / N), pt = 50 * to / N, sc = b.first == null ? (pw[0] + pw[1]) / 2 : pw[b.first], ok = sc >= 45 && sc <= 60 && pt <= 30;
+    for (let i = 0; i < 2 * N; i++) { const s = game(C.draw(b), {}, { first: i % 2, defender: b.defend ? 0 : 1 }); if (s.winner === 0) w[i % 2]++; if (s.timeout) to++; len += s.players[0].turns; }
+    const pw = w.map(x => 100 * x / N), pt = 50 * to / N, sc = b.first == null ? (pw[0] + pw[1]) / 2 : pw[b.first], ok = sc >= 45 && sc <= 60 && pt <= (b.defend ? 40 : 30); // defend: holding until night is the plan, a few more nightfalls are fine
     console.log(`${ok ? ' ' : '!'} ${I.battle(b).name.padEnd(24)} joueur d'abord ${pw[0].toFixed(0).padStart(3)} %  IA d'abord ${pw[1].toFixed(0).padStart(3)} %  scénario ${['joueur', 'IA    '][b.first] || 'jeton '} ${sc.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N / 2).toFixed(1)} tours`);
   }
   // Runs: random route, every battle won eventually (its reward is collected), the player is a Régulier.
@@ -279,7 +322,7 @@ if (process.argv[3] === 'campagne') {
     for (let k = 0; ; k++) {
       const now = C.open(run.path), id = now[Math.floor(Math.random() * now.length)], keys = C.draw(C.byId[id]);
       const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0, t: 0 });
-      const opts = { total: true, first: C.byId[id].first ?? (Math.random() < 0.5 ? 0 : 1) }, s = game(keys, run, opts), tot = sweep(s);
+      const opts = { total: true, first: C.byId[id].first ?? (Math.random() < 0.5 ? 0 : 1), defender: C.byId[id].defend ? 0 : 1 }, s = game(keys, run, opts), tot = sweep(s);
       x.n++; if (s.winner === 0) x.w++; if (tot) x.t++; if (game(keys, {}, opts).winner === 0) x.w0++;
       const got = C.win(run, id, tot), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
       if (C.last(id)) break;

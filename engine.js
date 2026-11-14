@@ -184,6 +184,7 @@ const E = (() => {
     if (caps(s, p) >= (s.total && p === 0 ? 3 : 2)) { s.winner = p; return; }
     if (settled(s) && caps(s, 1) === 1) { s.winner = 0; return; }
     const g = new G(s, p);
+    for (let t = 0; t < 3; t++) if (live(s, t)) { const tr = trait(s.terrains[t]); if (tr.onTurnStart) tr.onTurnStart(g, t); }
     for (let t = 0; t < 3; t++) if (live(s, t)) for (const u of [...s.terrains[t].side[p]]) { const C = CARDS[u.key]; if (C.onTurnStart) C.onTurnStart(g, u); }
     control(s, p);
     draw(s, p, 1 + sum(s.terrains.map(T => T.captured === p ? trait(T).drawBonus || 0 : 0)));
@@ -199,7 +200,7 @@ const E = (() => {
       if (T.captured !== null) n[T.captured]++;
     });
     s.timeout = true;
-    s.winner = n[0] >= 2 ? 0 : 1; // no majority: the defender wins, the attack failed
+    s.winner = n[0] >= 2 ? 0 : n[1] >= 2 ? 1 : s.defender ?? 1; // no majority: the defender wins (the AI unless the scenario says the player), the attack failed
     log(s, { e: 'night' });
   }
 
@@ -269,15 +270,15 @@ const E = (() => {
 
   // bonus (campaign): { cards: [{ key, vet }], powers: [name] } for player 0.
   // total: the player (0) plays on after two captures, for the total victory (three terrains).
-  // first: who takes the first turn (0 the player, 1 the AI).
-  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}, { total = false, first = 0 } = {}) {
+  // first: who takes the first turn (0 the player, 1 the AI). defender: who keeps the ground at nightfall without a majority.
+  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}, { total = false, first = 0, defender = 1 } = {}) {
     let id = 0;
     const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].map(key => ({ key }))];
     const s = {
       pack: PACK.id,
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
       players: lists.map((list, p) => ({ list, powers: p ? [] : [...(bonus.powers || [])], deck: shuffle(list.map(c => ({ id: id++, ...c }))), hand: [], discard: [], turns: 0 })),
-      total, first, turn: first, winner: null, timeout: false, smoke: [false, false], log: [],
+      total, first, defender, turn: first, winner: null, timeout: false, smoke: [false, false], log: [],
     };
     // ponytail: no mulligan — add when hand quality shows up as a problem in playtests.
     draw(s, 0, 5); draw(s, 1, 5);
