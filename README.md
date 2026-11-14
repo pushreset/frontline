@@ -14,8 +14,13 @@ tour suivant, il est **capturé**. Deux terrains capturés gagnent la bataille ;
 le pourcentage de seuil rempli départage. Les cartes posées face cachée valent 0 : c'est du bluff,
 les retourner coûte une action.
 
-- **Campagne** : 12 batailles d'Omaha Beach à la libération de Paris, avec embranchements. Pas de
-  game over, une bataille perdue se rejoue.
+- **Campagne** : 23 batailles des trois plages du Jour J à la libération de Paris, une campagne en
+  dure 8 à 10. À chaque embranchement, gagner une bataille ferme les autres routes : trois couloirs
+  (ouest : marais et bocage, infanterie ; centre ; est : plaine de Caen, chars et aviation). Certaines
+  victoires donnent un renfort pour la suite : carte vétéran (+1), nouvelle carte (Sherman Jumbo,
+  Typhoon, Commandos, Ambulance) ou pouvoir gratuit utilisable une fois par bataille. On ne voit la
+  récompense que des batailles accessibles tout de suite (brouillard de guerre au-delà), et les
+  récompenses changent à chaque nouvelle campagne. Pas de game over : une bataille perdue se rejoue.
 - **Bataille rapide** : 3 terrains au hasard.
 - **Trois niveaux d'ennemi**, mêmes règles et mêmes terrains, seule la façon de décider change :
   *Recrue* (hésite, s'éparpille, ne bluffe pas, voit tard tes menaces), *Régulier*, *Vétéran*

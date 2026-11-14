@@ -31,9 +31,25 @@ const E = (() => {
     echange: O('Échange de front', 'Échange deux de tes unités situées sur deux terrains différents.'),
     redeploy: O('Redéploiement', "Déplace jusqu'à 2 de tes unités vers un même terrain adjacent."),
     fumee: O('Écran de fumée', "Jusqu'à ton prochain tour, l'adversaire ne peut pas te prendre un terrain que tu tiens."),
+    // Campaign rewards: player-only cards, never in the AI's deck.
+    jumbo: U('Sherman Jumbo', 'Sherman Jumbo', 'Char', [4, 0, 0, 1], 'Blindage renforcé : ne peut pas être détruit.'),
+    typhoon: U('Hawker Typhoon', 'Hawker Typhoon', 'Air', [0, 0, 2, 0], 'À la pose : détruit un Char adverse de valeur totale 3 ou moins sur ce terrain.'),
+    commandos: U('Commandos', 'Commandos', 'Infanterie', [0, 2, 0, 1], 'À la pose : détruit une carte face cachée adverse sur ce terrain.'),
+    ambulance: U('Ambulance', 'Ambulance', 'Soutien', [0, 1, 0, 1], 'À la pose : pioche 2 cartes.'),
     // What the AI (and the player's preview) sees instead of an enemy face-down card.
     inconnu: U('???', '???', 'Soutien', [0, 0, 0, 0]),
   };
+
+  // Campaign powers: once per battle, free (they do not use up the turn's action).
+  const POWERS = {
+    naval: { name: 'Appui naval', text: 'Détruit une unité adverse de valeur totale 4 ou moins (pas sur un bunker).' },
+    renforts: { name: 'Renforts', text: 'Pioche 2 cartes.' },
+    renseignement: { name: 'Renseignement', text: 'Retourne toutes les cartes face cachée adverses.' },
+    barrage: { name: 'Tir de barrage', text: 'Chaque unité adverse sur un terrain perd 1 Infanterie.' },
+    couverture: { name: 'Couverture aérienne', text: "Jusqu'à ton prochain tour, l'adversaire ne peut pas te prendre un terrain que tu tiens." },
+  };
+  // Veteran = +1 in the main attribute of its type.
+  const MAIN = { Char: 0, Infanterie: 1, Air: 2, Soutien: 3 };
 
   // Château-QG skipped: campaign-only.
   // Thresholds rebalanced for "face-down = 0" (balance.cjs): GDD values -2 per attribute, -1 for Bocage and Forêt.
@@ -90,6 +106,7 @@ const E = (() => {
   const cap = (s, t) => TERRAINS[s.terrains[t].key].slots || RULES.slots - (K(s.terrains[t]) === 'pont' ? 1 : 0);
   // Béton: nothing on a bunker terrain can be destroyed by Artillerie, Bombardement or Firefly.
   const bunker = (s, t) => K(s.terrains[t]) === 'bunker';
+  const armored = u => u.key === 'jumbo'; // Jumbo: never destroyed
   const adjacent = (s, a, b) => a !== b && (Math.abs(a - b) === 1 || K(s.terrains[a]) === 'carrefour' || K(s.terrains[b]) === 'carrefour');
 
   function find(s, id) {
@@ -106,6 +123,7 @@ const E = (() => {
     const fog = K(T) === 'foret' && CARDS[u.key].type !== 'Ordre' && u.key !== 'inconnu';
     if (u.down && !fog) return [0, K(T) === 'village' ? 2 : 0, 0, 0];
     const C = CARDS[u.key], v = C.v.slice();
+    if (u.vet) v[MAIN[C.type]]++;
     if (C.type === 'Char' && K(T) === 'bocage') v[0] = Math.max(0, v[0] - 1);
     v[1] = Math.max(0, v[1] - u.malus);
     if (C.type === 'Air') {
@@ -236,7 +254,9 @@ const E = (() => {
         if (forest) continue; // lands face-down, power inactive
         const foes = s.terrains[t].side[o];
         const targets =
-          c.key === 'firefly' ? bunker(s, t) ? [] : foes.filter(e => !e.down && CARDS[e.key].type === 'Char' && vals(s, e, t)[0] <= 2)
+          c.key === 'firefly' ? bunker(s, t) ? [] : foes.filter(e => !e.down && !armored(e) && CARDS[e.key].type === 'Char' && vals(s, e, t)[0] <= 2)
+          : c.key === 'typhoon' ? bunker(s, t) ? [] : foes.filter(e => !e.down && !armored(e) && CARDS[e.key].type === 'Char' && sum(vals(s, e, t)) <= 3)
+          : c.key === 'commandos' ? bunker(s, t) ? [] : foes.filter(e => e.down)
           : c.key === 'mortiers' ? foes.filter(e => !e.down)
           : c.key === 'p47' ? foes.filter(e => e.down) : [];
         for (const e of targets) out.push({ ...base, u: e.id, steps: [...st, 'u' + e.id] });
@@ -250,7 +270,7 @@ const E = (() => {
       if (c.key === 'artillerie') {
         const far = mine.some(x => !x.u.down && x.u.key === 'observateur') || s.terrains.some(X => K(X) === 'colline' && (X.holder === p || X.captured === p));
         hit(theirs.filter(x => !bunker(s, x.t) && !x.u.down && CARDS[x.u.key].type !== 'Char' && sum(vals(s, x.u, x.t)) <= 3 && (far || mine.some(m => m.t === x.t || adjacent(s, m.t, x.t)))));
-      } else if (c.key === 'bombardement') hit(theirs.filter(x => !bunker(s, x.t) && totals(s, x.t, p)[2] >= 2));
+      } else if (c.key === 'bombardement') hit(theirs.filter(x => !bunker(s, x.t) && !armored(x.u) && totals(s, x.t, p)[2] >= 2));
       else if (c.key === 'recon') hit([...mine, ...theirs].filter(x => x.u.down));
       else if (c.key === 'sabotage') hit(theirs.filter(x => x.u.down));
       else if (c.key === 'fumee') ord({}, ['play']);
@@ -271,7 +291,17 @@ const E = (() => {
         }
       }
     }
-    if (!out.length) out.push({ kind: 'pass', steps: ['pass'] });
+    // Powers: `steps` are only the targets, the UI selects the power with its own button.
+    const pw = (w, x, steps) => out.push({ kind: 'power', c: 'p:' + w, w, ...x, steps });
+    for (const w of s.players[p].powers || []) {
+      if (w === 'naval') theirs.filter(x => !bunker(s, x.t) && !armored(x.u) && sum(vals(s, x.u, x.t)) <= 4).forEach(x => pw(w, { u: x.u.id }, ['u' + x.u.id]));
+      else if (w === 'barrage') T.filter(t => s.terrains[t].side[o].length).forEach(t => pw(w, { t }, ['t' + t]));
+      else if (w === 'renseignement') { if (theirs.some(x => x.u.down)) pw(w, {}, []); }
+      else if (w === 'couverture') { if (!s.smoke[p]) pw(w, {}, []); }
+      else if (w === 'renforts') pw(w, {}, []);
+    }
+    // Nothing but powers left (empty hand): passing must stay possible.
+    if (!out.some(m => m.kind !== 'power')) out.unshift({ kind: 'pass', steps: ['pass'] });
     return out;
   }
 
@@ -291,7 +321,9 @@ const E = (() => {
         if (u.key === 'mortiers') find(s, m.u).u.malus++;
         if (u.key === 'p47') flip(s, m.u, u.id);
         if (u.key === 'genie') moveUnit(s, m.u, m.t2);
+        if (u.key === 'typhoon' || u.key === 'commandos') destroy(s, m.u);
       }
+      if (!down && u.key === 'ambulance') draw(s, p, 2);
     } else if (m.kind === 'order') {
       const c = take(m.c);
       P.discard.push(c);
@@ -306,15 +338,26 @@ const E = (() => {
       else if (c.key === 'opsecrete') { put(take(m.a), m.t1, true); put(take(m.b), m.t2, true); }
       else if (c.key === 'echange') { const ta = find(s, m.a).t, tb = find(s, m.b).t; moveUnit(s, m.a, tb); moveUnit(s, m.b, ta); }
       else if (c.key === 'redeploy') m.us.forEach(id => moveUnit(s, id, m.t));
+    } else if (m.kind === 'power') { // free: no endTurn, the player still has the turn's action
+      P.powers = P.powers.filter(x => x !== m.w);
+      log(s, { e: 'power', p, pw: m.w });
+      if (m.w === 'naval') destroy(s, m.u);
+      else if (m.w === 'renforts') draw(s, p, 2);
+      else if (m.w === 'renseignement') { for (const T of s.terrains) for (const u of [...T.side[1 - p]]) if (u.down) flip(s, u.id, null); }
+      else if (m.w === 'barrage') s.terrains[m.t].side[1 - p].forEach(u => u.malus++);
+      else if (m.w === 'couverture') s.smoke[p] = true;
+      return control(s, p);
     } else log(s, { e: 'pass', p });
     endTurn(s);
   }
 
-  function newGame(keys = ['bocage', 'pont', 'village']) {
+  // bonus (campaign): { cards: [{ key, vet }], powers: [name] } for player 0.
+  function newGame(keys = ['bocage', 'pont', 'village'], bonus = {}) {
     let id = 0;
+    const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].map(key => ({ key }))];
     const s = {
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
-      players: DECKS.map(d => ({ deck: shuffle(d.map(key => ({ id: id++, key }))), hand: [], discard: [], turns: 0 })),
+      players: lists.map((list, p) => ({ list, powers: p ? [] : [...(bonus.powers || [])], deck: shuffle(list.map(c => ({ id: id++, ...c }))), hand: [], discard: [], turns: 0 })),
       turn: 0, winner: null, timeout: false, smoke: [false, false], log: [],
     };
     // ponytail: no mulligan — add when hand quality shows up as a problem in playtests.
@@ -334,7 +377,7 @@ const E = (() => {
   // State as seen by p: enemy face-down cards become anonymous (worth 0, like any face-down card).
   function blind(s, p) {
     const c = clone(s);
-    for (const T of c.terrains) for (const u of T.side[1 - p]) if (u.down) u.key = 'inconnu';
+    for (const T of c.terrains) for (const u of T.side[1 - p]) if (u.down) { u.key = 'inconnu'; u.vet = false; }
     return c;
   }
   // Three AI personalities: same rules, same information, different judgement.
@@ -369,12 +412,12 @@ const E = (() => {
   // p's guess of the opponent's hidden cards: starting deck (public) minus what p has seen, re-dealt.
   // Card counting, not cheating: the real hand and deck order are never read.
   function guess(s, p) {
-    const o = 1 - p, c = clone(s), P = c.players[o], pool = [...DECKS[o]];
+    const o = 1 - p, c = clone(s), P = c.players[o], pool = (P.list || DECKS[o].map(key => ({ key }))).slice();
     const seen = [...P.discard, ...c.terrains.flatMap(T => T.side[o].filter(u => u.key !== 'inconnu'))];
-    for (const x of seen) { const i = pool.indexOf(x.key); if (i >= 0) pool.splice(i, 1); }
+    for (const x of seen) { const i = pool.findIndex(y => y.key === x.key && !y.vet === !x.vet); if (i >= 0) pool.splice(i, 1); }
     shuffle(pool);
     let id = 1e4;
-    const deal = n => pool.splice(0, n).map(key => ({ id: id++, key }));
+    const deal = n => pool.splice(0, n).map(x => ({ id: id++, ...x }));
     P.hand = deal(P.hand.length);
     P.deck = deal(P.deck.length);
     shuffle(c.players[p].deck); // own draw order is unknown too
@@ -413,6 +456,6 @@ const E = (() => {
     return tried.find(r => r.wins >= top - w.slack).m; // tried is sorted: first = most aggressive-looking
   }
 
-  return { K, ATTRS, RULES, get TURNS() { return RULES.turns; }, CARDS, TERRAINS, newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, nameOf, control };
+  return { K, ATTRS, RULES, get TURNS() { return RULES.turns; }, CARDS, TERRAINS, POWERS, MAIN, newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, nameOf, control };
 })();
 if (typeof module !== 'undefined') module.exports = E;

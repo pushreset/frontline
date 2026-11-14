@@ -112,6 +112,7 @@ tank("_tank_sherman")
 tank("_tank_firefly", { gun: 16, brake: true })
 tank("_tank_sherman_x", { gun: 13, brake: true, skirt: true, cross: true, swap: AXIS })   // Panzer IV
 tank("_tank_firefly_x", { gun: 11, turret: false, cross: true, swap: AXIS })              // StuG III
+tank("_tank_jumbo", { gun: 10, skirt: true })                                               // Sherman Jumbo: appliqué armour (campaign)
 
 // Side-view fighter, facing right. fat = P-47 / Fw 190 radial, slim = Spitfire / Bf 109 inline.
 function plane(name, { fat = true, mark = "us", swap, nose } = {}) {
@@ -133,6 +134,7 @@ function plane(name, { fat = true, mark = "us", swap, nose } = {}) {
 }
 plane("_plane_p47")
 plane("_plane_spitfire", { fat: false, mark: "raf" })
+plane("_plane_typhoon", { mark: "raf", nose: "q" })                                          // Hawker Typhoon (campaign)
 plane("_plane_p47_x", { mark: "x", swap: AXIS, nose: "y" })
 plane("_plane_spitfire_x", { fat: false, mark: "x", swap: AXIS, nose: "y" })
 
@@ -321,6 +323,35 @@ unit("observateur", (x) => [
   poly([0, 40, 0, 24, 6, 22, 22, 22, 28, 28, 30, 40], "T"), poly([22, 22, 28, 28, 30, 40, 24, 40], "q"), hline(6, 22, 16, "t"),       // rock ledge
   stamp("_kneel" + x, 6, 7), rect(17, 10, 3, 2, "M"),                                                                                  // binoculars
 ])
+
+// Campaign reward cards (player only): both sides get the same picture so the gallery pairs stay complete.
+const reward = (name, ...items) => unit(name, () => items)
+reward("jumbo",
+  sky(CW, 20, "u78"), ridge(18, 1.5, "F", 7, 22),
+  rect(0, 21, CW, 19, "G"), furrows(21, 34, "f"), poly([0, 33, 64, 31, 64, 40, 0, 40], "D"), hline(0, 37, 64, "e"),
+  stamp("_tank_jumbo", 8, 11),
+  rect(20, 15, 12, 1, "q"), rect(16, 22, 3, 3, "q"), rect(25, 22, 3, 3, "q"),                    // welded plates
+  (c) => { for (const [x, y] of [[44, 14], [47, 18], [41, 20]]) { c.px(x, y, "y"); c.px(x + 1, y, "Y") } },   // shells bouncing off
+  smoke([[3, 34, 3, 2], [0, 30, 2, 2]], "DdJ"))
+reward("typhoon",
+  sky(CW, 28, "uus"), stamp("_cloud_a", 44, 3), ridge(26, 1, "f", 8, 30),
+  rect(0, 29, CW, 11, "g"), rect(0, 34, CW, 6, "d"), hline(0, 34, CW, "D"),
+  stamp("_plane_typhoon", 2, 4),
+  line(40, 16, 50, 27, "x"), line(36, 17, 46, 29, "x"), px(50, 27, "y"), px(46, 29, "y"),       // rocket trails
+  stamp("_boom", 45, 24))
+reward("commandos",
+  sky(CW, 26, "123"), circ(12, 7, 4, "w"), circ(14, 6, 4, "1"),                                  // crescent moon
+  (c) => { for (const [x, y] of [[8, 4], [20, 9], [33, 3], [42, 12], [60, 15]]) c.px(x, y, "W") },
+  rect(0, 26, CW, 14, "2"), (c) => { for (let i = 0; i < 7; i++) c.hline((i * 13) % 50, 29 + i * 2, 6 + (i % 3) * 2, i % 2 ? "3" : "1") },   // night sea
+  poly([34, 40, 40, 22, 64, 18, 64, 40], "1"), hline(40, 22, 24, "3"),                          // dark cliff
+  stamp("_lcvp", 2, 25, { swap: { q: "2", T: "3", t: "3" } }),
+  stamp("_kneel_night", 38, 6), stamp("_sol_night", 50, 1))
+reward("ambulance",
+  sky(CW, 18), stamp("_cloud_b", 4, 3), ridge(16, 1, "f", 9, 20),
+  rect(0, 19, CW, 21, "g"), rect(0, 31, CW, 6, "d"), hline(0, 31, CW, "D"), hline(0, 36, CW, "D"),
+  stamp("_truck", 4, 13),
+  rect(7, 17, 14, 8, "w"), rect(12, 18, 4, 6, "r"), rect(10, 20, 8, 2, "r"),                      // red cross on the canvas
+  stamp("_kneel", 46, 16), rect(49, 23, 3, 2, "w"), px(50, 23, "r"))                            // medic, armband
 
 // Orders are side-neutral: one illustration each.
 const order = (name, ...items) => scene("c_" + name, { w: CW, h: CH }, ...items)

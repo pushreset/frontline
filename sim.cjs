@@ -58,6 +58,54 @@ const E = require('./engine.js');
   assert.equal(s.terrains[1].holder, 0, 'Pont 3/1/1/1 now filled');
 }
 
+// Campaign map: every battle reachable from a beach and leading to Paris, time moves forward on every
+// link, a run lasts 8-10 battles, every terrain exists, every battle has its English text.
+{
+  const C = require('./campaign.js'), I = require('./i18n.js');
+  for (const b of C.BATTLES) {
+    b.pool.forEach(k => assert(E.TERRAINS[k], `${b.id}: unknown terrain ${k}`));
+    assert(I.EN.battles[b.id], `EN battle ${b.id}`);
+    for (const n of b.next) assert(C.byId[n] && C.byId[n].day >= b.day, `${b.id} -> ${n}: goes back in time`);
+  }
+  assert.deepEqual(C.roots.sort(), ['omaha', 'sword', 'utah']);
+  const lens = new Set(), walk = (id, n) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1)) : (assert.equal(id, 'paris'), lens.add(n));
+  C.roots.forEach(r => walk(r, 1));
+  assert(Math.min(...lens) >= 8 && Math.max(...lens) <= 10, `run length ${[...lens]}`);
+  assert.equal(C.BATTLES.filter(b => C.status(b.id, []) === 'gone').length, 0, 'every battle reachable at the start');
+  const path = ['omaha', 'bayeux'];
+  assert.equal(C.status('pointe_hoc', path), 'gone', 'sibling branch closed on victory');
+  assert.equal(C.status('epsom', path), 'open');
+  assert.equal(C.status('cote_112', path), 'fog');
+  for (const k of [...C.CARDS]) assert(E.CARDS[k] && I.EN.cards[k], `reward card ${k}`);
+  for (const k of C.POWERS) assert(E.POWERS[k] && I.EN.powers[k], `power ${k}`);
+}
+
+// Rewards: veteran +1, Jumbo indestructible, Typhoon, free single-use power.
+{
+  const mk = (keys, owner, base, extra = {}) => keys.map((key, i) => ({ id: base + i, key, owner, down: false, malus: 0, ...extra }));
+  let s = E.newGame(undefined, { cards: [{ key: 'sherman', vet: true }], powers: ['renforts', 'naval'] });
+  s.terrains[0].side[0] = mk(['sherman'], 0, 1000, { vet: true });
+  assert.deepEqual(E.totals(s, 0, 0), [3, 0, 0, 1], 'veteran Sherman: 4 Char, -1 in the Bocage');
+  s.terrains[1].side[0] = mk(['sherman'], 0, 1001, { vet: true });
+  assert.equal(E.totals(s, 1, 0)[0], 4, 'veteran Sherman: 4 Char');
+  s.players[0].hand.length = 3; // hand cap is 7
+  const hand = s.players[0].hand.length;
+  E.play(s, E.moves(s).find(m => m.kind === 'power' && m.w === 'renforts'));
+  assert.equal(s.turn, 0, 'a power does not use the turn');
+  assert.equal(s.players[0].hand.length, hand + 2, 'Renforts draws 2');
+  assert(!E.moves(s).some(m => m.w === 'renforts'), 'a power is used once per battle');
+  s = E.newGame();
+  s.terrains[1].side[0] = mk(['jumbo'], 0, 1100);
+  s.terrains[1].side[1] = mk(['spitfire', 'spitfire'], 1, 1110);
+  s.turn = 1; s.players[1].hand = [{ id: 1120, key: 'bombardement' }, { id: 1121, key: 'firefly' }];
+  assert(!E.moves(s).some(m => m.u === 1100), 'Jumbo cannot be destroyed');
+  s = E.newGame();
+  s.terrains[1].side[1] = mk(['sherman', 'firefly'], 1, 1200);
+  s.players[0].hand = [{ id: 1210, key: 'typhoon' }];
+  const ty = E.moves(s).filter(m => m.kind === 'deploy' && m.t === 1 && m.u != null).map(m => m.u);
+  assert.deepEqual(ty, [1201], 'Typhoon: StuG (2) yes, Panzer IV (4) no');
+}
+
 // Difficulty levels: cross matches, sides alternated to cancel the first-player edge,
 // plus a behaviour profile per level (does each AI really play its personality?).
 if (process.argv[3] === 'niveaux') {
@@ -111,24 +159,38 @@ if (process.argv[3] === 'partie') {
   process.exit(0);
 }
 
-// Campaign mode: per-battle balance, draws from each battle's pool.
+// Campaign mode: balance of each battle, then whole runs with and without the rewards.
 if (process.argv[3] === 'campagne') {
   const C = require('./campaign.js');
-  for (const b of C.BATTLES) b.pool.forEach(k => assert(E.TERRAINS[k], `${b.id}: unknown terrain ${k}`));
-  const seen = new Set(['omaha']), todo = ['omaha'];
-  while (todo.length) for (const n of C.byId[todo.pop()].next) if (!seen.has(n)) { seen.add(n); todo.push(n); }
-  assert.equal(seen.size, C.BATTLES.length, 'every battle reachable from Omaha');
   const N = +process.argv[2] || 500;
-  console.log(`Campagne, ${N} batailles IA contre IA par étape (cible : joueur 45-60 %, temps <= 30 %)`);
+  const game = (keys, bonus) => { const s = E.newGame(keys, bonus); while (s.winner === null) E.play(s, E.aiMove(s)); return s; };
+  console.log(`Campagne, ${N} batailles IA contre IA par étape, sans renfort (cible : joueur 45-60 %, temps <= 30 %)`);
   for (const b of C.BATTLES) {
     let w = 0, to = 0, len = 0;
-    for (let i = 0; i < N; i++) {
-      const s = E.newGame(C.draw(b));
-      while (s.winner === null) E.play(s, E.aiMove(s));
-      if (s.winner === 0) w++; if (s.timeout) to++; len += s.players[0].turns;
-    }
+    for (let i = 0; i < N; i++) { const s = game(C.draw(b)); if (s.winner === 0) w++; if (s.timeout) to++; len += s.players[0].turns; }
     const pw = 100 * w / N, pt = 100 * to / N, ok = pw >= 45 && pw <= 60 && pt <= 30;
-    console.log(`${ok ? ' ' : '!'} ${b.name.padEnd(22)} joueur ${pw.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N).toFixed(1)} tours`);
+    console.log(`${ok ? ' ' : '!'} ${b.name.padEnd(24)} joueur ${pw.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N).toFixed(1)} tours`);
+  }
+  // Runs: random route, every battle won eventually (its reward is collected), the player is a Régulier.
+  // Same battle played with the run's rewards and without, to measure what the rewards are worth.
+  const R = Math.max(20, N / 5), by = [], kinds = {};
+  let lens = 0;
+  for (let r = 0; r < R; r++) {
+    const run = C.newRun();
+    for (let k = 0; ; k++) {
+      const now = C.open(run.path), id = now[Math.floor(Math.random() * now.length)], keys = C.draw(C.byId[id]);
+      const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0 });
+      x.n++; if (game(keys, run).winner === 0) x.w++; if (game(keys).winner === 0) x.w0++;
+      const got = C.win(run, id), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
+      if (id === 'paris') break;
+    }
+    lens += run.path.length;
+  }
+  console.log(`\n${R} campagnes complètes (route au hasard), ${(lens / R).toFixed(1)} batailles en moyenne. Récompenses : ` + Object.entries(kinds).filter(([k]) => k !== 'paris').map(([k, v]) => `${k} ${v}`).join(', '));
+  console.log('Étapes        avec renforts   sans   écart (cible en fin de campagne : +5 à +15 pts)');
+  for (const [name, lo, hi] of [['début 1-3', 0, 3], ['milieu 4-6', 3, 6], ['fin 7-10', 6, 10]]) {
+    const x = by.slice(lo, hi).reduce((a, y) => ({ w: a.w + y.w, w0: a.w0 + y.w0, n: a.n + y.n }), { w: 0, w0: 0, n: 0 });
+    console.log(`${name.padEnd(12)} ${(100 * x.w / x.n).toFixed(0).padStart(10)} %  ${(100 * x.w0 / x.n).toFixed(0).padStart(5)} %  ${(100 * (x.w - x.w0) / x.n).toFixed(0).padStart(5)} pts`);
   }
   process.exit(0);
 }
@@ -147,7 +209,7 @@ for (let i = 0; i < N; i++) {
     assert(++guard <= 2 * E.TURNS, 'battle must end by nightfall');
     const cards = s.players.reduce((n, P) => n + P.deck.length + P.hand.length + P.discard.length, 0)
       + s.terrains.reduce((n, T) => n + T.side[0].length + T.side[1].length, 0);
-    assert.equal(cards, 40, 'no card created or lost');
+    assert.equal(cards, s.players.reduce((n, P) => n + P.list.length, 0), 'no card created or lost');
   }
   wins[s.winner]++;
   if (s.timeout) timeouts++;

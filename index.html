@@ -122,6 +122,19 @@
   #brief .pool { display:grid; grid-template-columns:1fr 1fr; gap:6px; } #brief .pool div { font-size:11px; color:#b9b091; }
   #brief .pool img { width:100%; image-rendering:pixelated; display:block; border-radius:3px; }
   #brief .sp { flex:1; }
+  /* Campaign run: fog of war, abandoned branches, rewards, army. */
+  .node.fog i { background:#5d5a48; } .node.fog span { opacity:.75; }
+  .node.gone { opacity:.35; cursor:default; } .node.gone span { text-decoration:line-through; }
+  #brief h3 { margin:4px 0 0; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#f0d98a; }
+  #brief .fog, #brief .gone { font-style:italic; color:#b9b091; margin:0; }
+  #brief .card.mini { width:190px; align-self:center; cursor:default; } #brief .card.mini:hover { transform:none; }
+  #brief > .vals { align-items:center; } #brief > .vals i { flex:none; padding:0 8px; font-size:14px; }
+  .pw { border:1px solid #c9a94a; border-radius:6px; padding:6px 8px; background:#3b3420; color:var(--paper); }
+  .pw small { display:block; color:#d8cfae; font-size:12px; }
+  .army { display:flex; flex-wrap:wrap; gap:4px; } .army span { font-size:12px; padding:1px 6px; border-radius:9px; background:#0006; border:1px solid #6d6a4c; }
+  .army span.p { border-color:#c9a94a; color:#f0d98a; }
+  .card.vet, .u.vet { box-shadow:0 0 0 2px #e2bd4a inset, 0 0 10px #e2bd4a66; }
+  #bar button.pw { padding:5px 10px; } #bar button.pw.on { background:#6b5a24; border-color:#f0d98a; }
 </style>
 </head>
 <body>
@@ -167,6 +180,10 @@ const B = id => I.battle(C.byId[id]);
 // The engine state is plain JSON, so the whole battle is saved after every action.
 let save = (() => { try { return JSON.parse(localStorage.getItem(SAVE)) || null; } catch { return null; } })() || { won: [], cur: null };
 save.diff = save.diff || 'normal'; // saves from before difficulty levels
+// Campaign run (campaign.js): rewards, path taken, cards and powers earned. Older saves start a new run.
+if (!save.run) save.run = C.newRun();
+delete save.won;
+const camp = () => save.cur && save.cur.mode === 'campagne';
 const persist = () => { try { localStorage.setItem(SAVE, JSON.stringify(save)); } catch { /* no storage: play without save */ } };
 const screen = name => { document.body.dataset.screen = name; SND.setMood(name === 'game' ? 'battle' : 'calm'); if (name === 'menu') renderMenu(); if (name === 'map') renderMap(); };
 const terrainArt = key => `out/scenes/t_${key}.png`;
@@ -174,7 +191,7 @@ const terrainArt = key => `out/scenes/t_${key}.png`;
 const myTurn = () => s.winner === null && s.turn === 0 && !busy;
 // Legal moves matching the selected card, the visible/face-down toggle and the clicks so far.
 const cands = () => !sel ? [] : E.moves(s).filter(m => m.c === sel.c
-  && (hiddenMode ? m.kind === 'hidden' : m.kind === 'deploy' || m.kind === 'order')
+  && (m.kind === 'power' || (hiddenMode ? m.kind === 'hidden' : m.kind === 'deploy' || m.kind === 'order'))
   && sel.pre.every((x, i) => m.steps[i] === x));
 const nextSteps = c => new Set((c || cands()).map(m => m.steps[sel.pre.length]).filter(Boolean));
 // Illustrations built by pxl from art.px.js; enemy units use the feldgrau variant, face-down cards the back.
@@ -183,9 +200,12 @@ const art = (key, owner, down) => `out/scenes/c_${down ? 'back' : key + (owner &
 const valsHTML = (v, icon = true) => v.map((x, a) => `<i class="c${a}a ${x ? '' : 'z'}" title="${I.attrName(a)}">${icon ? ICON[a] : ''}${x}</i>`).join('');
 
 // Card face, as in the hand. Also used by the hover zoom on board units.
-function cardInner(key, owner) {
+// Printed values: a veteran gets +1 in the main attribute of its type.
+const baseV = (key, vet) => { const C = E.CARDS[key], v = C.v.slice(); if (vet) v[E.MAIN[C.type]]++; return v; };
+const nameV = (key, owner, vet) => (vet ? '★ ' : '') + I.cardName(key, owner);
+function cardInner(key, owner, vet) {
   const C = E.CARDS[key], order = C.type === 'Ordre';
-  return `<img class="art" src="${art(key, owner)}" alt=""><b>${I.cardName(key, owner)}</b><small>${I.typeName(C.type)}</small>${order ? '' : `<span class="vals">${valsHTML(C.v)}</span>`}<p>${I.cardText(key) || L('noPower')}</p>`;
+  return `<img class="art" src="${art(key, owner)}" alt=""><b>${nameV(key, owner, vet)}</b><small>${I.typeName(C.type)}${vet ? ' · ' + L('vet') : ''}</small>${order ? '' : `<span class="vals">${valsHTML(baseV(key, vet))}</span>`}<p>${I.cardText(key) || L('noPower')}</p>`;
 }
 // Hover zoom: a board unit is too small to read, show it full size next to the pointer.
 function peek(e) {
@@ -195,10 +215,10 @@ function peek(e) {
   const u = s.terrains[t].side.flat().find(x => x.id === id);
   if (!u) return box.classList.remove('show');
   const secret = u.down && u.owner === 1 && s.winner === null, C = E.CARDS[u.key];
-  const now = E.vals(s, u, t), moved = C.type !== 'Ordre' && now.some((x, a) => x !== C.v[a]);
-  box.className = `card show side${u.owner} ${C.type === 'Ordre' && !secret ? 'order' : ''}`;
+  const now = E.vals(s, u, t), base = baseV(u.key, u.vet), moved = C.type !== 'Ordre' && now.some((x, a) => x !== base[a]);
+  box.className = `card show side${u.owner} ${C.type === 'Ordre' && !secret ? 'order' : ''} ${u.vet && !secret ? 'vet' : ''}`;
   box.innerHTML = secret ? `<img class="art" src="${art(u.key, 1, true)}" alt=""><b>${L('secret')}</b><small>${L('unknown')}</small><p>${L('secretText')}</p>`
-    : cardInner(u.key, u.owner) + (u.down ? `<p class="note">${L('downNote')}</p>` : '')
+    : cardInner(u.key, u.owner, u.vet) + (u.down ? `<p class="note">${L('downNote')}</p>` : '')
       + (moved && !u.down ? `<div class="note">${L('here', I.terrainName(s.terrains[t].key))}</div><span class="vals">${valsHTML(now)}</span>` : '');
   const r = el.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
   const x = r.right + 12 + w < innerWidth ? r.right + 12 : r.left - 12 - w;
@@ -207,7 +227,7 @@ function peek(e) {
 }
 
 function startBattle(mode, battle) {
-  s = E.newGame(mode === 'campagne' ? C.draw(C.byId[battle]) : E.randomTerrains());
+  s = mode === 'campagne' ? E.newGame(C.draw(C.byId[battle]), { cards: save.run.cards, powers: save.run.powers }) : E.newGame(E.randomTerrains());
   save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
   busy = intro = true; persist(); screen('game'); render(); intro = false;
   s.terrains.forEach((T, t) => SND.play('flip', 0.45 + 0.55 * t));
@@ -232,7 +252,7 @@ function renderMenu() {
   $('menu').style.backgroundImage = `url(${terrainArt('omaha_dog')})`;
   $('menu').innerHTML = `<h1>${L('title')}</h1><p class="sub">${L('sub')}</p>
     ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}
-    <button data-go="campaign">${L('campaign')} <small>(${save.won.length} / ${C.BATTLES.length})</small></button>
+    <button data-go="campaign">${L('campaign')} <small>(${L('stage', save.run.path.length + (save.run.path.includes('paris') ? 0 : 1))})</small></button>
     <button data-go="quick">${L('quick')}</button>
     <button data-go="reset">${L('reset')}</button>
     <div class="row"><button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button></div>
@@ -241,24 +261,48 @@ function renderMenu() {
   sndLabels(); langLabels();
 }
 
+// Reward preview: a card face, a power box, or nothing.
+function rewardHTML(r) {
+  if (!r || r.t === 'none') return `<p class="fog">${L('rewardNone')}</p>`;
+  if (r.t === 'power') return `<div class="pw">⚡ <b>${I.powerName(r.key)}</b><small>${I.powerText(r.key)}</small><small><i>${L('powerNote')}</i></small></div>`;
+  return `<div class="card mini ${r.t === 'vet' ? 'vet' : ''}">${cardInner(r.key, 0, r.t === 'vet')}</div>
+    <small>${r.t === 'vet' ? L('vetNote') : L('newCard')}</small>`;
+}
+const rewardName = r => r.t === 'power' ? '⚡ ' + I.powerName(r.key) : nameV(r.key, 0, r.t === 'vet');
+// Ground profile of a battle: the 1-2 attributes its terrain pool asks for clearly more than the
+// campaign average (every battle needs infantry, so raw totals would all read "Infanterie").
+const need = b => [0, 1, 2, 3].map(a => b.pool.reduce((n, k) => n + E.TERRAINS[k].thr[a], 0));
+const AVG = [0, 1, 2, 3].map(a => C.BATTLES.reduce((n, b) => n + need(b)[a], 0) / C.BATTLES.length);
+function profile(b) {
+  const r = need(b).map((x, a) => x / AVG[a]), top = [0, 1, 2, 3].filter(a => r[a] >= 1.12).sort((x, y) => r[y] - r[x]).slice(0, 2);
+  return top.length ? top.map(a => `<i class="c${a}a">${ICON[a]}${I.attrName(a)}</i>`).join('') : `<span>${L('balanced')}</span>`;
+}
 function renderMap() {
-  const st = b => save.won.includes(b.id) ? 'won' : C.unlocked(b.id, save.won) ? 'open' : 'locked';
-  const xy = b => C.project(b.pos).map(v => 100 * v);
+  const run = save.run, st = b => C.status(b.id, run.path), xy = b => C.project(b.pos).map(v => 100 * v);
+  const last = run.path[run.path.length - 1];
   const links = C.BATTLES.flatMap(b => b.next.map(n => { const [x1, y1] = xy(b), [x2, y2] = xy(C.byId[n]);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${save.won.includes(b.id) ? '#f0d98a' : '#1c1a10'}" stroke-opacity="${save.won.includes(b.id) ? 1 : 0.55}" stroke-width="2.5" stroke-dasharray="7 5" vector-effect="non-scaling-stroke"/>`; })).join('');
+    const taken = run.path.includes(b.id) && run.path.includes(n), ahead = b.id === last;
+    const dead = st(b) === 'gone' || st(C.byId[n]) === 'gone' || (run.path.includes(b.id) && b.id !== last && !taken);
+    const [col, op] = taken || ahead ? ['#f0d98a', 1] : dead ? ['#1c1a10', 0.15] : ['#1c1a10', 0.55];
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-opacity="${op}" stroke-width="${taken ? 3.5 : 2.5}" ${taken ? '' : 'stroke-dasharray="7 5"'} vector-effect="non-scaling-stroke"/>`; })).join('');
   $('mapbox').innerHTML = `<img src="out/scenes/map_normandie.png" alt="${L('mapAlt')}">
     <svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>` +
     C.BATTLES.map(b => { const [x, y] = xy(b);
       return `<button class="node ${st(b)} ${b.id === pick ? 'sel' : ''} ${x > 90 ? 'east' : ''}" data-pick="${b.id}" style="left:${x}%;top:${y}%"><i></i><span>${I.battle(b).name}</span></button>`; }).join('');
-  const b = B(pick), state = st(b);
+  const b = B(pick), state = st(b), r = run.rewards[b.id], choices = C.open(run.path).length;
+  const army = [...run.cards.map(c => `<span>${nameV(c.key, 0, c.vet)}</span>`), ...run.powers.map(k => `<span class="p">⚡ ${I.powerName(k)}</span>`)];
   $('brief').innerHTML = `<h2>${b.name}</h2><div class="date">${b.date}</div><p>${b.brief}</p>
+    <div class="vals">${L('profile')}${L('colon')}${profile(b)}</div>
     <div>${L('pool')}</div>
     <div class="pool">${b.pool.map(k => `<div><img src="${terrainArt(k)}" alt="">${I.terrainName(k)}</div>`).join('')}</div>
+    ${b.id === 'paris' ? '' : state === 'open' ? `<h3>${L('reward')}</h3>${rewardHTML(r)}`
+      : state === 'won' ? `<h3>${L('rewardGot')}</h3>${rewardHTML(r)}`
+      : state === 'gone' ? `<p class="gone">${L('gone')}</p>` : `<p class="fog">${L('rewardFog')}</p>`}
+    ${state === 'open' ? `<button data-go="launch" class="on">${L('launch')}</button>${choices > 1 ? `<small>${L('commit')}</small>` : ''}` : ''}
+    ${run.path.includes('paris') ? `<p>${L('endDone')}</p><button data-go="reset">${L('reset')}</button>` : ''}
     <div class="sp"></div>
-    ${state === 'locked' ? `<p><i>${L('locked')}</i></p>`
-      : `<button data-go="launch" class="on">${state === 'won' ? L('replay') : L('launch')}</button>`}
-    <div>${L('won', save.won.length, C.BATTLES.length)}</div>
-    <button data-go="lang" class="lng"></button><button data-go="menu">${L('menu')}</button>`;
+    <h3>${L('army')}</h3><div class="army">${army.join('') || `<small>${L('armyEmpty')}</small>`}</div>
+    <div><button data-go="lang" class="lng"></button> <button data-go="menu">${L('menu')}</button></div>`;
   langLabels();
 }
 
@@ -280,8 +324,8 @@ function render() {
     const row = p => T.side[p].map(u => {
       const flip = !sel && myTurn() && u.down && u.owner === 0;
       const secret = u.down && u.owner === 1 && s.winner === null, C = E.CARDS[u.key];
-      return `<div class="u side${u.owner} ${u.down ? 'down' : ''} ${next.has('u' + u.id) || flip ? 'target' : ''}" data-step="u${u.id}" ${flip ? `data-flip="${u.id}"` : ''} style="background-image:url(${art(u.key, u.owner, u.down)})" ${flip ? `title="${L('flipTip')}"` : ''}>
-        <b>${secret ? '???' : I.cardName(u.key, u.owner)}</b>${u.down ? `<em>${L('faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span></div>`;
+      return `<div class="u side${u.owner} ${u.down ? 'down' : ''} ${u.vet && !secret ? 'vet' : ''} ${next.has('u' + u.id) || flip ? 'target' : ''}" data-step="u${u.id}" ${flip ? `data-flip="${u.id}"` : ''} style="background-image:url(${art(u.key, u.owner, u.down)})" ${flip ? `title="${L('flipTip')}"` : ''}>
+        <b>${secret ? '???' : nameV(u.key, u.owner, u.vet)}</b>${u.down ? `<em>${L('faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span></div>`;
     }).join('') + '<div class="slot"></div>'.repeat(Math.max(0, E.cap(s, t) - T.side[p].length));
     const st = T.captured !== null ? 'c' + T.captured : T.holder !== null ? 'h' + T.holder : '';
     const k = fx ? fx.caps.indexOf(t) : -1, d = fx && fx.night ? (NIGHT_MS + STEP_MS * k) / 1000 : 0;
@@ -303,7 +347,7 @@ function render() {
 
   $('hand').innerHTML = s.players[0].hand.map((h, i) => {
     const C = E.CARDS[h.key], order = C.type === 'Ordre';
-    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" style="--i:${i}">${cardInner(h.key, 0)}</div>`;
+    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${h.vet ? 'vet' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" style="--i:${i}">${cardInner(h.key, 0, h.vet)}</div>`;
   }).join('');
 
   const hint = s.winner !== null ? (endShown ? '' : L('hEnd')) : busy && s.turn === 0 ? '' : L(!myTurn() ? 'hAi' : !sel ? 'hPick' : !c.length ? (hiddenMode ? 'hNoSlot' : 'hNoTarget')
@@ -313,7 +357,9 @@ function render() {
     ${exact && c.length > 1 ? `<button data-act="ok" class="on">${L('noTarget')}</button>` : ''}
     <button data-act="hidden" class="${hiddenMode ? 'on' : ''}" title="${L('hiddenTip')}">${L('hidden')}${L('colon')}${L(hiddenMode ? 'yes' : 'no')}</button>
     <button data-act="supply" ${sel && myTurn() ? '' : 'disabled'} title="${L('supplyTip')}">${L('supply')}</button>
-    <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>`;
+    <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>
+    ${(camp ? save.run.powers : []).map(w => { const ok = myTurn() && E.moves(s).some(m => m.c === 'p:' + w);
+      return `<button data-power="${w}" class="pw ${sel && sel.c === 'p:' + w ? 'on' : ''}" title="${I.powerText(w)}" ${ok ? '' : 'disabled'}>⚡ ${I.powerName(w)}</button>`; }).join('')}`;
 
   $('end').className = s.winner !== null && endShown ? 'show' : '';
   if (s.winner !== null && endShown) {
@@ -321,6 +367,7 @@ function render() {
     $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${L(done ? 'paris' : win ? 'victory' : 'defeat')}</h2>
       <div>${L(s.timeout ? 'byNight' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
       ${s.timeout && caps(0) < 2 && caps(1) < 2 ? `<div>${L('noMajority')}</div>` : ''}
+      ${camp && win && save.cur.got ? `<p>${save.cur.got.t === 'none' ? L('rewardNone') : `${L('endReward')} <b>${rewardName(save.cur.got)}</b>`}</p>` : ''}
       ${done ? `<p>${L('endDone')}</p>` : camp && win ? `<p>${L('endWin')}</p>` : camp ? `<p>${L('endLose')}</p>` : ''}
       <div class="row">${camp ? (win ? `<button data-go="map" class="on">${L('backMap')}</button>`
         : `<button data-go="again" class="on">${L('again')}</button><button data-go="map">${L('map')}</button>`)
@@ -354,6 +401,7 @@ function act(m) {
   let boomed = false;
   if (m.kind === 'supply') SND.play('shuffle');
   else if (m.kind === 'hidden' || m.kind === 'pass') SND.play('card');
+  else if (m.kind === 'power') SND.play(m.w === 'naval' ? 'whistle' : m.w === 'couverture' ? 'plane' : m.w === 'barrage' ? 'boom' : 'drumroll');
   else if (m.kind === 'reveal') SND.play('flip');
   else if (m.kind === 'deploy') { SND.play('card'); SND.play(type === 'Char' ? 'tank' : type === 'Air' ? 'plane' : 'boots', 0.1); }
   else if (key === 'artillerie') { SND.play('whistle'); boomed = true; }
@@ -370,7 +418,7 @@ function act(m) {
 }
 // After every action: record a campaign win, save, redraw.
 function played() {
-  if (s.winner === 0 && save.cur.mode === 'campagne' && !save.won.includes(save.cur.battle)) save.won.push(save.cur.battle);
+  if (s.winner === 0 && camp() && !save.run.path.includes(save.cur.battle)) save.cur.got = C.win(save.run, save.cur.battle) || { t: 'none' };
   persist(); render();
 }
 function aiTurn(wait = 0) {
@@ -383,6 +431,7 @@ function aiTurn(wait = 0) {
 function commit(m) {
   const ms = act(m), mine = s, later = (f, t) => setTimeout(() => { if (s === mine) f(); }, t);
   sel = null; endShown = s.winner === null; busy = s.winner !== null || s.turn === 1 || ms > 0;
+  if (m.kind === 'hidden') hiddenMode = false; // one face-down card per click: the toggle goes back to visible
   played();
   if (s.winner !== null) later(() => { endShown = true; SND.play(s.winner === 0 ? 'victory' : 'defeat'); render(); }, ms + LOOK_MS);
   else if (s.turn === 1) aiTurn(ms);
@@ -417,10 +466,10 @@ document.addEventListener('click', e => {
     if (g === 'mus' || g === 'sfx') { const k = g === 'mus' ? 'music' : 'sfx'; SND.set(k, !SND.pref[k]); return sndLabels(); }
     if (go.dataset.pick) { pick = go.dataset.pick; return renderMap(); }
     if (g === 'resume') return resume();
-    if (g === 'campaign') { const live = C.BATTLES.find(b => C.unlocked(b.id, save.won) && !save.won.includes(b.id)); if (live) pick = live.id; return screen('map'); }
+    if (g === 'campaign') { pick = save.cur && camp() ? save.cur.battle : C.open(save.run.path)[0] || 'paris'; return screen('map'); }
     if (g === 'quick') return startBattle('rapide');
-    if (g === 'reset') { if (armed(go)) { save = { won: [], cur: null, diff: save.diff }; persist(); pick = 'omaha'; renderMenu(); } return; }
-    if (g === 'launch') return startBattle('campagne', pick);
+    if (g === 'reset') { if (armed(go)) { save = { cur: null, diff: save.diff, run: C.newRun() }; persist(); pick = C.open([])[0]; screen(document.body.dataset.screen); } return; }
+    if (g === 'launch') return C.status(pick, save.run.path) === 'open' && startBattle('campagne', pick);
     if (g === 'again' || (g === 'restart' && armed(go))) return startBattle(save.cur.mode, save.cur.battle);
     if (g === 'map' || g === 'toMap') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); if (save.cur) pick = save.cur.battle; return screen('map'); }
     if (g === 'menu' || g === 'toMenu') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('menu'); }
@@ -432,6 +481,13 @@ document.addEventListener('click', e => {
   if (act === 'cancel') { sel = null; return render(); }
   if (act === 'supply') return commit(E.moves(s).find(m => m.kind === 'supply' && m.c === sel.c));
   if (act === 'ok') return commit(cands().find(m => m.steps.length === sel.pre.length));
+  const pb = e.target.closest('[data-power]');
+  if (pb) { // power: fires at once without a target, otherwise waits for one like a card
+    sel = sel && sel.c === 'p:' + pb.dataset.power ? null : { c: 'p:' + pb.dataset.power, pre: [] };
+    const c = sel ? cands() : [];
+    if (c.length === 1 && !c[0].steps.length) return commit(c[0]);
+    return render();
+  }
   const fl = e.target.closest('[data-flip]');
   if (fl) return commit(E.moves(s).find(m => m.kind === 'reveal' && m.u === +fl.dataset.flip));
   const h = e.target.closest('[data-hand]');
