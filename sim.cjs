@@ -33,6 +33,7 @@ for (const [id, P] of Object.entries(PACKS)) {
     for (const k of ['name', 'date', 'brief']) both(b[k], `${b.id} ${k}`);
     for (const n of b.next) assert(C.byId[n] && C.byId[n].day >= b.day, `${id}: ${b.id} -> ${n} goes back in time`);
     assert([0, 1, undefined].includes(b.first), `${id}/${b.id}: first is 0 (player), 1 (AI) or absent (coin toss)`);
+    (b.aiCards || []).forEach(k => assert(P.cards[k], `${id}/${b.id}: unknown AI card ${k}`));
   }
   assert.equal(C.BATTLES.filter(b => C.status(b.id, []) === 'gone').length, 0, `${id}: every battle reachable at the start`);
 }
@@ -222,6 +223,57 @@ for (const [id, P] of Object.entries(PACKS)) {
   E.use('normandie'); C.use('normandie');
 }
 
+// Pacific: open sea, reef landings, carriers and airstrips, kamikazes, banzai, garrisons, two roads to Okinawa.
+{
+  E.use('pacifique'); C.use('pacifique');
+  assert.deepEqual([...C.roots].sort(), ['mer_corail', 'wake']);
+  const lens = new Set(), roads = new Set(), walk = (id, n, path) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1, [...path, x])) : (assert.equal(id, 'okinawa'), lens.add(n), roads.add(path[4]));
+  C.roots.forEach(r => walk(r, 1, [r]));
+  assert.deepEqual([...lens], [10], `Pacific run length ${[...lens]}`);
+  assert.deepEqual([...roads].sort(), ['bougainville', 'tarawa'], 'two roads after Henderson Field');
+  assert(C.BATTLES.every(b => !b.defend || b.first === 1), 'a defensive battle: the enemy attacks first');
+  assert(C.BATTLES.every(b => (b.aiCards || []).includes('kamikaze') === (b.day >= 1048)), 'kamikazes from Leyte on');
+  const mk = (keys, owner, base, down = false) => keys.map((key, i) => ({ id: base + i, key, owner, down, malus: 0 }));
+  const ids = (s, t, p) => s.terrains[t].side[p].map(u => u.key);
+  // Open sea: infantry is worth nothing, ships count.
+  let s = E.newGame(['haute_mer', 'lagon', 'port']);
+  s.terrains[0].side[0] = mk(['marines', 'cuirasse'], 0, 800);
+  assert.deepEqual(E.totals(s, 0, 0), [3, 0, 0, 1], 'open sea: the Marines count for nothing');
+  // Reef: -1 Infantry until the start of the owner's next turn; the amtrac crosses it.
+  s = E.newGame(['recif', 'lagon', 'port'], {}, { first: 0 });
+  s.players[0].hand = [{ id: 810, key: 'marines' }, { id: 811, key: 'lvt' }];
+  E.play(s, { kind: 'deploy', c: 810, t: 0 });
+  assert.equal(E.totals(s, 0, 0)[1], 2, 'reef: the Marines land with 2 Infantry');
+  E.play(s, { kind: 'pass' });
+  assert.equal(E.totals(s, 0, 0)[1], 3, 'reef: ashore at the start of the next turn');
+  E.play(s, { kind: 'deploy', c: 811, t: 0 });
+  assert.equal(E.totals(s, 0, 0)[1], 5, 'reef: the amtrac crosses without loss');
+  // Carrier: +1 Air to your aircraft everywhere while face up; airstrip held: +1 Air on the other terrains.
+  s = E.newGame(['lagon', 'piste', 'port']);
+  s.terrains[0].side[0] = mk(['hellcat'], 0, 820);
+  s.terrains[2].side[0] = mk(['porte_avions'], 0, 821, true);
+  assert.equal(E.totals(s, 0, 0)[2], 3, 'face-down carrier: no air group');
+  s.terrains[2].side[0][0].down = false;
+  assert.equal(E.totals(s, 0, 0)[2], 4, 'carrier: +1 Air on another terrain');
+  s.terrains[1].captured = 0;
+  assert.equal(E.totals(s, 0, 0)[2], 5, 'airstrip captured: +1 Air more');
+  // Kamikaze: destroys an enemy ship and itself.
+  s = E.newGame(['haute_mer', 'lagon', 'port'], {}, { first: 1, aiCards: ['kamikaze'] });
+  assert(s.players[1].list.some(c => c.key === 'kamikaze'), 'aiCards join the AI deck');
+  s.terrains[0].side[0] = mk(['cuirasse', 'destroyer'], 0, 830);
+  s.players[1].hand = [{ id: 840, key: 'kamikaze' }];
+  E.play(s, { kind: 'deploy', c: 840, t: 0, u: 830 });
+  assert.deepEqual([ids(s, 0, 0), ids(s, 0, 1)], [['destroyer'], []], 'kamikaze: the battleship and the plane are gone');
+  // Banzai: your weakest infantry and their strongest go down; the garrison never does.
+  s = E.newGame(['lagon', 'piste', 'port'], {}, { first: 1 });
+  s.terrains[0].side[0] = mk(['lance_flammes', 'marines'], 0, 850);
+  s.terrains[0].side[1] = mk(['garnison', 'tireurs'], 1, 860);
+  s.players[1].hand = [{ id: 870, key: 'banzai' }];
+  E.play(s, { kind: 'order', c: 870, t: 0 });
+  assert.deepEqual([ids(s, 0, 0), ids(s, 0, 1)], [['lance_flammes'], ['garnison']], 'banzai: snipers for Marines, the garrison stays');
+  E.use('normandie'); C.use('normandie');
+}
+
 // The rule checks above test Normandy cards; the modes below run on the chosen pack.
 if (PACK !== 'normandie') { E.use(PACK); C.use(PACK); }
 
@@ -308,7 +360,7 @@ if (process.argv[3] === 'campagne') {
   console.log(`Campagne, ${N} batailles IA contre IA par étape et par ordre, sans renfort (cible selon le scénario : joueur 45-60 %, temps <= 30 %)`);
   for (const b of C.BATTLES) {
     const w = [0, 0]; let to = 0, len = 0;
-    for (let i = 0; i < 2 * N; i++) { const s = game(C.draw(b), {}, { first: i % 2, defender: b.defend ? 0 : 1 }); if (s.winner === 0) w[i % 2]++; if (s.timeout) to++; len += s.players[0].turns; }
+    for (let i = 0; i < 2 * N; i++) { const s = game(C.draw(b), {}, { first: i % 2, defender: b.defend ? 0 : 1, aiCards: b.aiCards }); if (s.winner === 0) w[i % 2]++; if (s.timeout) to++; len += s.players[0].turns; }
     const pw = w.map(x => 100 * x / N), pt = 50 * to / N, sc = b.first == null ? (pw[0] + pw[1]) / 2 : pw[b.first], ok = sc >= 45 && sc <= 60 && pt <= (b.defend ? 40 : 30); // defend: holding until night is the plan, a few more nightfalls are fine
     console.log(`${ok ? ' ' : '!'} ${I.battle(b).name.padEnd(24)} joueur d'abord ${pw[0].toFixed(0).padStart(3)} %  IA d'abord ${pw[1].toFixed(0).padStart(3)} %  scénario ${['joueur', 'IA    '][b.first] || 'jeton '} ${sc.toFixed(0).padStart(3)} %  temps ${pt.toFixed(0).padStart(3)} %  ${(len / N / 2).toFixed(1)} tours`);
   }
@@ -323,7 +375,7 @@ if (process.argv[3] === 'campagne') {
     for (let k = 0; ; k++) {
       const now = C.open(run.path), id = now[Math.floor(Math.random() * now.length)], keys = C.draw(C.byId[id]);
       const x = by[k] || (by[k] = { w: 0, w0: 0, n: 0, t: 0 });
-      const opts = { total: true, first: C.byId[id].first ?? (Math.random() < 0.5 ? 0 : 1), defender: C.byId[id].defend ? 0 : 1 }, s = game(keys, run, opts), tot = sweep(s);
+      const opts = { total: true, first: C.byId[id].first ?? (Math.random() < 0.5 ? 0 : 1), defender: C.byId[id].defend ? 0 : 1, aiCards: C.byId[id].aiCards }, s = game(keys, run, opts), tot = sweep(s);
       x.n++; if (s.winner === 0) x.w++; if (tot) x.t++; if (game(keys, {}, opts).winner === 0) x.w0++;
       const got = C.win(run, id, tot), t = got ? got.t : 'paris'; kinds[t] = (kinds[t] || 0) + 1;
       if (C.last(id)) break;

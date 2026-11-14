@@ -271,9 +271,10 @@ const E = (() => {
   // bonus (campaign): { cards: [{ key, vet }], powers: [name] } for player 0.
   // total: the player (0) plays on after two captures, for the total victory (three terrains).
   // first: who takes the first turn (0 the player, 1 the AI). defender: who keeps the ground at nightfall without a majority.
-  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}, { total = false, first = 0, defender = 1 } = {}) {
+  // aiCards: extra card keys in the AI's deck for this battle (the Pacific kamikazes).
+  function newGame(keys = PACK.quick.slice(0, 3), bonus = {}, { total = false, first = 0, defender = 1, aiCards = [] } = {}) {
     let id = 0;
-    const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].map(key => ({ key }))];
+    const lists = [DECKS[0].map(key => ({ key })).concat(bonus.cards || []), DECKS[1].concat(aiCards).map(key => ({ key }))];
     const s = {
       pack: PACK.id,
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
