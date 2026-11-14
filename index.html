@@ -134,6 +134,14 @@
   .nightfall { position:absolute; inset:-8px; z-index:4; display:flex; align-items:center; justify-content:center; font:bold 40px Georgia,serif; letter-spacing:4px;
                color:#f0d98a; background:#060a18cc; pointer-events:none; animation:night 1.4s both; }
   @keyframes night { 0% { opacity:0; } 25%, 70% { opacity:1; } 100% { opacity:0; } }
+  /* A unit leaving the board never just vanishes: destroyed = it shakes, flashes and bursts; back to hand = it slides toward its owner. */
+  .u.gone, .u.away { position:fixed; z-index:5; flex:none; pointer-events:none; }
+  .u.gone .pill, .u.away .pill { display:none; }
+  .u.gone { animation:gone .75s ease-in both; } .u.away { animation:away .5s ease-in both; }
+  @keyframes gone { 10%, 30% { transform:translateX(-4px) rotate(-2deg); } 20%, 40% { transform:translateX(4px) rotate(2deg); }
+    50% { transform:scale(1.08); filter:brightness(2.2) sepia(1) saturate(5) hue-rotate(-25deg); box-shadow:0 0 22px #ff8a3c; }
+    100% { opacity:0; transform:scale(1.35) rotate(7deg); filter:brightness(.5); } }
+  @keyframes away { to { opacity:0; transform:translateY(var(--dy)) scale(.8); } }
   @media (prefers-reduced-motion: reduce) { *, ::after { animation:none !important; } }
   #peek { position:fixed; z-index:5; width:250px; pointer-events:none; display:none; cursor:default; box-shadow:0 10px 30px #000c; }
   #peek.show { display:flex; } #peek b { font-size:20px; } #peek small { font-size:12px; } #peek p { font-size:15px; flex:none; }
@@ -593,10 +601,24 @@ function aiTurn(wait = 0) {
 }
 // Any move (player or AI): input stays locked while its effect plays, then the AI answers,
 // the player gets the hand back, or (after a pause to look at the board) the end screen shows.
+// Units that left the board with this move: the old tile (kept where it stood, over the new board) plays its exit.
+// Destroyed = in a discard pile; anything else went back to a hand.
+function leave(was) {
+  const on = new Set(s.terrains.flatMap(T => T.side.flat().map(u => u.id))), dead = new Set(s.players.flatMap(P => P.discard.map(c => c.id)));
+  for (const [el, r] of was) {
+    const id = +el.dataset.step.slice(1);
+    if (on.has(id)) continue;
+    el.classList.remove('target'); el.classList.add(dead.has(id) ? 'gone' : 'away');
+    el.style.cssText += `;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;--dy:${el.classList.contains('side1') ? -70 : 70}px`;
+    document.body.append(el);
+    setTimeout(() => el.remove(), 800); // ponytail: a timer, not animationend, which never fires under prefers-reduced-motion
+  }
+}
 function commit(m) {
+  const was = [...document.querySelectorAll('#front .u[data-step]')].map(el => [el, el.getBoundingClientRect()]);
   const ms = act(m), mine = s, later = (f, t) => setTimeout(() => { if (s === mine) f(); }, t);
   sel = null; hiddenMode = flipHint = false; endShown = s.winner === null; busy = s.winner !== null || s.turn === 1 || ms > 0;
-  played();
+  played(); leave(was);
   if (s.winner !== null) later(() => { endShown = true; SND.play(s.winner === 0 ? 'victory' : 'defeat'); render(); }, ms + LOOK_MS);
   else if (s.turn === 1) aiTurn(ms);
   else if (ms) later(() => { busy = false; render(); }, ms);
@@ -650,7 +672,8 @@ document.addEventListener('click', e => {
     if (g === 'launch') return C.status(pick, runNow().path) === 'open' && startBattle('campagne', pick);
     if (go.dataset.pack) { save.pack = go.dataset.pack; persist(); return renderMenu(); }
     if (g === 'again' || (g === 'restart' && armed(go))) return startBattle(save.cur.mode, save.cur.battle);
-    if (g === 'map' || g === 'toMap') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); if (save.cur) pick = save.cur.battle; return screen('map'); }
+    // The map opens on the battle just played, finished or not (a resumed battle never went through the map: pick was still unset).
+    if (g === 'map' || g === 'toMap') { if (save.cur) pick = save.cur.battle; if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('map'); }
     if (g === 'menu' || g === 'toMenu') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('menu'); }
     return;
   }
