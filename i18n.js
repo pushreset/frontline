@@ -75,6 +75,10 @@ const I18N = (() => {
     fr: {
       title: 'Ligne de Front', sub: 'Normandie · été 1944', resume: w => `Reprendre — ${w}`, campaign: 'Campagne', quick: 'Bataille rapide',
       reset: 'Réinitialiser la progression', confirm: 'Confirmer ?', colon: ' : ', music: 'Musique', sounds: 'Sons', yes: 'oui', no: 'non', lang: 'English',
+      diff: 'Ennemi', easy: 'Recrue', normal: 'Régulier', hard: 'Vétéran',
+      easyTip: 'Il hésite, éparpille ses troupes, bluffe rarement et voit tard tes menaces.',
+      normalTip: 'Il joue le meilleur coup du moment.',
+      hardTip: 'Agressif et opportuniste : il anticipe la suite et punit chaque ouverture.',
       menu: 'Menu', map: 'Carte', restart: 'Recommencer la bataille', pool: 'Terrains possibles (3 tirés au hasard) :',
       locked: 'Gagne une bataille précédente pour débloquer celle-ci.', launch: 'Lancer la bataille', replay: 'Rejouer',
       won: (n, m) => `${n} / ${m} batailles gagnées`, mapAlt: 'Carte de Normandie',
@@ -103,6 +107,10 @@ const I18N = (() => {
     en: {
       title: 'Front Line', sub: 'Normandy · summer 1944', resume: w => `Resume — ${w}`, campaign: 'Campaign', quick: 'Quick battle',
       reset: 'Reset progress', confirm: 'Confirm?', colon: ': ', music: 'Music', sounds: 'Sounds', yes: 'on', no: 'off', lang: 'Français',
+      diff: 'Enemy', easy: 'Rookie', normal: 'Regular', hard: 'Veteran',
+      easyTip: 'Hesitates, spreads out, rarely bluffs and spots your threats late.',
+      normalTip: 'Plays the best move of the moment.',
+      hardTip: 'Aggressive and opportunistic: thinks ahead and punishes every opening.',
       menu: 'Menu', map: 'Map', restart: 'Restart battle', pool: 'Possible terrains (3 drawn at random):',
       locked: 'Win a previous battle to unlock this one.', launch: 'Start battle', replay: 'Replay',
       won: (n, m) => `${n} / ${m} battles won`, mapAlt: 'Map of Normandy',

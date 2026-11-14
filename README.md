@@ -17,6 +17,9 @@ les retourner coûte une action.
 - **Campagne** : 12 batailles d'Omaha Beach à la libération de Paris, avec embranchements. Pas de
   game over, une bataille perdue se rejoue.
 - **Bataille rapide** : 3 terrains au hasard.
+- **Trois niveaux d'ennemi**, mêmes règles et mêmes terrains, seule la façon de décider change :
+  *Recrue* (hésite, s'éparpille, ne bluffe pas, voit tard tes menaces), *Régulier*, *Vétéran*
+  (agressif, joue chaque coup jusqu'au bout sur des mains devinées). Aucun ne triche.
 - Sauvegarde automatique dans le navigateur, musique et sons générés en Web Audio.
 
 ## Fichiers
@@ -30,7 +33,7 @@ les retourner coûte une action.
 | `audio.js` | musique et effets sonores |
 | `assets.html` | galerie de toutes les illustrations |
 | `art.px.js` → `out/` | source du pixel art (DSL pxl) ; les PNG construits sont versionnés dans `out/` |
-| `sim.cjs`, `balance.cjs` | simulateur IA contre IA (`node sim.cjs 1000`, `node sim.cjs 500 campagne`) |
+| `sim.cjs`, `balance.cjs` | simulateur IA contre IA (`node sim.cjs 1000`, `node sim.cjs 500 campagne`, `node sim.cjs 200 niveaux`, `node sim.cjs 1 partie easy hard`) |
 
 ## Héberger sur GitHub Pages
 

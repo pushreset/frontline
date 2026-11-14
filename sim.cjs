@@ -1,5 +1,8 @@
 // GDD "prochaines étapes" #2: AI vs AI, measure first-player advantage, length, timeout rate.
 // Usage: node sim.cjs [battles=1000] [fixed]   ("fixed" = Bocage/Pont/Village only)
+//        node sim.cjs 200 niveaux               duels between difficulty levels + behaviour profile
+//        node sim.cjs 1 partie easy hard        one battle, told move by move
+//        node sim.cjs 300 campagne              balance of each campaign battle
 const assert = require('assert');
 const E = require('./engine.js');
 
@@ -53,6 +56,59 @@ const E = require('./engine.js');
   assert.deepEqual(s.terrains[1].side[0].map(u => u.key), ['spitfire', 'sherman', 'section']);
   assert(s.players[0].discard.some(c => c.id === 401), 'replaced unit is discarded');
   assert.equal(s.terrains[1].holder, 0, 'Pont 3/1/1/1 now filled');
+}
+
+// Difficulty levels: cross matches, sides alternated to cancel the first-player edge,
+// plus a behaviour profile per level (does each AI really play its personality?).
+if (process.argv[3] === 'niveaux') {
+  const N = +process.argv[2] || 200;
+  const prof = {}, P = L => prof[L] || (prof[L] = { games: 0, moves: 0, ms: 0, hidden: 0, supply: 0, spread: 0, kills: 0, breaks: 0 });
+  const duel = (A, B) => {
+    let w = 0;
+    for (let i = 0; i < N; i++) {
+      const lv = i % 2 ? [B, A] : [A, B], s = E.newGame(E.randomTerrains());
+      while (s.winner === null) {
+        const p = s.turn, x = P(lv[p]), t0 = Date.now(), m = E.aiMove(s, lv[p]);
+        x.ms += Date.now() - t0; x.moves++;
+        if (m.kind === 'hidden' || m.t1 != null) x.hidden++;
+        if (m.kind === 'supply') x.supply++;
+        const h0 = s.terrains.map(T => T.holder), n0 = s.log.length;
+        E.play(s, m);
+        x.kills += s.log.slice(n0).filter(l => l.e === 'destroy' && l.p !== p).length;
+        x.breaks += s.terrains.filter((T, t) => h0[t] === 1 - p && T.holder !== 1 - p).length;
+        x.spread += s.terrains.filter(T => T.captured === null && T.side[p].length).length;
+      }
+      lv.forEach(L => P(L).games++);
+      if (lv[s.winner] === A) w++;
+    }
+    return 100 * w / N;
+  };
+  console.log(`Niveaux, ${N} batailles par duel (cibles : hard>normal >= 65 %, normal>easy 65-80 %)`);
+  const hn = duel('hard', 'normal'), ne = duel('normal', 'easy'), he = duel('hard', 'easy');
+  console.log(`${hn >= 65 ? ' ' : '!'} Vétéran bat Régulier ${hn.toFixed(0)} %`);
+  console.log(`${ne >= 65 && ne <= 80 ? ' ' : '!'} Régulier bat Recrue ${ne.toFixed(0)} %  (Recrue gagne ${(100 - ne).toFixed(0)} %)`);
+  console.log(`  Vétéran bat Recrue ${he.toFixed(0)} %`);
+  console.log('\nProfil       ms/coup  caché%  ravit.%  terrains occupés  détruits/partie  Tenus cassés/partie');
+  for (const L of ['easy', 'normal', 'hard']) {
+    const x = prof[L], pc = k => (100 * x[k] / x.moves).toFixed(0).padStart(6), pg = k => (x[k] / x.games).toFixed(1).padStart(15);
+    console.log(`${L.padEnd(10)} ${(x.ms / x.moves).toFixed(1).padStart(8)} ${pc('hidden')} ${pc('supply')}  ${(x.spread / x.moves).toFixed(2).padStart(16)} ${pg('kills')}  ${pg('breaks')}`);
+  }
+  process.exit(0);
+}
+
+// One battle told move by move: node sim.cjs 1 partie [niveau joueur 1] [niveau joueur 2]
+if (process.argv[3] === 'partie') {
+  const I = require('./i18n.js'), lv = [process.argv[4] || 'normal', process.argv[5] || 'normal'];
+  I.lang = 'fr';
+  const s = E.newGame(E.randomTerrains());
+  console.log(`« Tu » = ${lv[0]} (joue en premier), « L'IA » = ${lv[1]}. Terrains : ${s.terrains.map(T => I.terrainName(T.key)).join(', ')}`);
+  while (s.winner === null) {
+    const p = s.turn, tour = s.players[p].turns + 1, n0 = s.log.length;
+    E.play(s, E.aiMove(s, lv[p]));
+    console.log(`${String(tour).padStart(2)}${p ? 'b' : 'a'}  ` + s.log.slice(n0).map(I.logLine).join('  '));
+  }
+  console.log(`Vainqueur : ${lv[s.winner]}${s.timeout ? ' (à la nuit)' : ''}`);
+  process.exit(0);
 }
 
 // Campaign mode: per-battle balance, draws from each battle's pool.

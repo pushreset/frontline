@@ -337,36 +337,82 @@ const E = (() => {
     for (const T of c.terrains) for (const u of T.side[1 - p]) if (u.down) u.key = 'inconnu';
     return c;
   }
-  function score(s, p) {
+  // Three AI personalities: same rules, same information, different judgement.
+  // def: weight of the opponent's progress. hold: value of a Tenu terrain. late: nightfall sprint.
+  // hand: value of a card in hand. spread: bonus per terrain occupied. bluff: bonus/malus on face-down plays.
+  // margin: picks at random among moves this close to the best. aggro: bonus per enemy unit removed / Tenu broken.
+  // roll/k/slack: plays its k best moves to the end `roll` times on guessed worlds; among the moves within
+  // `slack` wins of the best, takes the most aggressive.
+  // Tuned with `node sim.cjs 200 niveaux` (win rates + behaviour profile): margin is Recrue's strength knob, roll Vétéran's.
+  const LEVELS = {
+    easy: { def: 0.5, hold: 30, late: 0, hand: 0.3, spread: 12, bluff: -20, margin: 12 },
+    normal: { def: 1, hold: 30, late: 15, hand: 0.3, spread: 0, bluff: 0 },
+    hard: { def: 1.4, hold: 40, late: 15, hand: 0.15, spread: 0, bluff: 0, aggro: 10, roll: 24, k: 6, slack: 2 },
+  };
+  function score(s, p, w = LEVELS.normal) {
     if (s.winner !== null) return s.winner === p ? 1e4 : -1e4;
     const o = 1 - p, caps = s.terrains.filter(T => T.captured !== null).length;
     const late = RULES.turns - s.players[p].turns <= 2; // night is close: percentages decide
-    let v = 0.3 * s.players[p].hand.length;
+    let v = w.hand * s.players[p].hand.length + w.spread * s.terrains.filter(T => T.captured === null && T.side[p].length).length;
     s.terrains.forEach((T, t) => {
       if (T.captured !== null) { v += T.captured === p ? 100 : -100; return; }
       const a = pct(s, t, p), b = pct(s, t, o);
-      let x = 12 * a * a - 12 * b * b; // squared: concentrate rather than sprinkle
-      if (T.holder === p) x += 30; else if (T.holder === o) x -= 30;
+      let x = 12 * a * a - 12 * w.def * b * b; // squared: concentrate rather than sprinkle
+      if (T.holder === p) x += w.hold; else if (T.holder === o) x -= w.hold * w.def;
       const tot = totals(s, t, p), over = sum(thr(s, t).map((th, i) => Math.max(0, tot[i] - th)));
       x += over * (b > 0.5 ? 0.5 : -0.7); // waste, unless the terrain is contested
-      if (late) x += a > b ? 15 : a < b ? -15 : 0;
+      if (late) x += a > b ? w.late : a < b ? -w.late : 0;
       v += x * (1 + 0.5 * caps); // remaining terrains become decisive
     });
     return v;
   }
-  function aiMove(s) {
-    const p = s.turn, b = blind(s, p);
-    let best = null, bs = -Infinity;
-    for (const m of moves(b)) {
-      if (m.a > m.b || (m.us && m.us[0] > m.us[1])) continue; // mirrored duplicates exist for the UI only
+  // p's guess of the opponent's hidden cards: starting deck (public) minus what p has seen, re-dealt.
+  // Card counting, not cheating: the real hand and deck order are never read.
+  function guess(s, p) {
+    const o = 1 - p, c = clone(s), P = c.players[o], pool = [...DECKS[o]];
+    const seen = [...P.discard, ...c.terrains.flatMap(T => T.side[o].filter(u => u.key !== 'inconnu'))];
+    for (const x of seen) { const i = pool.indexOf(x.key); if (i >= 0) pool.splice(i, 1); }
+    shuffle(pool);
+    let id = 1e4;
+    const deal = n => pool.splice(0, n).map(key => ({ id: id++, key }));
+    P.hand = deal(P.hand.length);
+    P.deck = deal(P.deck.length);
+    shuffle(c.players[p].deck); // own draw order is unknown too
+    return c;
+  }
+  const uniq = m => !(m.a > m.b || (m.us && m.us[0] > m.us[1])); // mirrored duplicates exist for the UI only
+  const foes = (s, p) => s.terrains.reduce((n, T) => n + T.side[1 - p].length, 0);
+  function aiMove(s, level = 'normal') {
+    const p = s.turn, b = blind(s, p), w = LEVELS[level] || LEVELS.normal;
+    const ranked = moves(b).filter(uniq).map(m => {
       const c = clone(b);
       play(c, m);
-      const v = score(c, p) + Math.random() * 0.5;
-      if (v > bs) { bs = v; best = m; }
+      const bluff = m.kind === 'hidden' || m.t1 != null ? w.bluff : 0; // face-down play or Opération secrète
+      const hits = w.aggro ? foes(b, p) - foes(c, p) + c.terrains.filter((T, t) => b.terrains[t].holder === 1 - p && T.holder !== 1 - p).length : 0;
+      return { m, v: score(c, p, w) + bluff + (w.aggro || 0) * hits + Math.random() * 0.5 };
+    }).sort((x, y) => y.v - x.v);
+    if (w.margin) { // Recrue: hesitates between the moves that look about as good
+      const ok = ranked.filter(r => r.v >= ranked[0].v - w.margin);
+      return ok[Math.floor(Math.random() * ok.length)].m;
     }
-    return best;
+    if (!w.roll) return ranked[0].m;
+    // Vétéran: the k most aggressive-looking moves, each played out to nightfall `roll` times by two
+    // Régulier players, on worlds where the opponent's hand and both draw orders are re-dealt.
+    const tried = ranked.slice(0, w.k);
+    for (const r of tried) {
+      if (r.v >= 1e4) return r.m;
+      r.wins = 0;
+      for (let i = 0; i < w.roll; i++) {
+        const c = guess(b, p);
+        play(c, r.m);
+        while (c.winner === null) play(c, aiMove(blind(c, c.turn)));
+        if (c.winner === p) r.wins++;
+      }
+    }
+    const top = Math.max(...tried.map(r => r.wins));
+    return tried.find(r => r.wins >= top - w.slack).m; // tried is sorted: first = most aggressive-looking
   }
 
-  return { K, ATTRS, RULES, get TURNS() { return RULES.turns; }, CARDS, TERRAINS, newGame, randomTerrains, moves, play, aiMove, blind, vals, totals, thr, fills, surplus, pct, cap, nameOf, control };
+  return { K, ATTRS, RULES, get TURNS() { return RULES.turns; }, CARDS, TERRAINS, newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, nameOf, control };
 })();
 if (typeof module !== 'undefined') module.exports = E;
