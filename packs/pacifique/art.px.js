@@ -531,7 +531,7 @@ sprite("_flag", { w: 11, h: 11 }, (c) => {
   c.rect(1, 0, 4, 3, "6"); c.px(2, 1, "w")
 })
 terrain("suribachi",
-  sky(TW, 44, "ush"), stamp("_cloud_a", 14, 6), stamp("_cloud_b", 130, 12),
+  sky(TW, 64, "usSh"), stamp("_cloud_a", 14, 6), stamp("_cloud_b", 130, 12),
   (c) => {
     const top = (x) => Math.round(62 - 46 * Math.max(0, 1 - Math.abs(x - 80) / 64) ** 1.2)
     for (let x = 0; x < TW; x++) { const t = top(x); c.vline(x, t, TH - t, x > 80 ? "N" : "n"); c.px(x, t, "x") }
@@ -565,8 +565,9 @@ sprite("i_casque", `
   .kkkkkkkkkkk.
   .kkkkkkkkkkk.
   kkkkkkkkkkkkk
-  kkkkkkkkkkkkk
-  ...k.....k...`)
+  ..k.......k..
+  ...k.....k...
+  ....kkkkk....`)
 sprite("i_avion", `
   ......k......
   ......k......

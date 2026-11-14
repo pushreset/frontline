@@ -391,20 +391,24 @@
 <div id="toss"></div>
 <div id="peek" class="card"></div>
 <div id="sheet"><div class="in"></div></div>
-<script src="engine.js?v=7"></script>
+<script src="engine.js?v=8"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=7"></script>
-<script src="packs/normandie/cards.js?v=7"></script>
-<script src="packs/normandie/terrains.js?v=7"></script>
-<script src="packs/normandie/battles.js?v=7"></script>
-<script src="packs/verdun/pack.js?v=7"></script>
-<script src="packs/verdun/cards.js?v=7"></script>
-<script src="packs/verdun/terrains.js?v=7"></script>
-<script src="packs/verdun/battles.js?v=7"></script>
-<script src="campaign.js?v=7"></script>
-<script src="audio.js?v=7"></script>
-<script src="i18n.js?v=7"></script>
+<script src="packs/normandie/pack.js?v=8"></script>
+<script src="packs/normandie/cards.js?v=8"></script>
+<script src="packs/normandie/terrains.js?v=8"></script>
+<script src="packs/normandie/battles.js?v=8"></script>
+<script src="packs/verdun/pack.js?v=8"></script>
+<script src="packs/verdun/cards.js?v=8"></script>
+<script src="packs/verdun/terrains.js?v=8"></script>
+<script src="packs/verdun/battles.js?v=8"></script>
+<script src="packs/pacifique/pack.js?v=8"></script>
+<script src="packs/pacifique/cards.js?v=8"></script>
+<script src="packs/pacifique/terrains.js?v=8"></script>
+<script src="packs/pacifique/battles.js?v=8"></script>
+<script src="campaign.js?v=8"></script>
+<script src="audio.js?v=8"></script>
+<script src="i18n.js?v=8"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
@@ -422,11 +426,9 @@ function usePack(id) {
   document.body.dataset.font = E.PACK.font || '';
 }
 const THEME = ['olive', 'btn', 'btnHi', 'edge', 'bg1', 'bg2', 'bg3', 'panel', 'panelEdge', 'tile1', 'tile2'];
-// Eras: campaigns grouped by pack.era.key, in load order. A quick battle uses the first campaign of its era.
-const ERAS = [...new Set(PACK_IDS.map(id => PACKS[id].era.key))].map(key => PACK_IDS.find(id => PACKS[id].era.key === key));
 const coverOf = id => `${PACKS[id].art}scenes/t_${PACKS[id].terrains[PACKS[id].cover].art || PACKS[id].cover}.png`;
 const titleFont = P => P.font === 'serif' ? 'Georgia,serif' : '"Stardos Stencil",Georgia,serif';
-let menuView = 'main'; // main · campaign (pick a campaign) · quick (pick an era)
+let menuView = 'main'; // main · campaign (pick a campaign) · quick (pick a theatre for a quick battle)
 const $ = id => document.getElementById(id);
 // Phone layout (portrait, one hand): same state machine, other rendering. Re-render when crossing the breakpoint.
 const M = matchMedia('(max-width:600px)');
@@ -519,7 +521,7 @@ function startBattle(mode, battle) {
   usePack(save.pack);
   const camp = mode === 'campagne', script = camp ? C.byId[battle].first : undefined, first = script ?? (Math.random() < 0.5 ? 0 : 1);
   const defender = camp && C.byId[battle].defend ? 0 : 1; // defensive scenario: the player keeps the ground at nightfall
-  s = E.newGame(camp ? C.draw(C.byId[battle]) : E.randomTerrains(), camp ? { cards: runNow().cards, powers: runNow().powers } : {}, { total: true, first, defender });
+  s = E.newGame(camp ? C.draw(C.byId[battle]) : E.randomTerrains(), camp ? { cards: runNow().cards, powers: runNow().powers } : {}, { total: true, first, defender, aiCards: camp ? C.byId[battle].aiCards : [] });
   s.log.push({ e: 'first', p: first });
   save.cur = { mode, battle, s }; sel = null; hiddenMode = false; fx = null; endShown = true;
   busy = true; persist(); screen('game'); render();
@@ -548,7 +550,7 @@ function renderMenu() {
   const P0 = live && PACKS[save.cur.s.pack || 'normandie'];
   const where = live ? (save.cur.mode === 'campagne' ? I.tx(P0.battles.find(b => b.id === save.cur.battle).name) : L('quick')) : '';
   const tile = (id, attr, lines) => `<button class="tile" ${attr}="${id}" style="--img:url(${coverOf(id)})">${lines}</button>`;
-  const covers = `<div class="covers">${ERAS.map(id => `<div style="background-image:url(${coverOf(id)})"></div>`).join('')}</div>`;
+  const covers = `<div class="covers">${PACK_IDS.map(id => `<div style="background-image:url(${coverOf(id)})"></div>`).join('')}</div>`;
   const era = P => `${I.tx(P.era)} · ${P.era.years}`;
   const stage = id => { const run = save.runs[id]; return run ? run.path.length + (run.path.some(b => !PACKS[id].battles.find(x => x.id === b).next.length) ? 0 : 1) : 1; };
   $('menu').innerHTML = covers + (menuView === 'campaign' ? `<h2>${L('chooseCampaign')}</h2>
@@ -556,8 +558,8 @@ function renderMenu() {
       return tile(id, 'data-camp', `<span class="era">${era(P)}</span><b style="font-family:${titleFont(P)}">${I.pack('title', P)}</b><small>${I.pack('dates', P)} · ${L('battles', P.battles.length)}</small><small>${L('campaign')} · ${L('stage', stage(id))}</small>`); }).join('')}</div>
     <button data-go="menuBack">${L('back')}</button>`
   : menuView === 'quick' ? `<h2>${L('chooseEra')}</h2>
-    <div class="tiles">${ERAS.map(id => { const P = PACKS[id];
-      return tile(id, 'data-quick', `<b style="font-family:${titleFont(P)}; font-size:21px">${I.tx(P.era)}</b><small>${P.era.years}</small>`); }).join('')}</div>
+    <div class="tiles">${PACK_IDS.map(id => { const P = PACKS[id];
+      return tile(id, 'data-quick', `<span class="era">${era(P)}</span><b style="font-family:${titleFont(P)}; font-size:21px">${I.pack('title', P)}</b><small>${I.pack('dates', P)}</small>`); }).join('')}</div>
     <button data-go="menuBack">${L('back')}</button>`
   : `<h1>${L('title')}</h1><p class="sub">${L('tagline')}</p>
     ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}

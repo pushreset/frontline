@@ -76,6 +76,10 @@ const SND = (() => {
     assault: t => { for (const [dt, d] of [[0, 0.35], [0.45, 0.9]]) tone(2300, t + dt, d, { type: 'triangle', gain: 0.07, a: 0.02, vib: 120, wet: true }); },
     // Shovel biting into earth: short scrapes with a thud.
     dig: t => { for (let i = 0; i < 3; i++) { noise(t + i * 0.28, 0.12, { type: 'bandpass', f: 1600, q: 2, gain: 0.18 }); noise(t + i * 0.28 + 0.1, 0.08, { f: 300, gain: 0.3 }); } },
+    // Ship's horn: two deep blasts across the water.
+    horn: t => { for (const [dt, d] of [[0, 0.8], [1.0, 1.3]]) { tone(98, t + dt, d, { type: 'sawtooth', gain: 0.1, a: 0.06, lp: 420, wet: true }); tone(147, t + dt, d, { type: 'sawtooth', gain: 0.05, a: 0.06, lp: 420 }); } },
+    // Ship under way: diesel throb and the bow wave.
+    naval: t => { tone(48, t, 1.4, { type: 'sawtooth', gain: 0.12, a: 0.3, lp: 180 }); noise(t, 1.4, { f: 500, to: 220, gain: 0.22, a: 0.3 }); noise(t + 0.4, 0.6, { type: 'bandpass', f: 2600, q: 0.7, gain: 0.07, a: 0.2 }); },
     smoke: t => noise(t, 1.8, { type: 'bandpass', f: 900, to: 400, q: 0.5, gain: 0.25, a: 0.2 }),
     drumroll: t => { for (let i = 0; i < 12; i++) noise(t + i * 0.045, 0.05, { type: 'bandpass', f: 2200, q: 1.5, gain: 0.08 + i * 0.012 }); noise(t + 0.55, 0.25, { type: 'bandpass', f: 2000, gain: 0.25, wet: true }); },
     // Bugle calls: horn-ish triangle + quiet square, through the hall.

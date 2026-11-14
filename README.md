@@ -58,8 +58,8 @@ tank can move in or out of the marsh, the hill lets your artillery hit any terra
 
 ### Campaigns
 
-The menu offers a **campaign** picker and, for a quick battle, an **era** picker. Each campaign keeps its
-own progress.
+The menu offers a **campaign** picker and, for a quick battle, a **theatre** picker (one tile per campaign,
+in chronological order). Each campaign keeps its own progress.
 
 #### Verdun 1916
 
@@ -80,6 +80,24 @@ One long battle in one sector, on a staff map of the Meuse and its forts, from t
   villages, shattered woods, communication trenches, depots.
 - Rewards: veterans, new cards (Stretcher-Bearers, Schilt Flamethrower, RICM, Carrier Pigeon) and powers
   (Sacred Way, Rotation, 400 mm Railway Gun, Aerial Reconnaissance, None Shall Pass).
+
+#### Pacific 1941–1945
+
+Island after island across a naval chart of the Pacific, from Wake (December 1941) to Okinawa (April 1945).
+**17 battles**, a campaign lasts 10.
+
+- **Two roads to Japan.** 1942 is defensive (Wake or the Coral Sea, Midway, Henderson Field). Then you choose:
+  **Nimitz** across the Central Pacific (Tarawa, Kwajalein, Saipan, then the Philippine Sea or Guam) or
+  **MacArthur** along New Guinea (Bougainville, Hollandia, Peleliu, then Leyte or Leyte Gulf). Both meet at
+  Iwo Jima, then Okinawa. The great naval battles of 1944 are Japanese counter-attacks: you defend.
+- **Navy, Infantry, Air, Logistics.** On the open sea infantry is worth nothing. On a coral reef landing
+  craft run aground (a unit counts 1 Infantry less until your next turn, the amtrac excepted). Airstrips give
+  your aircraft +1 Air everywhere else, caves make units indestructible, mangroves give malaria.
+- **Asymmetric decks**: US carriers (+1 Air to all your aircraft), Corsairs, amtracs, Navajo code talkers and
+  the Turkey Shoot; Japanese dug-in garrisons that cannot be destroyed, snipers, the Yamato and banzai charges.
+  From Leyte on, **kamikazes** join the enemy deck: each one sinks a ship and dies with it.
+- Rewards: veterans, new cards (TBF Avenger, Navy Corpsmen, F4U Corsair, Code Talkers) and powers (Station
+  Hypo, Task Force 58, Fleet Gunfire, Leapfrogging, Hold at All Costs).
 
 #### Normandy 1944
 
@@ -102,7 +120,7 @@ One long battle in one sector, on a staff map of the Meuse and its forts, from t
 
 ### Quick battle and difficulty
 
-- **Quick battle**: pick an era, three random terrains of that era, no campaign bonuses.
+- **Quick battle**: pick a theatre, three random terrains of that campaign, no campaign bonuses.
 - **Three enemy levels.** The rules, thresholds and terrains never change, only how the AI decides:
   - *Rookie* hesitates, spreads out, rarely bluffs and spots your threats late;
   - *Regular* plays the best move of the moment;
@@ -151,8 +169,8 @@ powers bring their own behaviour as small functions ("hooks").
    - `pack.js`: identity. Title, subtitle, dates and finale text (all `{ fr, en }`), the 4 attribute
      names and their icons, the card types (name, `main` attribute for veterans, deploy `sound`), the
      art folder, the menu picture (`cover`) and the map (`image` + longitude/latitude frame).
-     Also its `era` (`{ key, fr, en, years }`: campaigns of the same `key` share one entry in the quick
-     battle picker, the first one gives the cards and terrains), and optionally its look: `theme` (CSS
+     Also its `era` (`{ key, fr, en, years }`: the menus show it on the campaign's tile and sort campaigns by
+     its years), and optionally its look: `theme` (CSS
      colours: `olive`, `btn`, `btnHi`, `edge`, `bg1`-`bg3`, `panel`, `panelEdge`, `tile1`, `tile2`; the
      defaults are Normandy's), `font: 'serif'` (titles in Georgia instead of the stencil) and `startSound`
      (a sound of `audio.js` played when a battle starts).
@@ -163,7 +181,8 @@ powers bring their own behaviour as small functions ("hooks").
      every link), `pos` on the map, `next`, a `pool` of 4 terrains and a brief. Battles nobody points to
      are the starting choices; a battle with no `next` ends the campaign. Optional `first`: who takes the
      first turn (`0` the player, `1` the AI); without it, a coin toss. Optional `defend: true`: at nightfall
-     without a majority, the player keeps the ground and wins (by default the AI does).
+     without a majority, the player keeps the ground and wins (by default the AI does). Optional `aiCards`:
+     card keys added to the AI's deck for this battle only (the Pacific's kamikazes from Leyte on).
    - `art.px.js` → `out/`: pictures named `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's
      version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
      player, `coin_1.png` the AI). Build
@@ -207,7 +226,7 @@ firefly: {
   `malus`, `draw`, `smoke`, `putDown`, `toHand`. `g.hit(units)` / `g.hits([{ u, t }])` turn units into
   targets; `g.U(id)`, `g.T(t)`, `g.H(id)` build the click steps.
 
-`packs/normandie/` and `packs/verdun/` are full references; `packs/test/pack.js` shows mechanics Normandy does not have
+`packs/normandie/`, `packs/verdun/` and `packs/pacifique/` are full references; `packs/test/pack.js` shows mechanics Normandy does not have
 (pushing an enemy back, conditional immunity, a ford, a bonus every turn) in a single file.
 
 ## Simulator

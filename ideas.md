@@ -4,7 +4,8 @@
 
 Contraintes du moteur : 4 attributs, 3 terrains par bataille, 12 tours. Voir « Adding a campaign » dans le README.
 
-### Pacifique 1942–1945
+### Pacifique 1942–1945 — fait : `packs/pacifique/` (Wake → Okinawa, routes Nimitz et MacArthur)
+Reste possible : la guerre en Birmanie, ou une campagne côté japonais (Pearl Harbor, Malaisie, Singapour).
 - **Attributs** : Marine, Infanterie, Air, Logistique.
 - **Batailles** : Midway, Guadalcanal, Tarawa, Saipan, Leyte, Iwo Jima, Okinawa.
 - **Terrains** : atoll, jungle, piste d'aviation, récif (débarquement lent), grotte (immunité), porte-avions.

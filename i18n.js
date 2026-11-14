@@ -9,7 +9,7 @@ const I18N = (() => {
   const UI = {
     fr: {
       title: 'Ligne de Front', resume: w => `Reprendre — ${w}`, campaign: 'Campagne', quick: 'Bataille rapide',
-      tagline: "Batailles de cartes à travers l'histoire", chooseCampaign: 'Choisis ta campagne', chooseEra: 'Choisis ton époque', back: 'Retour', battles: n => `${n} batailles`,
+      tagline: "Batailles de cartes à travers l'histoire", chooseCampaign: 'Choisis ta campagne', chooseEra: 'Choisis ton théâtre', back: 'Retour', battles: n => `${n} batailles`,
       // phone layout
       hourShort: (h, n) => `Heure <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">Toi <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> IA</span>`,
       journal: 'Journal', flipShort: 'Retourner', hPlaceM: 'Touche un terrain « Poser ici ».', faceUpM: 'Visible', faceDownM: 'Cachée', supplySubM: 'défausse, pioche 2', barInfoM: 'Touche une carte. Appui long : détail.', orderLong: 'Ordre · appui long', close: 'Fermer', playCard: 'Jouer cette carte',
@@ -70,7 +70,7 @@ const I18N = (() => {
     },
     en: {
       title: 'Front Line', resume: w => `Resume — ${w}`, campaign: 'Campaign', quick: 'Quick battle',
-      tagline: 'Card battles through history', chooseCampaign: 'Choose your campaign', chooseEra: 'Choose your era', back: 'Back', battles: n => `${n} battles`,
+      tagline: 'Card battles through history', chooseCampaign: 'Choose your campaign', chooseEra: 'Choose your theatre', back: 'Back', battles: n => `${n} battles`,
       // phone layout
       hourShort: (h, n) => `Hour <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">You <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> AI</span>`,
       journal: 'Log', flipShort: 'Flip', hPlaceM: 'Tap a terrain marked “Play here”.', faceUpM: 'Face up', faceDownM: 'Face down', supplySubM: 'discard, draw 2', barInfoM: 'Tap a card. Long press: details.', orderLong: 'Order · long press', close: 'Close', playCard: 'Play this card',
