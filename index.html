@@ -24,8 +24,20 @@
   .back { width:24px; height:32px; border-radius:3px; background:repeating-linear-gradient(45deg,#4a3323,#4a3323 4px,#5c4130 4px,#5c4130 8px); border:1px solid #1a120b; }
   #front { flex:1; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; min-height:0; }
   .col { display:flex; flex-direction:column; justify-content:center; gap:6px; padding:6px; border-radius:8px; border:2px solid transparent; min-height:0; }
-  .col.target, .u.target, .card.target { outline:2px dashed #f0d98a; outline-offset:1px; cursor:pointer; animation:pulse 1.1s infinite; }
+  .u.target, .card.target { outline:2px dashed #f0d98a; outline-offset:1px; cursor:pointer; animation:pulse 1.1s infinite; }
   @keyframes pulse { 50% { outline-color:#f0d98a55; } }
+  /* Highlights follow the action bar state (main[data-st]): blue = where the selected card can go, yellow = targets of a pending power or order. */
+  main { --hl:#e6cf7a; --ui:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif; } main[data-st=card] { --hl:#8fc0ea; }
+  .col.target { cursor:pointer; } .col.dim { opacity:.5; }
+  .col.target > .terrain { border:2px dashed var(--hl); box-shadow:0 0 0 2px #0008, 0 0 14px var(--hl); }
+  main[data-st=pend] .u.target { outline-width:3px; box-shadow:0 0 14px #e6cf7a99; }
+  .u.target, .u.ghost { position:relative; overflow:visible; }
+  .u.ghost { border:2px dashed #e6cf7a; opacity:.75; }
+  .pill { font:bold 11px/1.5 var(--ui); font-style:normal; letter-spacing:0; text-transform:none; padding:1px 8px; border-radius:9px; white-space:nowrap; background:#e6cf7a; color:#1a1a12; }
+  .pill.here { background:#8fc0ea; color:#10161c; }
+  .u .pill { position:absolute; left:50%; transform:translateX(-50%); top:-10px; z-index:1; } .u.ghost .pill { top:auto; bottom:-9px; }
+  .slot.blocked { display:flex; align-items:center; justify-content:center; text-align:center; font:10px var(--ui); color:#7d7a63;
+                  background:repeating-linear-gradient(135deg,#1d1f17 0 6px,#24271c 6px 12px); }
   .slots { display:flex; gap:5px; justify-content:center; height:104px; }
   .slot, .u { flex:0 1 112px; border-radius:5px; height:100%; }
   .slot { border:1px dashed #ffffff26; }
@@ -36,15 +48,26 @@
   /* One value chip everywhere (hand, board, threshold): always 4 columns in Char/Inf/Air/Strat order, same colours. */
   .vals { display:flex; gap:3px; font-style:normal; }
   .vals i { flex:1; text-align:center; font-style:normal; font-weight:bold; font-size:17px; line-height:1.3; border-radius:4px; color:#1c1a10; white-space:nowrap; }
-  .vals i.c0a { background:var(--a0); } .vals i.c1a { background:var(--a1); } .vals i.c2a { background:var(--a2); } .vals i.c3a { background:var(--a3); }
+  i.c0a { background:var(--a0); } i.c1a { background:var(--a1); } i.c2a { background:var(--a2); } i.c3a { background:var(--a3); }
   .vals i.z { opacity:.25; }
   .vals i img { height:.62em; margin-right:.2em; image-rendering:pixelated; }
   .u .vals { padding:3px; } .u .vals i { font-size:20px; line-height:1.15; } .u .vals i.z { background:#000; color:#fff; opacity:.45; }
-  .vals.thr i { font-size:26px; line-height:1.35; } .vals.thr i.z { opacity:.3; }
+  .vals.thr i { font-size:16px; line-height:30px; } .vals.thr i.z { opacity:.35; } .vals.thr i img { height:15px; vertical-align:-2px; }
+  /* "Missing" rows around the threshold: what each side still needs, per attribute (same maths as the capture: E.lack). */
+  .lack { display:flex; align-items:center; gap:5px; min-height:30px; padding:3px 8px; border-radius:5px; font:bold 11px var(--ui); }
+  .lack.p1 { background:#2b2018; color:#f0956a; } .lack.p0 { background:#17202a; color:#8fc0ea; }
+  .lack > b { flex:0 0 72px; }
+  .lack i { display:inline-flex; align-items:center; gap:3px; height:22px; padding:0 6px; border-radius:4px; font-style:normal; font-size:13px; color:#1a1a12; white-space:nowrap; }
+  .lack i img { height:11px; image-rendering:pixelated; }
+  .lack i.chg { outline:1px dashed #e6cf7a; outline-offset:1px; } .lack i.gone { text-decoration:line-through; opacity:.55; }
+  .lack i.met { padding:0; color:inherit; } .lack i.unk { color:#f0956a; border:1px dashed #f0956a; }
+  .lack i.fx { background:#5a2b20; color:#f7e2d6; font-size:11px; font-weight:normal; border-radius:11px; }
+  .lack .tot { margin-left:auto; font-weight:normal; opacity:.8; white-space:nowrap; }
   .terrain { position:relative; flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
   .terrain.h0 { border-color:var(--me); box-shadow:0 0 14px #4f93c988; } .terrain.h1 { border-color:var(--ai); box-shadow:0 0 14px #d0663a88; }
   .terrain.c0 img.art, .terrain.c1 img.art { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
   .tname { display:flex; justify-content:space-between; align-items:baseline; font-size:17px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; }
+  .tname .tags { display:flex; gap:6px; align-items:center; flex:none; }
   .badge { font-size:11px; letter-spacing:0; text-transform:none; padding:1px 7px; border-radius:9px; background:#0006; }
   .h0 .badge, .c0 .badge { background:var(--me); color:#fff; } .h1 .badge, .c1 .badge { background:var(--ai); color:#fff; }
   .trait { font-size:13px; font-style:italic; color:#b9b091; }
@@ -52,14 +75,36 @@
   /* Never squarer than the 160x72 art: on tall screens the spare height goes around the board;
      on short ones the image may shrink in height (cover crops top/bottom, it only gets wider). */
   .terrain img.art { flex:0 1 auto; width:100%; height:auto; aspect-ratio:160/72; min-height:0; object-fit:cover; }
-  #bar { display:flex; align-items:center; gap:8px; min-height:34px; } #hint { flex:1; color:#f0d98a; font-style:italic; }
+  /* Action bar: one bar above the hand, its content follows the turn state (data-st: wait / idle / card / pend). */
+  #bar { align-self:center; width:100%; max-width:1000px; min-height:64px; display:flex; align-items:center; gap:12px; padding:8px 12px; margin-bottom:14px; /* room for the selected card, raised 14px */
+         border-radius:8px; background:#202318; border:1px solid #4a4f38; font-family:var(--ui); }
+  #bar[data-st=card] { background:#1b2229; border:2px solid #8fc0ea; } #bar[data-st=pend] { background:#2e2a18; border:2px solid #e6cf7a; }
+  #bar .turn { font:italic 16px Georgia,serif; color:#f0d98a; white-space:nowrap; }
+  #bar .info { flex:1; border:1px dashed #6d6a4c; border-radius:6px; padding:9px 12px; font-size:13px; }
+  #bar img.th { height:46px; border-radius:3px; image-rendering:pixelated; }
+  #bar .what { flex:1; min-width:0; font-size:13px; } #bar .what b { font:bold 17px Georgia,serif; color:var(--paper); margin-right:8px; }
+  #bar button { height:44px; padding:2px 14px; font:bold 13px/1.25 var(--ui); text-align:left; white-space:nowrap; }
+  #bar button small { display:block; font-weight:normal; font-size:11px; opacity:.75; }
+  #bar button.sec { background:#3a3622; border-color:#8a7f5a; } #bar button.sup { background:#3b4226; border-color:#8a9a52; }
+  #bar button.out { background:transparent; border-color:#4a4f38; }
+  #bar .seg { display:flex; gap:2px; padding:3px; border:1px solid #4a4f38; border-radius:6px; }
+  #bar .seg button { height:36px; border:0; background:none; } #bar .seg button.on { background:#6fa8dc; color:#10161c; }
+  kbd { font:11px var(--ui); border:1px solid; border-radius:3px; padding:0 4px; margin-left:6px; opacity:.8; }
   #hand { display:flex; justify-content:center; gap:8px; height:218px; }
-  .card { width:168px; background:var(--paper); color:var(--ink); border-radius:7px; border:2px solid #8a7a52; padding:6px 7px; cursor:pointer; display:flex; flex-direction:column; gap:3px; transition:transform .12s; }
+  .card { position:relative; width:168px; background:var(--paper); color:var(--ink); border-radius:7px; border:2px solid #8a7a52; padding:6px 7px; cursor:pointer; display:flex; flex-direction:column; gap:3px; transition:transform .12s; }
   .card:hover { transform:translateY(-8px); } .card.sel { transform:translateY(-14px); border-color:#f0d98a; box-shadow:0 0 16px #f0d98a; }
+  main[data-st=card] .card.sel { border-color:#8fc0ea; box-shadow:0 0 16px #8fc0ea; }
+  .card.dim { opacity:.55; }
+  /* Play aid: the cards suggested for the hovered terrain. */
+  .card[data-tip] { opacity:1; outline:3px solid #9fd36a; outline-offset:1px; transform:translateY(-8px); }
+  .card[data-tip]::before { content:attr(data-tip); position:absolute; top:-12px; left:50%; transform:translateX(-50%); z-index:1; padding:1px 8px; border-radius:9px;
+                            white-space:nowrap; background:#9fd36a; color:#1a1a12; font:bold 11px/1.5 var(--ui); }
+  .card.down::after { content:attr(data-down); position:absolute; inset:0; border-radius:5px; display:flex; align-items:center; justify-content:center;
+                      background:repeating-linear-gradient(135deg,#000a 0 8px,#000c 8px 16px); color:#f0d98a; font:bold 16px var(--ui); letter-spacing:2px; text-transform:uppercase; }
   .card.order { background:#cbbfae; border-color:#6b4a7a; }
   .card b { font-size:15px; line-height:1.1; } .card small { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.65; }
   .card p { margin:0; font-size:12px; line-height:1.25; flex:1; overflow:hidden; }
-  #end { position:fixed; inset:0; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+  #end { position:fixed; inset:0; z-index:10; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
   #end.show { display:flex; } #end h2 { font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
   #end .row { display:flex; gap:10px; } #end p { max-width:520px; text-align:center; margin:0; }
   #end.show { animation:fadein .6s both; }
@@ -145,7 +190,7 @@
   <h1>Ligne de Front</h1>
   <span id="bname"></span><span id="clock"></span><span id="score"></span><span class="sp"></span>
   <button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button>
-  <button data-go="lang" class="lng"></button><button data-go="diff" class="dif"></button><button id="toMenu"></button><button id="toMap"></button><button id="restart"></button>
+  <button data-go="lang" class="lng"></button><button data-go="diff" class="dif"></button><button data-go="help" class="hlp"></button><button id="toMenu"></button><button id="toMap"></button><button id="restart"></button>
 </div>
 <div id="wrap">
   <aside id="log"></aside>
@@ -158,16 +203,16 @@
 </div>
 <div id="end"></div>
 <div id="peek" class="card"></div>
-<script src="engine.js?v=3"></script>
+<script src="engine.js?v=4"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=3"></script>
-<script src="packs/normandie/cards.js?v=3"></script>
-<script src="packs/normandie/terrains.js?v=3"></script>
-<script src="packs/normandie/battles.js?v=3"></script>
-<script src="campaign.js?v=3"></script>
-<script src="audio.js?v=3"></script>
-<script src="i18n.js?v=3"></script>
+<script src="packs/normandie/pack.js?v=4"></script>
+<script src="packs/normandie/cards.js?v=4"></script>
+<script src="packs/normandie/terrains.js?v=4"></script>
+<script src="packs/normandie/battles.js?v=4"></script>
+<script src="campaign.js?v=4"></script>
+<script src="audio.js?v=4"></script>
+<script src="i18n.js?v=4"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
@@ -181,7 +226,9 @@ function usePack(id) {
   document.body.style.setProperty('--back', `url(${ART()}scenes/c_back.png)`);
 }
 const $ = id => document.getElementById(id);
-let s, sel = null, hiddenMode = false, busy = false, pick = null;
+// sel = { c: hand card id | 'p:<power>', pre: clicks so far }; hiddenMode = the selected card goes face down (reset on every selection);
+// flipHint = highlight my face-down cards; view = the board as the player may know it; pvBase = previewed board in a pending power.
+let s, sel = null, hiddenMode = false, flipHint = false, busy = false, pick = null, view = null, pvBase = null;
 // Animation state: intro = deal the terrains on this render; fx = captures to animate on the next render;
 // endShown = false while the board stays visible after the decisive capture.
 let intro = false, fx = null, endShown = true;
@@ -210,6 +257,10 @@ const screen = name => { document.body.dataset.screen = name; SND.setMood(name =
 const terrainArt = key => `${ART()}scenes/t_${E.TERRAINS[key].art || key}.png`;
 
 const myTurn = () => s.winner === null && s.turn === 0 && !busy;
+// Fog terrain (Forêt): every unit lands face down there without the player asking, and keeps its values. The UI says so,
+// so that it does not read as a bluffed card (worth 0).
+const fogAt = t => !!(E.PACK.traits[E.TERRAINS[s.terrains[t].key].trait] || {}).fog;
+const fogged = (u, t) => u.down && u.owner === 0 && fogAt(t) && E.CARDS[u.key].type !== E.ORDER;
 // Legal moves matching the selected card, the visible/face-down toggle and the clicks so far.
 const cands = () => !sel ? [] : E.moves(s).filter(m => m.c === sel.c
   && (m.kind === 'power' || (hiddenMode ? m.kind === 'hidden' : m.kind === 'deploy' || m.kind === 'order'))
@@ -239,7 +290,7 @@ function peek(e) {
   const now = E.vals(s, u, t), base = baseV(u.key, u.vet), moved = C.type !== 'Ordre' && now.some((x, a) => x !== base[a]);
   box.className = `card show side${u.owner} ${C.type === 'Ordre' && !secret ? 'order' : ''} ${u.vet && !secret ? 'vet' : ''}`;
   box.innerHTML = secret ? `<img class="art" src="${art(u.key, 1, true)}" alt=""><b>${L('secret')}</b><small>${L('unknown')}</small><p>${L('secretText')}</p>`
-    : cardInner(u.key, u.owner, u.vet) + (u.down ? `<p class="note">${L('downNote')}</p>` : '')
+    : cardInner(u.key, u.owner, u.vet) + (u.down ? `<p class="note">${L(fogged(u, t) ? 'fogNote' : 'downNote')}</p>` : '')
       + (moved && !u.down ? `<div class="note">${L('here', I.terrainName(s.terrains[t].key))}</div><span class="vals">${valsHTML(now)}</span>` : '');
   const r = el.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
   const x = r.right + 12 + w < innerWidth ? r.right + 12 : r.left - 12 - w;
@@ -331,9 +382,70 @@ function renderMap() {
   langLabels();
 }
 
+// ---- "missing" rows of a terrain + preview of a pending move ------------------------------------
+// The board after move m, as the player may know it; s is never touched.
+// ponytail: E.play also runs the AI's start of turn (ripe captures): still the board the player will face.
+const sim = m => { const c = E.blind(s, 0); E.play(c, m); return c; };
+// ponytail: an effect's name is its terrain text up to the colon ("Haies", "Goulet"): no extra field in the packs.
+const fxName = key => I.terrainText(key).split(/\s*:/)[0];
+const add = v => v.reduce((x, y) => x + y, 0);
+// One row: a chip per attribute side p still misses on terrain t, then the total. `after` = previewed board:
+// a chip that reaches 0 stays, struck through; one that moves shows "before → after".
+function lackRow(t, p, after) {
+  const T = view.terrains[t], now = E.lack(view, t, p), aft = after ? E.lack(after, t, p) : now;
+  const tot = E.totals(view, t, p), raw = E.totals(view, t, p, true), a = add(now), b = add(aft);
+  const chips = now.map((x, i) => !x && !aft[i] ? '' : `<i class="c${i}a ${aft[i] === x ? '' : aft[i] ? 'chg' : 'chg gone'}">${ICON[i]}${aft[i] === x || !aft[i] ? x : `${x} → ${aft[i]}`}</i>`).join('');
+  // What the terrain itself changes in this side's totals (Bocage: "Haies −1 Char").
+  const fx = tot.map((x, i) => x - raw[i]).map((d, i) => d ? `${d > 0 ? '+' : '−'}${Math.abs(d)} ${I.attrShort(i)}` : '').filter(Boolean).join(' ');
+  return `<b>${L('gap')}</b>${chips || `<i class="met">${L('met')}</i>`}`
+    + (p && T.side[1].some(u => u.down) ? `<i class="unk" title="${L('maybe')}">+?</i>` : '') // an enemy face-down card may still be flipped
+    + (fx ? `<i class="fx">${fxName(T.key)} ${fx}</i>` : '')
+    + `<span class="tot">${a === b ? L('pts', a) : `${a} → ${L('pts', b)}`}</span>`;
+}
+const paintLack = after => document.querySelectorAll('[data-lack]').forEach(el => { el.innerHTML = lackRow(+el.dataset.lack[0], +el.dataset.lack[2], after); });
+// Hovering a target of a pending power previews that very move in the rows; elsewhere, the default preview.
+let pvKey = '';
+function hoverPreview(e) {
+  if ($('bar').dataset.st !== 'pend') return;
+  const el = stepEl(e.target, nextSteps()), ms = el ? cands().filter(m => m.steps[sel.pre.length] === el.dataset.step) : [];
+  const key = ms.length === 1 ? el.dataset.step : '';
+  if (key !== pvKey) { pvKey = key; paintLack(key ? sim(ms[0]) : pvBase); }
+}
+const handCard = () => sel && s.players[0].hand.find(h => h.id === sel.c);
+// ---- play aid (top bar toggle): hovering a terrain flags the 1-2 hand cards that do most there ----------
+// Same judgement as the Régulier AI (E.score of the board after the move), on what the player may know (sim).
+// The second card only shows when it looks about as good as the first (the Recrue's margin).
+let tips = {}, tipT = null;
+// Terrain a move is about: where a unit is played, or where an order's target stands.
+const moveT = m => m.kind === 'deploy' ? m.t : m.kind === 'order' && m.u != null ? s.terrains.findIndex(T => T.side.flat().some(u => u.id === m.u)) : -1;
+function tipsFor(t) {
+  if (tips[t]) return tips[t];
+  const best = new Map(); // hand card id -> score of its best move on this terrain
+  for (const m of E.moves(s)) if (moveT(m) === t) { const v = E.score(sim(m), 0); if (!(best.get(m.c) >= v)) best.set(m.c, v); }
+  const r = [...best].sort((a, b) => b[1] - a[1]).slice(0, 2);
+  return tips[t] = r.filter(x => x[1] >= r[0][1] - E.LEVELS.easy.margin).map(x => x[0]);
+}
+function showTips(e) {
+  const col = save.help && myTurn() && $('bar').dataset.st !== 'pend' && e && e.target.closest('.col'), t = col ? +col.dataset.step.slice(1) : null;
+  if (t === tipT) return;
+  tipT = t;
+  const ids = t === null ? [] : tipsFor(t);
+  document.querySelectorAll('[data-hand]').forEach(el => { const i = ids.indexOf(+el.dataset.hand); if (i < 0) delete el.dataset.tip; else el.dataset.tip = L(i ? 'tip2' : 'tip1'); });
+}
+// A unit whose power finds no target does not go down silently: the bar says so, the player confirms.
+const wasted = m => m.kind === 'deploy' && m.rep == null && sel.pre.length === 1 && !!E.CARDS[handCard().key].targets && !fogAt(m.t);
+
 function render() {
+  const mv = myTurn() ? E.moves(s) : [], reveals = new Set(mv.filter(m => m.kind === 'reveal').map(m => m.u));
   const c = myTurn() ? cands() : [], next = sel && myTurn() ? nextSteps(c) : new Set();
   const exact = sel && c.find(m => m.steps.length === sel.pre.length);
+  // Action bar state: wait (not my turn) / idle / card (a hand card is selected) / pend (a power or an order is under way).
+  const st = !myTurn() ? 'wait' : !sel ? 'idle' : sel.pre.length || typeof sel.c !== 'number' ? 'pend' : 'card';
+  const hc = handCard(), order = hc && E.CARDS[hc.key].type === E.ORDER, replace = c.some(m => m.rep != null);
+  const pt = st === 'pend' && hc && !order && sel.pre[0][0] === 't' ? +sel.pre[0].slice(1) : null; // terrain the unit is being played on
+  const others = c.filter(m => m !== exact), pm = st !== 'pend' ? null : others.length === 1 ? others[0] : exact;
+  view = s.winner === null ? E.blind(s, 0) : s; pvBase = pm ? sim(pm) : null; pvKey = ''; tips = {}; tipT = null;
+  document.querySelector('main').dataset.st = $('bar').dataset.st = st;
   const caps = p => s.terrains.filter(T => T.captured === p).length;
   const camp = save.cur.mode === 'campagne';
   $('bname').textContent = camp ? B(save.cur.battle).name : L('quick');
@@ -346,23 +458,39 @@ function render() {
 
   $('front').innerHTML = s.terrains.map((T, t) => {
     const th = E.thr(s, t);
+    // "Cible" on a target of a pending power, with what the hit costs it when the preview shows a drop ("−1 Inf").
+    const tag = u => {
+      if (st !== 'pend' || !next.has('u' + u.id)) return '';
+      const ms = c.filter(m => m.steps[sel.pre.length] === 'u' + u.id), a = ms.length === 1 && sim(ms[0]);
+      const was = E.vals(view, view.terrains[t].side[u.owner].find(x => x.id === u.id), t), f = a && a.terrains[t].side[u.owner].find(x => x.id === u.id);
+      const is = f ? E.vals(a, f, t) : was, i = is.findIndex((x, k) => x < was[k]);
+      return `<span class="pill">${L('targetTag')}${i < 0 ? '' : ` · −${was[i] - is[i]} ${I.attrShort(i)}`}</span>`;
+    };
+    const ghost = t === pt && T.side[0].length < E.cap(s, t); // the card being played, shown in its future slot
     const row = p => T.side[p].map(u => {
-      const flip = !sel && myTurn() && u.down && u.owner === 0;
+      const flip = !sel && reveals.has(u.id);
       const secret = u.down && u.owner === 1 && s.winner === null, C = E.CARDS[u.key];
-      return `<div class="u side${u.owner} ${u.down ? 'down' : ''} ${u.vet && !secret ? 'vet' : ''} ${next.has('u' + u.id) || flip ? 'target' : ''}" data-step="u${u.id}" ${flip ? `data-flip="${u.id}"` : ''} style="background-image:url(${art(u.key, u.owner, u.down)})" ${flip ? `title="${L('flipTip')}"` : ''}>
-        <b>${secret ? '???' : nameV(u.key, u.owner, u.vet)}</b>${u.down ? `<em>${L('faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span></div>`;
-    }).join('') + '<div class="slot"></div>'.repeat(Math.max(0, E.cap(s, t) - T.side[p].length));
-    const st = T.captured !== null ? 'c' + T.captured : T.holder !== null ? 'h' + T.holder : '';
+      return `<div class="u side${u.owner} ${u.down ? 'down' : ''} ${u.vet && !secret ? 'vet' : ''} ${next.has('u' + u.id) || (flip && flipHint) ? 'target' : ''}" data-step="u${u.id}" ${flip ? `data-flip="${u.id}"` : ''} style="background-image:url(${art(u.key, u.owner, u.down)})" ${flip ? `title="${L('flipTip')}"` : ''}>
+        <b>${secret ? '???' : nameV(u.key, u.owner, u.vet)}</b>${u.down ? `<em>${L(fogged(u, t) ? 'fogged' : 'faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span>${tag(u)}</div>`;
+    }).join('')
+      + (p === 0 && ghost ? `<div class="u ghost" style="background-image:url(${art(hc.key, 0)})"><b>${nameV(hc.key, 0, hc.vet)}</b><span class="pill">${L('placing')}</span></div>` : '')
+      + '<div class="slot"></div>'.repeat(Math.max(0, E.cap(s, t) - T.side[p].length - (p === 0 && ghost ? 1 : 0)))
+      // Slots the terrain takes away (Goulet): hatched, never a place to play.
+      + `<div class="slot blocked">${fxName(T.key)}</div>`.repeat(Math.max(0, E.RULES.slots - E.cap(s, t)));
+    const dim = st === 'pend' && t !== pt && !next.has('t' + t) && !T.side.flat().some(u => next.has('u' + u.id));
+    const own = T.captured !== null ? 'c' + T.captured : T.holder !== null ? 'h' + T.holder : '';
     const k = fx ? fx.caps.indexOf(t) : -1, d = fx && fx.night ? (NIGHT_MS + STEP_MS * k) / 1000 : 0;
     const stamp = T.captured === 0 ? 'stampWin' : T.captured === 1 ? 'stampLose' : s.timeout ? 'stampTie' : '';
     const badge = L(T.captured === 0 ? 'cap0' : T.captured === 1 ? 'cap1' : T.holder === 0 ? 'hold0' : T.holder === 1 ? 'hold1' : 'free');
-    return `<div class="col ${next.has('t' + t) ? 'target' : ''}" data-step="t${t}">
+    // Kept on a decided terrain too: same card size everywhere, and the count stays checkable.
+    const lack = p => `<div class="lack p${p}" data-lack="${t}-${p}" title="${L('gapTip', p)}&#10;${L('placed')}${L('colon')}${E.totals(view, t, p).map((x, a) => `${I.attrShort(a)} ${x}`).join(' · ')}">${lackRow(t, p, pvBase)}</div>`;
+    return `<div class="col ${next.has('t' + t) ? 'target' : ''} ${dim ? 'dim' : ''}" data-step="t${t}">
       <div class="slots ${intro ? 'late' : ''}">${row(1)}</div>
-      <div class="terrain ${st} ${intro ? 'intro' : ''} ${k >= 0 ? 'fx' : ''}" style="--i:${t};--d:${d}s">
-        <div class="tname"><span>${t + 1} · ${I.terrainName(T.key)}</span><span class="badge">${badge}</span></div>
+      <div class="terrain ${own} ${intro ? 'intro' : ''} ${k >= 0 ? 'fx' : ''}" style="--i:${t};--d:${d}s">
+        <div class="tname"><span>${t + 1} · ${I.terrainName(T.key)}</span><span class="tags">${st === 'card' && next.has('t' + t) ? `<span class="pill here">${L(fogAt(t) ? 'placeFog' : 'placeHere')}</span>` : ''}<span class="badge">${badge}</span></span></div>
         <div class="trait">${I.terrainText(T.key)}</div>
         <img class="art" src="${terrainArt(T.key)}" alt="">
-        <div class="vals thr" title="${L('thr')}">${valsHTML(th)}</div>
+        ${lack(1)}<div class="vals thr" title="${L('thr')}">${valsHTML(th)}</div>${lack(0)}
         ${stamp ? `<div class="stamp s${T.captured === null ? 'x' : T.captured}">${L(stamp)}</div>` : ''}
         ${k >= 0 && !fx.night && T.captured !== null ? `<div class="rise s${T.captured}">${L(T.captured ? 'fxLose' : 'fxWin')}</div>` : ''}
       </div>
@@ -372,19 +500,30 @@ function render() {
 
   $('hand').innerHTML = s.players[0].hand.map((h, i) => {
     const C = E.CARDS[h.key], order = C.type === 'Ordre';
-    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${h.vet ? 'vet' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" style="--i:${i}">${cardInner(h.key, 0, h.vet)}</div>`;
+    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${h.vet ? 'vet' : ''} ${sel && sel.c === h.id ? `sel ${hiddenMode ? 'down' : ''}` : sel && myTurn() && !next.has('h' + h.id) ? 'dim' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" data-down="${L('faceDown')}" style="--i:${i}">${cardInner(h.key, 0, h.vet)}</div>`;
   }).join('');
 
-  const hint = s.winner !== null ? (endShown ? '' : L('hEnd')) : busy && s.turn === 0 ? '' : L(!myTurn() ? 'hAi' : !sel ? 'hPick' : !c.length ? (hiddenMode ? 'hNoSlot' : 'hNoTarget')
-    : sel.pre.length && c.some(m => m.rep != null) ? 'hReplace' : exact && c.length > 1 ? 'hPower' : 'hTarget');
-  $('bar').innerHTML = `<span id="hint">${hint}</span>
+  // Action bar: what is going on, one instruction, then the ways forward and out (each exit says what it costs or its key).
+  const btn = (act, cls, key, sub) => `<button data-act="${act}" class="${cls}">${L(key)}${sub ? `<small>${L(sub)}</small>` : ''}</button>`;
+  const thumb = hc ? `<img class="th" src="${art(hc.key, 0)}" alt="">` : '', pw = sel && !hc ? sel.c.slice(2) : null;
+  let bar;
+  if (st === 'wait') bar = `<span class="turn">${s.winner !== null ? (endShown ? '' : L('hEnd')) : busy && s.turn === 0 ? '' : L('hAi')}</span>`;
+  else if (st === 'idle') bar = `<span class="turn">${L('yourTurn')}</span><span class="info">${L('barInfo')}</span>
+    <button data-act="flip" class="${flipHint ? 'on' : ''}" ${reveals.size ? '' : 'disabled'}>${L('flipBtn')}<small>${L(reveals.size ? 'flipSub' : 'flipNone')}</small></button>
+    ${(camp ? runNow().powers : []).map(w => `<button data-power="${w}" class="pw" title="${I.powerText(w)}" ${mv.some(m => m.c === 'p:' + w) ? '' : 'disabled'}>⚡ ${I.powerName(w)}</button>`).join('')}`;
+  else if (st === 'card') bar = `${thumb}<span class="what"><b>${nameV(hc.key, 0, hc.vet)}</b><div>${
+      !c.length ? L(hiddenMode ? 'hNoSlot' : 'hNoTarget') : [...next].some(x => x[0] === 't') ? L('hPlace') : next.has('play') ? I.cardText(hc.key) : L('hTarget')}</div></span>
+    <span class="seg"><button data-act="up" class="${hiddenMode ? '' : 'on'}">${L('faceUp')}</button><button data-act="down" class="${hiddenMode ? 'on' : ''}" title="${L('downNote')}">${L('faceDownBtn')}<kbd>C</kbd></button></span>
     ${next.has('play') ? `<button data-step="play" class="on">${L('playOrder')}</button>` : ''}
-    ${exact && c.length > 1 ? `<button data-act="ok" class="on">${L('noTarget')}</button>` : ''}
-    <button data-act="hidden" class="${hiddenMode ? 'on' : ''}" title="${L('hiddenTip')}">${L('hidden')}${L('colon')}${L(hiddenMode ? 'yes' : 'no')}</button>
-    <button data-act="supply" ${sel && myTurn() ? '' : 'disabled'} title="${L('supplyTip')}">${L('supply')}</button>
-    <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>
-    ${(camp ? runNow().powers : []).map(w => { const ok = myTurn() && E.moves(s).some(m => m.c === 'p:' + w);
-      return `<button data-power="${w}" class="pw ${sel && sel.c === 'p:' + w ? 'on' : ''}" title="${I.powerText(w)}" ${ok ? '' : 'disabled'}>⚡ ${I.powerName(w)}</button>`; }).join('')}`;
+    ${btn('supply', 'sup', 'supply', 'supplySub')}${btn('cancel', 'out', 'cancel', 'esc')}`;
+  else {
+    const k = sel.pre.length + 1, n = Math.max(k, ...c.map(m => m.steps.length));
+    bar = `${thumb}<span class="what"><b>${pw ? '⚡ ' + I.powerName(pw) : nameV(hc.key, 0, hc.vet)}${pt === null ? '' : ' → ' + I.terrainName(s.terrains[pt].key)}</b><span class="pill">${L(replace || order ? 'stepPill' : 'powerPill', k, n)}</span>
+      <div>${replace ? L('hReplace') : `${(pw ? I.powerText(pw) : I.cardText(hc.key)) || L('hTarget')} ${next.size ? L('nTargets', next.size) : L('noTargets')}`}</div></span>
+    ${exact ? (replace ? btn('ok', 'sec', 'noReplace') : btn('ok', next.size ? 'sec' : 'on', 'noTarget', 'noTargetSub')) : ''}
+    ${btn('cancel', 'out', pw ? 'cancel' : order ? 'cancelOrder' : 'cancelPlace', 'esc')}`;
+  }
+  $('bar').innerHTML = bar;
 
   $('end').className = s.winner !== null && endShown ? 'show' : '';
   if (s.winner !== null && endShown) {
@@ -399,7 +538,7 @@ function render() {
         : `<button data-go="again" class="on">${L('newBattle')}</button><button data-go="menu">${L('menu')}</button>`}</div>`;
   }
   // Empty hand: nothing to decide.
-  if (myTurn() && E.moves(s)[0].kind === 'pass') commit(E.moves(s)[0]);
+  if (mv.length && mv[0].kind === 'pass') commit(mv[0]);
 }
 
 const sndLabels = () => document.querySelectorAll('.snd').forEach(b => {
@@ -412,7 +551,8 @@ const diffLabels = () => {
   document.querySelectorAll('.dif').forEach(b => { b.textContent = L('diff') + L('colon') + L(save.diff); b.title = L(save.diff + 'Tip'); });
   if ($('diffTip')) $('diffTip').textContent = L(save.diff + 'Tip');
 };
-const langLabels = () => { document.documentElement.lang = I.lang; document.title = L('title'); document.querySelector('#top h1').textContent = L('title'); document.querySelectorAll('.lng').forEach(b => { b.textContent = L('lang'); }); diffLabels(); };
+const helpLabels = () => document.querySelectorAll('.hlp').forEach(b => { b.textContent = L('help') + L('colon') + L(save.help ? 'yes' : 'no'); b.title = L('helpTip'); b.classList.toggle('on', !!save.help); });
+const langLabels = () => { document.documentElement.lang = I.lang; document.title = L('title'); document.querySelector('#top h1').textContent = L('title'); document.querySelectorAll('.lng').forEach(b => { b.textContent = L('lang'); }); diffLabels(); helpLabels(); };
 // Play a move and the sounds it causes: the move itself, then what the log says happened.
 function act(m) {
   const P = s.players[s.turn], card = m.c != null && P.hand.find(h => h.id === m.c), key = card && card.key, n = s.log.length;
@@ -455,8 +595,7 @@ function aiTurn(wait = 0) {
 // the player gets the hand back, or (after a pause to look at the board) the end screen shows.
 function commit(m) {
   const ms = act(m), mine = s, later = (f, t) => setTimeout(() => { if (s === mine) f(); }, t);
-  sel = null; endShown = s.winner === null; busy = s.winner !== null || s.turn === 1 || ms > 0;
-  if (m.kind === 'hidden') hiddenMode = false; // one face-down card per click: the toggle goes back to visible
+  sel = null; hiddenMode = flipHint = false; endShown = s.winner === null; busy = s.winner !== null || s.turn === 1 || ms > 0;
   played();
   if (s.winner !== null) later(() => { endShown = true; SND.play(s.winner === 0 ? 'victory' : 'defeat'); render(); }, ms + LOOK_MS);
   else if (s.turn === 1) aiTurn(ms);
@@ -465,7 +604,7 @@ function commit(m) {
 function step(x) {
   sel.pre.push(x);
   const c = cands(), exact = c.find(m => m.steps.length === sel.pre.length);
-  exact && c.length === 1 ? commit(exact) : render();
+  exact && c.length === 1 && !wasted(exact) ? commit(exact) : render();
 }
 // Innermost [data-step] ancestor that is a legal next step (a unit sits inside its terrain column).
 function stepEl(target, next) {
@@ -474,7 +613,20 @@ function stepEl(target, next) {
   return el;
 }
 
+// Way out of the current state: a pending power or order goes back to the selected card, a selected card to the start of the turn.
+function cancel() {
+  if (sel && sel.pre.length) sel.pre = []; else sel = null;
+  hiddenMode = flipHint = false; render();
+}
+document.addEventListener('keydown', e => {
+  if (document.body.dataset.screen !== 'game' || !myTurn() || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Escape' && (sel || flipHint)) cancel();
+  else if (e.key.toLowerCase() === 'c' && handCard() && !sel.pre.length) { hiddenMode = !hiddenMode; render(); }
+});
 $('front').addEventListener('mouseover', peek);
+$('front').addEventListener('mouseover', hoverPreview);
+$('front').addEventListener('mouseover', showTips);
+$('front').addEventListener('mouseleave', () => showTips());
 $('front').addEventListener('mouseleave', () => $('peek').classList.remove('show'));
 document.addEventListener('click', e => {
   if (e.target.closest('button,[data-pick]')) SND.play('click');
@@ -487,6 +639,7 @@ document.addEventListener('click', e => {
       const sc = document.body.dataset.screen; sndLabels(); langLabels();
       return sc === 'game' ? render() : screen(sc);
     }
+    if (g === 'help') { save.help = !save.help; persist(); helpLabels(); return showTips(); }
     if (g === 'diff') { save.diff = DIFFS[(DIFFS.indexOf(save.diff) + 1) % 3]; persist(); return diffLabels(); }
     if (g === 'mus' || g === 'sfx') { const k = g === 'mus' ? 'music' : 'sfx'; SND.set(k, !SND.pref[k]); return sndLabels(); }
     if (go.dataset.pick) { pick = go.dataset.pick; return renderMap(); }
@@ -502,9 +655,10 @@ document.addEventListener('click', e => {
     return;
   }
   if (document.body.dataset.screen !== 'game' || !myTurn()) return;
-  const act = e.target.dataset.act, next = sel ? nextSteps() : new Set();
-  if (act === 'hidden') { hiddenMode = !hiddenMode; if (sel) sel.pre = []; return render(); }
-  if (act === 'cancel') { sel = null; return render(); }
+  const act = (e.target.closest('[data-act]') || e.target).dataset.act, next = sel ? nextSteps() : new Set();
+  if (act === 'up' || act === 'down') { hiddenMode = act === 'down'; return render(); }
+  if (act === 'flip') { flipHint = !flipHint; return render(); }
+  if (act === 'cancel') return cancel();
   if (act === 'supply') return commit(E.moves(s).find(m => m.kind === 'supply' && m.c === sel.c));
   if (act === 'ok') return commit(cands().find(m => m.steps.length === sel.pre.length));
   const pb = e.target.closest('[data-power]');
@@ -521,6 +675,7 @@ document.addEventListener('click', e => {
     const id = +h.dataset.hand;
     if (next.has('h' + id)) return step('h' + id);
     sel = sel && sel.c === id && !sel.pre.length ? null : { c: id, pre: [] };
+    hiddenMode = flipHint = false; // face down is chosen per card: every new selection starts face up
     if (sel) SND.play('card');
     return render();
   }

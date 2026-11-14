@@ -73,6 +73,28 @@ for (const [id, P] of Object.entries(PACKS)) {
   assert.equal(s.turn, 1, 'revealing costs the action');
 }
 
+// "Missing" rows of the battle screen: E.lack is what the UI shows and what decides fills (so the capture).
+{
+  const mk = (key, owner, id) => ({ id, key, owner, down: false, malus: 0 });
+  const s = E.newGame(['aerodrome', 'pont', 'bocage']);
+  assert.deepEqual(E.lack(s, 0, 0), E.thr(s, 0), 'empty terrain: every threshold is missing');
+  assert.equal(E.lack(s, 2, 1)[2], 0, 'a threshold of 0 is never missing');
+  s.terrains[1].side = [[mk('sherman', 0, 700)], [mk('section', 1, 701)]];
+  s.terrains[2].side[0] = [mk('p47', 0, 702)];
+  assert.deepEqual(E.lack(s, 1, 1), [3, 0, 1, 0], 'Pont, Grenadiers: the AI misses Char 3, Air 1');
+  assert.deepEqual(E.lack(s, 1, 0), [0, 1, 1, 0], 'Pont, Sherman: you miss Inf 1, Air 1');
+  assert.deepEqual(E.lack(s, 2, 0), [1, 3, 0, 1], 'Bocage, P-47: hedgerows only cut Tank units, its Char 1 counts');
+  s.terrains[2].side[1] = [mk('sherman', 1, 703)];
+  assert.deepEqual(E.lack(s, 2, 1), [0, 3, 0, 0], 'Bocage, Panzer IV: 3 Char - 1 behind the hedgerows');
+  assert.deepEqual(E.totals(s, 2, 1, true), [3, 0, 0, 1], 'noTrait: totals without the terrain modifier');
+  // Preview of a pending power (what index.html does): play it on the blind copy, the game itself does not move.
+  s.players[0].hand = [{ id: 710, key: 'mortiers' }];
+  const before = JSON.stringify(s), c = E.blind(s, 0);
+  E.play(c, E.moves(c).find(m => m.kind === 'deploy' && m.t === 1 && m.u === 701));
+  assert.deepEqual(E.lack(c, 1, 0), [0, 0, 1, 0], 'preview: Mortiers fill the Infantry of the Pont');
+  assert.equal(JSON.stringify(s), before, 'preview leaves the game untouched');
+}
+
 // Rule check: on a full side, a unit can be deployed by discarding one of your own.
 {
   const s = E.newGame();
@@ -256,6 +278,7 @@ for (let i = 0; i < N; i++) {
     kinds[m.kind] = (kinds[m.kind] || 0) + 1;
     E.play(s, m);
     assert(++guard <= 2 * E.TURNS, 'battle must end by nightfall');
+    for (let t = 0; t < 3; t++) for (const p of [0, 1]) assert.equal(E.lack(s, t, p).every(x => x === 0), E.fills(s, t, p), 'nothing missing <=> threshold filled');
     const cards = s.players.reduce((n, P) => n + P.deck.length + P.hand.length + P.discard.length, 0)
       + s.terrains.reduce((n, T) => n + T.side[0].length + T.side[1].length, 0);
     assert.equal(cards, s.players.reduce((n, P) => n + P.list.length, 0), 'no card created or lost');

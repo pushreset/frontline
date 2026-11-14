@@ -9,6 +9,7 @@
   finale: { fr: 'Paris libéré', en: 'Paris liberated' },         // title of the last victory screen
   // The 4 attributes, in threshold order, with their icon (out/sprites/i_<icon>.png).
   attrs: { fr: ['Char', 'Infanterie', 'Air', 'Stratégie'], en: ['Armour', 'Infantry', 'Air', 'Strategy'] },
+  short: { fr: ['Char', 'Inf', 'Air', 'Strat'], en: ['Arm', 'Inf', 'Air', 'Strat'] }, // optional: names for small chips
   icons: ['char', 'inf', 'air', 'strat'],
   // Card types: name, main attribute (+1 for a veteran), sound when deployed. 'Ordre' is the engine's order type.
   types: {

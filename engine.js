@@ -40,7 +40,8 @@ const E = (() => {
     }
   }
 
-  function vals(s, u, t) {
+  // noTrait: skip the terrain's own modifier (the UI names what the terrain changes).
+  function vals(s, u, t, noTrait) {
     const T = s.terrains[t], tr = trait(T), C = CARDS[u.key];
     // Face-down = pure bluff: worth nothing until its owner spends an action to reveal it (unless the terrain
     // says otherwise). Fog hides units from the opponent but they still fight.
@@ -49,20 +50,22 @@ const E = (() => {
     const v = C.v.slice();
     if (u.vet) v[MAIN[C.type]]++;
     const g = new G(s, u.owner);
-    if (tr.modify) tr.modify(g, u, t, v);
+    if (tr.modify && !noTrait) tr.modify(g, u, t, v);
     v[MALUS] = Math.max(0, v[MALUS] - u.malus);
     // ponytail: hot path of the AI (thousands of calls per decision), hence plain loops.
     for (let i = 0; i < AURAS.length; i++) AURAS[i](g, u, t, v);
     for (let i = 0; i < FIELDS.length; i++) FIELDS[i](g, u, t, v);
     return v;
   }
-  function totals(s, t, p) {
+  function totals(s, t, p, noTrait) {
     const side = s.terrains[t].side[p], acc = [0, 0, 0, 0];
-    for (let i = 0; i < side.length; i++) { const v = vals(s, side[i], t); acc[0] += v[0]; acc[1] += v[1]; acc[2] += v[2]; acc[3] += v[3]; }
+    for (let i = 0; i < side.length; i++) { const v = vals(s, side[i], t, noTrait); acc[0] += v[0]; acc[1] += v[1]; acc[2] += v[2]; acc[3] += v[3]; }
     return acc;
   }
   const thr = (s, t) => TERRAINS[s.terrains[t].key].thr.map(x => x && Math.max(1, x + RULES.thrDelta));
-  const fills = (s, t, p) => { const tot = totals(s, t, p); return thr(s, t).every((x, a) => tot[a] >= x); };
+  // What side p still misses per attribute: the one function behind capture (fills) and the UI's "missing" rows.
+  const lack = (s, t, p) => { const tot = totals(s, t, p); return thr(s, t).map((x, a) => Math.max(0, x - tot[a])); };
+  const fills = (s, t, p) => !lack(s, t, p).some(Boolean);
   const surplus = (s, t, p) => sum(totals(s, t, p)) - sum(thr(s, t)) + sum(s.terrains[t].side[p].filter(u => !u.down).map(u => CARDS[u.key].surplus || 0));
   const pct = (s, t, p) => { const tot = totals(s, t, p), th = thr(s, t); return sum(th.map((x, a) => Math.min(x, tot[a]))) / sum(th); };
 
@@ -368,7 +371,7 @@ const E = (() => {
   return {
     use, RULES, ORDER, get TURNS() { return RULES.turns; }, get PACK() { return PACK; },
     get CARDS() { return CARDS; }, get TERRAINS() { return TERRAINS; }, get POWERS() { return POWERS; }, get MAIN() { return MAIN; },
-    newGame, randomTerrains, moves, play, aiMove, LEVELS, blind, vals, totals, thr, fills, surplus, pct, cap, control,
+    newGame, randomTerrains, moves, play, aiMove, score, LEVELS, blind, vals, totals, thr, lack, fills, surplus, pct, cap, control,
   };
 })();
 if (typeof module !== 'undefined') module.exports = E;
