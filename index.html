@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Ligne de Front</title>
+<style>
+  :root { --me:#4f93c9; --ai:#d0663a; --paper:#dccba3; --ink:#2a2418; --olive:#5b6236;
+          --a0:#93a84e; --a1:#d2a544; --a2:#73b4d6; --a3:#b993dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; height:100vh; display:flex; flex-direction:column; color:#e6dcc0; font:14px/1.35 Georgia,serif;
+         background:radial-gradient(ellipse at 50% 40%,#3a4033 0%,#22261e 60%,#14160f 100%); overflow:hidden; }
+  button { font:inherit; color:var(--paper); background:#3a3d2c; border:1px solid #6d6a4c; border-radius:4px; padding:5px 12px; cursor:pointer; }
+  button:hover:not(:disabled) { background:#4c5038; } button:disabled { opacity:.35; cursor:default; }
+  button.on { background:var(--olive); border-color:#c9c27a; }
+  #top { display:flex; align-items:center; gap:18px; padding:8px 16px; background:#0006; border-bottom:1px solid #000; }
+  #top h1 { margin:0; font-size:19px; letter-spacing:2px; text-transform:uppercase; color:var(--paper); }
+  #top .sp { flex:1; } #clock b { color:#f0d98a; }
+  #wrap { flex:1; display:flex; min-height:0; }
+  #log { width:250px; padding:10px; overflow:auto; background:#0004; border-right:1px solid #000; font:12px/1.5 "Courier New",monospace; color:#b9b091; }
+  #log h2 { font:bold 12px Georgia,serif; letter-spacing:2px; text-transform:uppercase; margin:0 0 6px; color:var(--paper); }
+  #log p { margin:0 0 3px; } #log p:first-of-type { color:#fff; }
+  main { flex:1; display:flex; flex-direction:column; padding:8px 16px; min-width:0; gap:6px; }
+  #ai { display:flex; justify-content:center; align-items:center; gap:4px; height:34px; color:#b9b091; font-size:12px; }
+  .back { width:24px; height:32px; border-radius:3px; background:repeating-linear-gradient(45deg,#4a3323,#4a3323 4px,#5c4130 4px,#5c4130 8px); border:1px solid #1a120b; }
+  #front { flex:1; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; min-height:0; }
+  .col { display:flex; flex-direction:column; justify-content:center; gap:6px; padding:6px; border-radius:8px; border:2px solid transparent; min-height:0; }
+  .col.target, .u.target, .card.target { outline:2px dashed #f0d98a; outline-offset:1px; cursor:pointer; animation:pulse 1.1s infinite; }
+  @keyframes pulse { 50% { outline-color:#f0d98a55; } }
+  .slots { display:flex; gap:5px; justify-content:center; height:104px; }
+  .slot, .u { flex:0 1 112px; border-radius:5px; height:100%; }
+  .slot { border:1px dashed #ffffff26; }
+  .u { background:#000 center/cover no-repeat; image-rendering:pixelated; color:var(--paper); font-size:13px; border:2px solid var(--me); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
+  .u b, .u em { background:#000b; padding:1px 4px; } .u .vals { padding:2px 3px; }
+  .u.side1 { border-color:var(--ai); }
+  .u b { line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .u em { font-size:11px; align-self:flex-start; }
+  /* One value chip everywhere (hand, board, threshold): always 4 columns in Char/Inf/Air/Strat order, same colours. */
+  .vals { display:flex; gap:3px; font-style:normal; }
+  .vals i { flex:1; text-align:center; font-style:normal; font-weight:bold; font-size:17px; line-height:1.3; border-radius:4px; color:#1c1a10; white-space:nowrap; }
+  .vals i.c0a { background:var(--a0); } .vals i.c1a { background:var(--a1); } .vals i.c2a { background:var(--a2); } .vals i.c3a { background:var(--a3); }
+  .vals i.z { opacity:.25; }
+  .vals i img { height:.62em; margin-right:.2em; image-rendering:pixelated; }
+  .u .vals { padding:3px; } .u .vals i { font-size:20px; line-height:1.15; } .u .vals i.z { background:#000; color:#fff; opacity:.45; }
+  .vals.thr i { font-size:26px; line-height:1.35; } .vals.thr i.z { opacity:.3; }
+  .terrain { flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
+  .terrain.h0 { border-color:var(--me); box-shadow:0 0 14px #4f93c988; } .terrain.h1 { border-color:var(--ai); box-shadow:0 0 14px #d0663a88; }
+  .terrain.c0, .terrain.c1 { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
+  .tname { display:flex; justify-content:space-between; align-items:baseline; font-size:17px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; }
+  .badge { font-size:11px; letter-spacing:0; text-transform:none; padding:1px 7px; border-radius:9px; background:#0006; }
+  .h0 .badge, .c0 .badge { background:var(--me); color:#fff; } .h1 .badge, .c1 .badge { background:var(--ai); color:#fff; }
+  .trait { font-size:13px; font-style:italic; color:#b9b091; }
+  img.art { image-rendering:pixelated; display:block; width:100%; border:1px solid #000a; border-radius:3px; }
+  /* Never squarer than the 160x72 art: on tall screens the spare height goes around the board;
+     on short ones the image may shrink in height (cover crops top/bottom, it only gets wider). */
+  .terrain img.art { flex:0 1 auto; width:100%; height:auto; aspect-ratio:160/72; min-height:0; object-fit:cover; }
+  #bar { display:flex; align-items:center; gap:8px; min-height:34px; } #hint { flex:1; color:#f0d98a; font-style:italic; }
+  #hand { display:flex; justify-content:center; gap:8px; height:218px; }
+  .card { width:168px; background:var(--paper); color:var(--ink); border-radius:7px; border:2px solid #8a7a52; padding:6px 7px; cursor:pointer; display:flex; flex-direction:column; gap:3px; transition:transform .12s; }
+  .card:hover { transform:translateY(-8px); } .card.sel { transform:translateY(-14px); border-color:#f0d98a; box-shadow:0 0 16px #f0d98a; }
+  .card.order { background:#cbbfae; border-color:#6b4a7a; }
+  .card b { font-size:15px; line-height:1.1; } .card small { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.65; }
+  .card p { margin:0; font-size:12px; line-height:1.25; flex:1; overflow:hidden; }
+  #end { position:fixed; inset:0; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+  #end.show { display:flex; } #end h2 { font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
+  #end .row { display:flex; gap:10px; } #end p { max-width:520px; text-align:center; margin:0; }
+  #bname { color:#f0d98a; font-style:italic; }
+  #peek { position:fixed; z-index:5; width:250px; pointer-events:none; display:none; cursor:default; box-shadow:0 10px 30px #000c; }
+  #peek.show { display:flex; } #peek b { font-size:20px; } #peek small { font-size:12px; } #peek p { font-size:15px; flex:none; }
+  #peek .vals i { font-size:22px; } #peek .note { font-size:13px; font-style:italic; opacity:.8; }
+  #peek.side0 { border-color:var(--me); } #peek.side1 { border-color:var(--ai); }
+  body:not([data-screen=game]) #peek { display:none; }
+  button.danger { background:#6e2a1c; border-color:#d0663a; }
+  /* Screens: one of menu / map / game is visible, driven by body[data-screen]. */
+  #menu, #map { position:fixed; inset:0; display:none; }
+  body[data-screen=menu] #menu, body[data-screen=map] #map { display:flex; }
+  body:not([data-screen=game]) #top, body:not([data-screen=game]) #wrap, body:not([data-screen=game]) #end { display:none !important; }
+  #menu { flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000 center/cover no-repeat; image-rendering:pixelated; }
+  #menu::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 45%,#0007,#000d); }
+  #menu > * { position:relative; }
+  #menu h1 { margin:0; font-size:64px; letter-spacing:8px; text-transform:uppercase; color:var(--paper); text-shadow:0 3px 0 #000; }
+  #menu .sub { margin:0 0 18px; color:#f0d98a; letter-spacing:4px; text-transform:uppercase; }
+  #menu button { width:300px; font-size:18px; padding:10px; } #menu .row { display:flex; gap:10px; } #menu .row button { width:145px; font-size:14px; } #menu small { color:#b9b091; }
+  #map { gap:16px; padding:16px; background:#14160f; }
+  #mapbox { flex:1; position:relative; align-self:center; aspect-ratio:320/140; max-height:100%; }
+  #mapbox img { width:100%; height:100%; display:block; image-rendering:pixelated; border:2px solid #6d6a4c; border-radius:6px; }
+  #mapbox svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .node { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; background:none; border:0; padding:0; }
+  .node i { width:22px; height:22px; border-radius:50%; border:3px solid #1c1a10; background:#8a8570; box-shadow:0 0 0 2px #0008; }
+  .node span { font-size:13px; white-space:nowrap; color:var(--paper); background:#000c; padding:1px 6px; border-radius:3px; }
+  .node.open i { background:#f0d98a; animation:pulse2 1.2s infinite; } .node.won i { background:var(--me); }
+  .node.east span { align-self:flex-end; margin-right:-11px; } /* keep Paris' label inside the map */
+  .node.locked { cursor:default; opacity:.55; } .node.sel span { outline:2px solid #f0d98a; }
+  @keyframes pulse2 { 50% { box-shadow:0 0 0 6px #f0d98a55; } }
+  #brief { width:340px; display:flex; flex-direction:column; gap:10px; background:#0006; border:1px solid #000; border-radius:8px; padding:14px; overflow:auto; }
+  #brief h2 { margin:0; font-size:22px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; } #brief .date { color:#f0d98a; font-style:italic; }
+  #brief .pool { display:grid; grid-template-columns:1fr 1fr; gap:6px; } #brief .pool div { font-size:11px; color:#b9b091; }
+  #brief .pool img { width:100%; image-rendering:pixelated; display:block; border-radius:3px; }
+  #brief .sp { flex:1; }
+</style>
+</head>
+<body>
+<div id="menu"></div>
+<div id="map"><div id="mapbox"></div><aside id="brief"></aside></div>
+<div id="top">
+  <h1>Ligne de Front</h1>
+  <span id="bname"></span><span id="clock"></span><span id="score"></span><span class="sp"></span>
+  <button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button>
+  <button data-go="lang" class="lng"></button><button id="toMenu"></button><button id="toMap"></button><button id="restart"></button>
+</div>
+<div id="wrap">
+  <aside id="log"></aside>
+  <main>
+    <div id="ai"></div>
+    <div id="front"></div>
+    <div id="bar"></div>
+    <div id="hand"></div>
+  </main>
+</div>
+<div id="end"></div>
+<div id="peek" class="card"></div>
+<script src="engine.js"></script>
+<script src="campaign.js"></script>
+<script src="audio.js"></script>
+<script src="i18n.js"></script>
+<script>
+// Battle UI + Normandy campaign map + localStorage save.
+const ICON = ['char', 'inf', 'air', 'strat'].map(n => `<img src="out/sprites/i_${n}.png" alt="">`); // drawn in art.px.js
+const $ = id => document.getElementById(id);
+let s, sel = null, hiddenMode = false, busy = false, pick = 'omaha';
+const C = CAMPAIGN, SAVE = 'ldf-v1', I = I18N, L = I18N.t;
+// Language: saved choice, else English unless the browser is French.
+try { I.lang = localStorage.getItem('ldf-lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'); } catch { I.lang = 'fr'; }
+const B = id => I.battle(C.byId[id]);
+
+// ---- save: { won: [battle ids], cur: { mode: 'campagne'|'rapide', battle, s } } -----------------
+// The engine state is plain JSON, so the whole battle is saved after every action.
+let save = (() => { try { return JSON.parse(localStorage.getItem(SAVE)) || null; } catch { return null; } })() || { won: [], cur: null };
+const persist = () => { try { localStorage.setItem(SAVE, JSON.stringify(save)); } catch { /* no storage: play without save */ } };
+const screen = name => { document.body.dataset.screen = name; SND.setMood(name === 'game' ? 'battle' : 'calm'); if (name === 'menu') renderMenu(); if (name === 'map') renderMap(); };
+const terrainArt = key => `out/scenes/t_${key}.png`;
+
+const myTurn = () => s.winner === null && s.turn === 0 && !busy;
+// Legal moves matching the selected card, the visible/face-down toggle and the clicks so far.
+const cands = () => !sel ? [] : E.moves(s).filter(m => m.c === sel.c
+  && (hiddenMode ? m.kind === 'hidden' : m.kind === 'deploy' || m.kind === 'order')
+  && sel.pre.every((x, i) => m.steps[i] === x));
+const nextSteps = c => new Set((c || cands()).map(m => m.steps[sel.pre.length]).filter(Boolean));
+// Illustrations built by pxl from art.px.js; enemy units use the feldgrau variant, face-down cards the back.
+const art = (key, owner, down) => `out/scenes/c_${down ? 'back' : key + (owner && E.CARDS[key].type !== 'Ordre' ? '_x' : '')}.png`;
+// Board units drop the icon (too narrow): column position + colour carry the attribute.
+const valsHTML = (v, icon = true) => v.map((x, a) => `<i class="c${a}a ${x ? '' : 'z'}" title="${I.attrName(a)}">${icon ? ICON[a] : ''}${x}</i>`).join('');
+
+// Card face, as in the hand. Also used by the hover zoom on board units.
+function cardInner(key, owner) {
+  const C = E.CARDS[key], order = C.type === 'Ordre';
+  return `<img class="art" src="${art(key, owner)}" alt=""><b>${I.cardName(key, owner)}</b><small>${I.typeName(C.type)}</small>${order ? '' : `<span class="vals">${valsHTML(C.v)}</span>`}<p>${I.cardText(key) || L('noPower')}</p>`;
+}
+// Hover zoom: a board unit is too small to read, show it full size next to the pointer.
+function peek(e) {
+  const el = e.target.closest('.u'), box = $('peek');
+  if (!el) return box.classList.remove('show');
+  const id = +el.dataset.step.slice(1), t = +el.closest('.col').dataset.step.slice(1);
+  const u = s.terrains[t].side.flat().find(x => x.id === id);
+  if (!u) return box.classList.remove('show');
+  const secret = u.down && u.owner === 1 && s.winner === null, C = E.CARDS[u.key];
+  const now = E.vals(s, u, t), moved = C.type !== 'Ordre' && now.some((x, a) => x !== C.v[a]);
+  box.className = `card show side${u.owner} ${C.type === 'Ordre' && !secret ? 'order' : ''}`;
+  box.innerHTML = secret ? `<img class="art" src="${art(u.key, 1, true)}" alt=""><b>${L('secret')}</b><small>${L('unknown')}</small><p>${L('secretText')}</p>`
+    : cardInner(u.key, u.owner) + (u.down ? `<p class="note">${L('downNote')}</p>` : '')
+      + (moved && !u.down ? `<div class="note">${L('here', I.terrainName(s.terrains[t].key))}</div><span class="vals">${valsHTML(now)}</span>` : '');
+  const r = el.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
+  const x = r.right + 12 + w < innerWidth ? r.right + 12 : r.left - 12 - w;
+  box.style.left = Math.max(8, x) + 'px';
+  box.style.top = Math.min(innerHeight - h - 8, Math.max(8, r.top + r.height / 2 - h / 2)) + 'px';
+}
+
+function startBattle(mode, battle) {
+  s = E.newGame(mode === 'campagne' ? C.draw(C.byId[battle]) : E.randomTerrains());
+  save.cur = { mode, battle, s }; sel = null; busy = false; hiddenMode = false;
+  persist(); screen('game'); render();
+}
+function resume() {
+  s = save.cur.s; sel = null; busy = false; screen('game'); render();
+  if (s.winner === null && s.turn === 1) aiTurn(); // saved while the AI was thinking
+}
+// Two-click confirmation inside the page (no confirm() dialog).
+function armed(btn) {
+  if (btn.dataset.armed) return true;
+  btn.dataset.armed = btn.textContent; btn.textContent = L('confirm'); btn.classList.add('danger');
+  setTimeout(() => { if (btn.dataset.armed) { btn.textContent = btn.dataset.armed; delete btn.dataset.armed; btn.classList.remove('danger'); } }, 3000);
+  return false;
+}
+
+function renderMenu() {
+  const live = save.cur && save.cur.s.winner === null;
+  const where = live ? (save.cur.mode === 'campagne' ? B(save.cur.battle).name : L('quick')) : '';
+  $('menu').style.backgroundImage = `url(${terrainArt('omaha_dog')})`;
+  $('menu').innerHTML = `<h1>${L('title')}</h1><p class="sub">${L('sub')}</p>
+    ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}
+    <button data-go="campaign">${L('campaign')} <small>(${save.won.length} / ${C.BATTLES.length})</small></button>
+    <button data-go="quick">${L('quick')}</button>
+    <button data-go="reset">${L('reset')}</button>
+    <div class="row"><button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button></div>
+    <div class="row"><button data-go="lang" class="lng"></button></div>`;
+  sndLabels(); langLabels();
+}
+
+function renderMap() {
+  const st = b => save.won.includes(b.id) ? 'won' : C.unlocked(b.id, save.won) ? 'open' : 'locked';
+  const xy = b => C.project(b.pos).map(v => 100 * v);
+  const links = C.BATTLES.flatMap(b => b.next.map(n => { const [x1, y1] = xy(b), [x2, y2] = xy(C.byId[n]);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${save.won.includes(b.id) ? '#f0d98a' : '#1c1a10'}" stroke-opacity="${save.won.includes(b.id) ? 1 : 0.55}" stroke-width="2.5" stroke-dasharray="7 5" vector-effect="non-scaling-stroke"/>`; })).join('');
+  $('mapbox').innerHTML = `<img src="out/scenes/map_normandie.png" alt="${L('mapAlt')}">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>` +
+    C.BATTLES.map(b => { const [x, y] = xy(b);
+      return `<button class="node ${st(b)} ${b.id === pick ? 'sel' : ''} ${x > 90 ? 'east' : ''}" data-pick="${b.id}" style="left:${x}%;top:${y}%"><i></i><span>${I.battle(b).name}</span></button>`; }).join('');
+  const b = B(pick), state = st(b);
+  $('brief').innerHTML = `<h2>${b.name}</h2><div class="date">${b.date}</div><p>${b.brief}</p>
+    <div>${L('pool')}</div>
+    <div class="pool">${b.pool.map(k => `<div><img src="${terrainArt(k)}" alt="">${I.terrainName(k)}</div>`).join('')}</div>
+    <div class="sp"></div>
+    ${state === 'locked' ? `<p><i>${L('locked')}</i></p>`
+      : `<button data-go="launch" class="on">${state === 'won' ? L('replay') : L('launch')}</button>`}
+    <div>${L('won', save.won.length, C.BATTLES.length)}</div>
+    <button data-go="lang" class="lng"></button><button data-go="menu">${L('menu')}</button>`;
+  langLabels();
+}
+
+function render() {
+  const c = myTurn() ? cands() : [], next = sel && myTurn() ? nextSteps(c) : new Set();
+  const exact = sel && c.find(m => m.steps.length === sel.pre.length);
+  const caps = p => s.terrains.filter(T => T.captured === p).length;
+  const camp = save.cur.mode === 'campagne';
+  $('bname').textContent = camp ? B(save.cur.battle).name : L('quick');
+  $('toMenu').textContent = L('menu'); $('toMap').textContent = L('map'); if (!$('restart').dataset.armed) $('restart').textContent = L('restart');
+  $('toMap').style.display = camp ? '' : 'none';
+  $('clock').innerHTML = L('clock', Math.min(s.players[0].turns + 1, E.TURNS), E.TURNS);
+  $('score').innerHTML = L('score', caps(0), caps(1));
+  $('ai').innerHTML = s.players[1].hand.map(() => '<div class="back"></div>').join('') + '&nbsp; ' + L('decks', s.players[1].deck.length, s.players[0].deck.length);
+  $('log').innerHTML = `<h2>${L('log')}</h2>` + s.log.slice(-80).reverse().map(l => `<p>${I.logLine(l)}</p>`).join('');
+
+  $('front').innerHTML = s.terrains.map((T, t) => {
+    const th = E.thr(s, t);
+    const row = p => T.side[p].map(u => {
+      const flip = !sel && myTurn() && u.down && u.owner === 0;
+      const secret = u.down && u.owner === 1 && s.winner === null, C = E.CARDS[u.key];
+      return `<div class="u side${u.owner} ${u.down ? 'down' : ''} ${next.has('u' + u.id) || flip ? 'target' : ''}" data-step="u${u.id}" ${flip ? `data-flip="${u.id}"` : ''} style="background-image:url(${art(u.key, u.owner, u.down)})" ${flip ? `title="${L('flipTip')}"` : ''}>
+        <b>${secret ? '???' : I.cardName(u.key, u.owner)}</b>${u.down ? `<em>${L('faceDown')}</em>` : ''}<span class="vals">${valsHTML(secret ? E.CARDS.inconnu.v : E.vals(s, u, t), false)}</span></div>`;
+    }).join('') + '<div class="slot"></div>'.repeat(Math.max(0, E.cap(s, t) - T.side[p].length));
+    const st = T.captured !== null ? 'c' + T.captured : T.holder !== null ? 'h' + T.holder : '';
+    const badge = L(T.captured === 0 ? 'cap0' : T.captured === 1 ? 'cap1' : T.holder === 0 ? 'hold0' : T.holder === 1 ? 'hold1' : 'free');
+    return `<div class="col ${next.has('t' + t) ? 'target' : ''}" data-step="t${t}">
+      <div class="slots">${row(1)}</div>
+      <div class="terrain ${st}">
+        <div class="tname"><span>${t + 1} · ${I.terrainName(T.key)}</span><span class="badge">${badge}</span></div>
+        <div class="trait">${I.terrainText(T.key)}</div>
+        <img class="art" src="${terrainArt(T.key)}" alt="">
+        <div class="vals thr" title="${L('thr')}">${valsHTML(th)}</div>
+      </div>
+      <div class="slots">${row(0)}</div></div>`;
+  }).join('');
+
+  $('hand').innerHTML = s.players[0].hand.map(h => {
+    const C = E.CARDS[h.key], order = C.type === 'Ordre';
+    return `<div class="card ${order ? 'order' : ''} ${sel && sel.c === h.id ? 'sel' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}">${cardInner(h.key, 0)}</div>`;
+  }).join('');
+
+  const hint = s.winner !== null ? '' : L(!myTurn() ? 'hAi' : !sel ? 'hPick' : !c.length ? (hiddenMode ? 'hNoSlot' : 'hNoTarget')
+    : sel.pre.length && c.some(m => m.rep != null) ? 'hReplace' : exact && c.length > 1 ? 'hPower' : 'hTarget');
+  $('bar').innerHTML = `<span id="hint">${hint}</span>
+    ${next.has('play') ? `<button data-step="play" class="on">${L('playOrder')}</button>` : ''}
+    ${exact && c.length > 1 ? `<button data-act="ok" class="on">${L('noTarget')}</button>` : ''}
+    <button data-act="hidden" class="${hiddenMode ? 'on' : ''}" title="${L('hiddenTip')}">${L('hidden')}${L('colon')}${L(hiddenMode ? 'yes' : 'no')}</button>
+    <button data-act="supply" ${sel && myTurn() ? '' : 'disabled'} title="${L('supplyTip')}">${L('supply')}</button>
+    <button data-act="cancel" ${sel ? '' : 'disabled'}>${L('cancel')}</button>`;
+
+  $('end').className = s.winner !== null ? 'show' : '';
+  if (s.winner !== null) {
+    const win = s.winner === 0, done = camp && win && save.cur.battle === 'paris';
+    $('end').innerHTML = `<h2 style="color:var(--${win ? 'me' : 'ai'})">${L(done ? 'paris' : win ? 'victory' : 'defeat')}</h2>
+      <div>${L(s.timeout ? 'byNight' : 'byTwo')} ${L('endScore', caps(0), caps(1))}</div>
+      ${done ? `<p>${L('endDone')}</p>` : camp && win ? `<p>${L('endWin')}</p>` : camp ? `<p>${L('endLose')}</p>` : ''}
+      <div class="row">${camp ? (win ? `<button data-go="map" class="on">${L('backMap')}</button>`
+        : `<button data-go="again" class="on">${L('again')}</button><button data-go="map">${L('map')}</button>`)
+        : `<button data-go="again" class="on">${L('newBattle')}</button><button data-go="menu">${L('menu')}</button>`}</div>`;
+  }
+  // Empty hand: nothing to decide.
+  if (myTurn() && E.moves(s)[0].kind === 'pass') commit(E.moves(s)[0]);
+}
+
+const sndLabels = () => document.querySelectorAll('.snd').forEach(b => {
+  const k = b.dataset.go === 'mus' ? 'music' : 'sfx';
+  b.textContent = L(k === 'music' ? 'music' : 'sounds') + L('colon') + L(SND.pref[k] ? 'yes' : 'no'); b.classList.toggle('on', SND.pref[k]);
+});
+const langLabels = () => { document.documentElement.lang = I.lang; document.title = L('title'); document.querySelector('#top h1').textContent = L('title'); document.querySelectorAll('.lng').forEach(b => { b.textContent = L('lang'); }); };
+// Play a move and the sounds it causes: the move itself, then what the log says happened.
+function act(m) {
+  const P = s.players[s.turn], card = m.c != null && P.hand.find(h => h.id === m.c), key = card && card.key, n = s.log.length;
+  E.play(s, m);
+  const type = key && E.CARDS[key].type;
+  let boomed = false;
+  if (m.kind === 'supply') SND.play('shuffle');
+  else if (m.kind === 'hidden' || m.kind === 'pass') SND.play('card');
+  else if (m.kind === 'reveal') SND.play('flip');
+  else if (m.kind === 'deploy') { SND.play('card'); SND.play(type === 'Char' ? 'tank' : type === 'Air' ? 'plane' : 'boots', 0.1); }
+  else if (key === 'artillerie') { SND.play('whistle'); boomed = true; }
+  else if (key === 'bombardement') { SND.play('plane'); SND.play('boom', 1); boomed = true; }
+  else if (key === 'fumee') SND.play('smoke');
+  else SND.play('card');
+  for (const l of s.log.slice(n)) {
+    if (l.e === 'destroy' && !boomed) { SND.play('boom', 0.3); boomed = true; }
+    if (l.e === 'reveal' && m.kind !== 'reveal') SND.play('flip', 0.3);
+    if (l.e === 'hold') SND.play('drumroll', 0.5);
+    if (l.e === 'capture') SND.play(l.p === 0 ? 'capture' : 'lost', 0.6);
+  }
+  if (s.winner !== null) SND.play(s.winner === 0 ? 'victory' : 'defeat', 1.4);
+}
+// After every action: record a campaign win, save, redraw.
+function played() {
+  if (s.winner === 0 && save.cur.mode === 'campagne' && !save.won.includes(save.cur.battle)) save.won.push(save.cur.battle);
+  persist(); render();
+}
+function aiTurn() {
+  busy = true;
+  const mine = s; // ignore the answer if the player left this battle meanwhile
+  setTimeout(() => { if (s !== mine) return; act(E.aiMove(s)); busy = false; played(); }, 700);
+}
+function commit(m) {
+  act(m); sel = null; played();
+  if (s.winner === null && s.turn === 1) aiTurn();
+}
+function step(x) {
+  sel.pre.push(x);
+  const c = cands(), exact = c.find(m => m.steps.length === sel.pre.length);
+  exact && c.length === 1 ? commit(exact) : render();
+}
+// Innermost [data-step] ancestor that is a legal next step (a unit sits inside its terrain column).
+function stepEl(target, next) {
+  let el = target.closest('[data-step]');
+  while (el && !next.has(el.dataset.step)) el = el.parentElement && el.parentElement.closest('[data-step]');
+  return el;
+}
+
+$('front').addEventListener('mouseover', peek);
+$('front').addEventListener('mouseleave', () => $('peek').classList.remove('show'));
+document.addEventListener('click', e => {
+  if (e.target.closest('button,[data-pick]')) SND.play('click');
+  const go = e.target.closest('[data-go],[data-pick],#toMenu,#toMap,#restart');
+  if (go) {
+    const g = go.dataset.go || go.id;
+    if (g === 'lang') {
+      I.lang = I.lang === 'fr' ? 'en' : 'fr';
+      try { localStorage.setItem('ldf-lang', I.lang); } catch { /* not saved */ }
+      const sc = document.body.dataset.screen; sndLabels(); langLabels();
+      return sc === 'game' ? render() : screen(sc);
+    }
+    if (g === 'mus' || g === 'sfx') { const k = g === 'mus' ? 'music' : 'sfx'; SND.set(k, !SND.pref[k]); return sndLabels(); }
+    if (go.dataset.pick) { pick = go.dataset.pick; return renderMap(); }
+    if (g === 'resume') return resume();
+    if (g === 'campaign') { const live = C.BATTLES.find(b => C.unlocked(b.id, save.won) && !save.won.includes(b.id)); if (live) pick = live.id; return screen('map'); }
+    if (g === 'quick') return startBattle('rapide');
+    if (g === 'reset') { if (armed(go)) { save = { won: [], cur: null }; persist(); pick = 'omaha'; renderMenu(); } return; }
+    if (g === 'launch') return startBattle('campagne', pick);
+    if (g === 'again' || (g === 'restart' && armed(go))) return startBattle(save.cur.mode, save.cur.battle);
+    if (g === 'map' || g === 'toMap') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); if (save.cur) pick = save.cur.battle; return screen('map'); }
+    if (g === 'menu' || g === 'toMenu') { if (save.cur && save.cur.s.winner !== null) save.cur = null, persist(); return screen('menu'); }
+    return;
+  }
+  if (document.body.dataset.screen !== 'game' || !myTurn()) return;
+  const act = e.target.dataset.act, next = sel ? nextSteps() : new Set();
+  if (act === 'hidden') { hiddenMode = !hiddenMode; if (sel) sel.pre = []; return render(); }
+  if (act === 'cancel') { sel = null; return render(); }
+  if (act === 'supply') return commit(E.moves(s).find(m => m.kind === 'supply' && m.c === sel.c));
+  if (act === 'ok') return commit(cands().find(m => m.steps.length === sel.pre.length));
+  const fl = e.target.closest('[data-flip]');
+  if (fl) return commit(E.moves(s).find(m => m.kind === 'reveal' && m.u === +fl.dataset.flip));
+  const h = e.target.closest('[data-hand]');
+  if (h) {
+    const id = +h.dataset.hand;
+    if (next.has('h' + id)) return step('h' + id);
+    sel = sel && sel.c === id && !sel.pre.length ? null : { c: id, pre: [] };
+    if (sel) SND.play('card');
+    return render();
+  }
+  const el = sel && stepEl(e.target, next);
+  if (el) step(el.dataset.step);
+});
+
+sndLabels(); langLabels();
+screen('menu');
+</script>
+</body>
+</html>
