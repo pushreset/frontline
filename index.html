@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <title>Ligne de Front</title>
 <style>
-  :root { --me:#4f93c9; --ai:#d0663a; --paper:#dccba3; --ink:#2a2418; --olive:#5b6236;
+  /* Titles (game name, terrain and battle names, stamps, banners): army stencil lettering. Texts stay in Georgia.
+     Stardos Stencil Bold, SIL Open Font License (fonts/OFL.txt), served from the repo: no outside request. */
+  @font-face { font-family:"Stardos Stencil"; font-weight:700; font-display:swap; src:url(fonts/StardosStencil-Bold.woff2) format("woff2"); }
+  :root { --title:"Stardos Stencil",Georgia,serif; --me:#4f93c9; --ai:#d0663a; --paper:#dccba3; --ink:#2a2418; --olive:#5b6236;
           --a0:#93a84e; --a1:#d2a544; --a2:#73b4d6; --a3:#b993dc; }
   * { box-sizing:border-box; }
   body { margin:0; height:100vh; display:flex; flex-direction:column; color:#e6dcc0; font:14px/1.35 Georgia,serif;
@@ -13,7 +16,7 @@
   button:hover:not(:disabled) { background:#4c5038; } button:disabled { opacity:.35; cursor:default; }
   button.on { background:var(--olive); border-color:#c9c27a; }
   #top { display:flex; align-items:center; gap:18px; padding:8px 16px; background:#0006; border-bottom:1px solid #000; }
-  #top h1 { margin:0; font-size:19px; letter-spacing:2px; text-transform:uppercase; color:var(--paper); }
+  #top h1 { margin:0; font-family:var(--title); font-size:19px; letter-spacing:2px; text-transform:uppercase; color:var(--paper); }
   #top .sp { flex:1; } #clock b { color:#f0d98a; }
   #wrap { flex:1; display:flex; min-height:0; }
   #log { width:250px; padding:10px; overflow:auto; background:#0004; border-right:1px solid #000; font:12px/1.5 "Courier New",monospace; color:#b9b091; }
@@ -66,6 +69,7 @@
   .terrain { position:relative; flex:0 1 auto; background:linear-gradient(#35402a,#262d1f); border:2px solid #6d6a4c; border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
   .terrain.h0 { border-color:var(--me); box-shadow:0 0 14px #4f93c988; } .terrain.h1 { border-color:var(--ai); box-shadow:0 0 14px #d0663a88; }
   .terrain.c0 img.art, .terrain.c1 img.art { filter:saturate(.35) brightness(.8); } .terrain.c0 { border-color:var(--me); } .terrain.c1 { border-color:var(--ai); }
+  .tname > span:first-child { font-family:var(--title); font-weight:700; }
   .tname { display:flex; justify-content:space-between; align-items:baseline; font-size:17px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; }
   .tname .tags { display:flex; gap:6px; align-items:center; flex:none; }
   .badge { font-size:11px; letter-spacing:0; text-transform:none; padding:1px 7px; border-radius:9px; background:#0006; }
@@ -105,7 +109,7 @@
   .card b { font-size:15px; line-height:1.1; } .card small { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.65; }
   .card p { margin:0; font-size:12px; line-height:1.25; flex:1; overflow:hidden; }
   #end { position:fixed; inset:0; z-index:10; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
-  #end.show { display:flex; } #end h2 { font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
+  #end.show { display:flex; } #end h2 { font-family:var(--title); font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
   #end .row { display:flex; gap:10px; } #end p { max-width:520px; text-align:center; margin:0; }
   #end.show { animation:fadein .6s both; }
   #bname { color:#f0d98a; font-style:italic; }
@@ -121,17 +125,17 @@
   .terrain.fx { animation:flip .7s var(--d) both; }
   @keyframes flip { 50% { transform:perspective(900px) rotateY(90deg); } }
   .stamp { position:absolute; left:50%; top:54%; z-index:2; transform:translate(-50%,-50%) rotate(-12deg); padding:2px 16px; border:4px solid; border-radius:6px;
-           font:bold 34px Georgia,serif; letter-spacing:4px; text-transform:uppercase; background:#000b; pointer-events:none; white-space:nowrap; }
+           font:bold 34px var(--title); letter-spacing:4px; text-transform:uppercase; background:#000b; pointer-events:none; white-space:nowrap; }
   .stamp.s0 { color:#8cc4f0; border-color:var(--me); } .stamp.s1 { color:#f39468; border-color:var(--ai); } .stamp.sx { color:var(--paper); border-color:#b9b091; }
   .fx .stamp { animation:stamp .45s calc(var(--d) + .5s) both; }
   .fx .badge { animation:fadein .3s calc(var(--d) + .6s) both; } /* no spoiler before the stamp */
   @keyframes stamp { from { opacity:0; transform:translate(-50%,-50%) rotate(-12deg) scale(3); } 70% { opacity:1; transform:translate(-50%,-50%) rotate(-12deg) scale(.92); } }
-  .rise { position:absolute; left:0; right:0; top:-8px; z-index:3; text-align:center; font:bold 28px Georgia,serif; letter-spacing:2px; text-shadow:0 2px 0 #000,0 0 14px currentColor; pointer-events:none; animation:rise 1.8s .8s both; }
+  .rise { position:absolute; left:0; right:0; top:-8px; z-index:3; text-align:center; font:bold 28px var(--title); letter-spacing:2px; text-shadow:0 2px 0 #000,0 0 14px currentColor; pointer-events:none; animation:rise 1.8s .8s both; }
   .rise.s0 { color:#a8d6ff; } .rise.s1 { color:#ff9f72; }
   @keyframes rise { from { opacity:0; transform:translateY(10px); } 20%, 70% { opacity:1; transform:translateY(-26px); } to { opacity:0; transform:translateY(-46px); } }
   /* Nightfall: the board goes dark for a moment, then the terrains are decided one by one. */
   #front { position:relative; }
-  .nightfall { position:absolute; inset:-8px; z-index:4; display:flex; align-items:center; justify-content:center; font:bold 40px Georgia,serif; letter-spacing:4px;
+  .nightfall { position:absolute; inset:-8px; z-index:4; display:flex; align-items:center; justify-content:center; font:bold 40px var(--title); letter-spacing:4px;
                color:#f0d98a; background:#060a18cc; pointer-events:none; animation:night 1.4s both; }
   @keyframes night { 0% { opacity:0; } 25%, 70% { opacity:1; } 100% { opacity:0; } }
   /* Who starts: a coin over the darkened screen. Tossed (.spin: it flips in the air and lands on the starter's face)
@@ -141,7 +145,7 @@
   .coin { position:relative; width:160px; height:160px; transform-style:preserve-3d; transform:perspective(700px) rotateX(var(--end)); }
   .coin i { position:absolute; inset:0; background:center/100% no-repeat; image-rendering:pixelated; backface-visibility:hidden; }
   .coin i + i { transform:rotateX(180deg); }
-  #toss p { margin:0; font:bold 26px Georgia,serif; letter-spacing:2px; color:var(--paper); text-shadow:0 2px 0 #000; }
+  #toss p { margin:0; font:bold 26px var(--title); letter-spacing:2px; color:var(--paper); text-shadow:0 2px 0 #000; }
   .spin .coin { animation:toss 1.5s cubic-bezier(.3,.5,.4,1) both; } .spin p { animation:fadein .4s 1.5s both; }
   .laid .coin { animation:laid .45s ease-out both; } .laid p { animation:fadein .4s .4s both; }
   @keyframes toss { 0% { transform:perspective(700px) translateY(70px) scale(.7) rotateX(calc(var(--end) - 1800deg)); }
@@ -171,7 +175,7 @@
   #menu { flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000 center/cover no-repeat; image-rendering:pixelated; }
   #menu::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 45%,#0007,#000d); }
   #menu > * { position:relative; }
-  #menu h1 { margin:0; font-size:64px; letter-spacing:8px; text-transform:uppercase; color:var(--paper); text-shadow:0 3px 0 #000; }
+  #menu h1 { margin:0; font-family:var(--title); font-size:64px; letter-spacing:8px; text-transform:uppercase; color:var(--paper); text-shadow:0 3px 0 #000; }
   #menu .sub { margin:0 0 18px; color:#f0d98a; letter-spacing:4px; text-transform:uppercase; }
   #menu button { width:300px; font-size:18px; padding:10px; } #menu .row { display:flex; gap:10px; } #menu .row button { width:145px; font-size:14px; } #menu small { color:#b9b091; }
   #menu .packs { display:flex; gap:10px; } #menu .packs button { width:200px; font-size:16px; } #menu .packs small { display:block; font-size:12px; }
@@ -187,7 +191,7 @@
   .node.locked { cursor:default; opacity:.55; } .node.sel span { outline:2px solid #f0d98a; }
   @keyframes pulse2 { 50% { box-shadow:0 0 0 6px #f0d98a55; } }
   #brief { width:340px; display:flex; flex-direction:column; gap:10px; background:#0006; border:1px solid #000; border-radius:8px; padding:14px; overflow:auto; }
-  #brief h2 { margin:0; font-size:22px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; } #brief .date { color:#f0d98a; font-style:italic; }
+  #brief h2 { margin:0; font-family:var(--title); font-size:22px; color:var(--paper); letter-spacing:1px; text-transform:uppercase; } #brief .date { color:#f0d98a; font-style:italic; }
   #brief .pool { display:grid; grid-template-columns:1fr 1fr; gap:6px; } #brief .pool div { font-size:11px; color:#b9b091; }
   #brief .pool img { width:100%; image-rendering:pixelated; display:block; border-radius:3px; }
   #brief .sp { flex:1; }
