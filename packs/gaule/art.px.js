@@ -230,6 +230,265 @@ horse("_horse", "Wxx", "w")
 horse("_horse_grey", "MmJ", "M", null)
 horse("_horse_dun", "TqQ", "t")
 
+// Archer drawing his bow, facing right: bow arm out in front, the string hand at the cheek, quiver on the back.
+// Cretan auxiliary: dark hair, undyed tunic. The bow and arrow are drawn by bowman().
+sprite("_archer", { outline: "k" }, `
+  ........WWW.........
+  .......WWWWW........
+  .......WWFFFF.......
+  .......WfFkFF.......
+  ........ffFFFF......
+  ........fffFE.......
+  ...x.....EffEf......
+  ..xXx.QQQQQqfffffff.
+  ..xXxQQQQQQqqFFFFFf.
+  ..xXQQQQQQqqq.......
+  ...xQQQQQqqqq.......
+  ...xQQQQqqqqq.......
+  ....QQQQqqqqq.......
+  ....QQQqqqqqq.......
+  ....WWnWWWWWW.......
+  ....QQQqqqqqq.......
+  ....QQQqqqqqqq......
+  ...QQQqqqqqqqq......
+  ...QQQq...qqqq......
+  ...fFf.....fff......
+  ...fFf.....ffE......
+  ..ffFE......fE......
+  ..fFE.......ffE.....
+  .ffE........ffE.....
+  .fFE.........fE.....
+  .fFE.........ffE....
+  .xWE.........xWE....
+  xxWW.........xxWW...
+  WWWW.........WWWWW..`)
+// bow and nocked arrow for an archer stamped at (x, y)
+const bowman = (x, y, flip = false) => (c) => {
+  const X = (dx) => flip ? x + 21 - dx : x + dx
+  for (let j = -6; j <= 14; j++) { const bend = Math.round(2.4 - Math.abs(j - 4) * Math.abs(j - 4) / 40); c.px(X(19 + bend), y + 3 + j, "w") }
+  c.line(X(19), y - 3, X(12), y + 9, "Q"); c.line(X(12), y + 9, X(19), y + 21, "Q")   // string drawn back
+  c.line(X(10), y + 8, X(25), y + 8, "x"); c.px(X(26), y + 8, "J"); c.px(X(10), y + 7, "s"); c.px(X(10), y + 9, "s")
+}
+// Slinger, facing right, whirling the sling overhead: a pouch of stones at the hip.
+sprite("_slinger", { outline: "k" }, `
+  ..........f.........
+  .........ff.........
+  ........ff..........
+  .......ff...........
+  .......f.WWW........
+  ......ff.WWWW.......
+  ......f.WWFFFF......
+  ......f.WfFkFF......
+  ......ff.ffFFFF.....
+  .......ff.fffE......
+  ........fffffE......
+  .........QQQQqq.....
+  ........QQQQQqqf....
+  ........QQQQqqqFf...
+  ........QQQQqqq.ff..
+  ........QQQqqqq..ff.
+  ........WWnWWWW...f.
+  .......XQQQqqqq.....
+  .......xxQqqqqqq....
+  ......xxxQq..qqq....
+  .......x.fF...fff...
+  .........fF...ffE...
+  ........ffF....fE...
+  ........fFE....ffE..
+  .......ffE......fE..
+  .......fFE......ffE.
+  .......xWE......xWE.
+  ......xxWW......xxWW
+  ......WWWW......WWWW`)
+// Centurion: the legionary with a transverse crest, silver phalerae on the chest and greaves.
+sprite("_centurio", { base: "_legio" },
+  grid(5, 0, "kRRsSSsRRk"), grid(6, 1, "RRsssRR"), grid(7, 2, "rRRRr"))
+// Gallic war chief: the warrior with a crested bronze helmet, a gold-trimmed red cloak.
+sprite("_chief", { base: "_gaul", swap: { U: "R", v: "s", u: "r" } },
+  grid(13, 5, ".BnNNNnB."), grid(12, 6, "bBnNNnnnBb"), grid(12, 7, "bbBBBBBBBb"), grid(15, 3, "SS"), grid(15, 4, "sSs"))
+// Fabri: an engineer swinging a dolabra (pickaxe-axe), tunic only, the shield left on the ground.
+sprite("_faber", { outline: "k" }, `
+  .....jJ.............
+  ....jJJ.............
+  ....ijx.............
+  ......x.............
+  ......x..WWW........
+  .......x.WWWW.......
+  .......xWWFFFF......
+  .......ffFFkFF......
+  .......fffFFFFF.....
+  ........fffFE.......
+  .........ffEE.......
+  .........RRssRf.....
+  ........RRsssSRff...
+  ........RRssssRRff..
+  .........RssssRR.fF.
+  .........RsssssRR...
+  .........WWnWWWWW...
+  .........RssssRRR...
+  ........RRssss.RRR..
+  ........RRs.....RR..
+  ........fF.......fF.
+  ........fF.......fF.
+  .......ffE.......ffE
+  .......fFE.......ffE
+  .......fFE........fE
+  .......xWE........xW
+  ......xxWW.......xxW
+  ......WWWW.......WWW`)
+// Druid: long white robe, a hood thrown back, white beard, an oak staff and the golden sickle.
+sprite("_druid", { outline: "k" }, `
+  ........x.............
+  ........x..lll........
+  ........x.llll5.......
+  ........xlllFFF.......
+  ........xllFkFF.......
+  ........x.lFFFFF......
+  ........x.555555......
+  ........x..5555.......
+  ........x.55555.......
+  .......f5555555555....
+  .......f555l5555l55...
+  ........x55l5555l55N..
+  ........x5ll5555l5NN..
+  ........x5l55555l5N...
+  ........x5l5555ll5....
+  ........xll5555ll5....
+  ........xl55555ll5....
+  ........xl5555lll5....
+  ........l55555ll55....
+  .......ll5555lll55....
+  .......l55555lll555...
+  .......l5555llll555...
+  ......ll5555llll5555..
+  ......l55555llll5555..
+  ......l5555lllll5555..
+  .....ll5555lllll55555.
+  .....lllllllllllllll..
+  ......WWW.....WWW.....`)
+
+// Standards. Eagle: gilded aquila with spread wings on a pole with phalerae. Boar: the Gallic war boar.
+// Vexillum: a red square flag with gold fringe. All drawn with the pole foot at (x, y).
+const aquila = (x, y, h = 30) => (c) => {
+  c.vline(x, y - h, h, "x"); c.vline(x + 1, y - h, h, "W")
+  for (let k = 0; k < 3; k++) { c.circ(x, y - h + 10 + k * 5, 1, "n"); c.px(x, y - h + 9 + k * 5, "N") }
+  c.rect(x - 3, y - h + 4, 8, 2, "B"); c.hline(x - 3, y - h + 4, 8, "n")
+  for (const [dx, dy, k] of [[-6, -1, "n"], [-5, -2, "N"], [-4, -3, "N"], [-3, -2, "n"], [-2, -1, "n"], [3, -1, "n"], [4, -2, "N"], [5, -3, "N"], [6, -2, "n"], [7, -1, "B"], [0, -2, "N"], [1, -2, "n"], [0, -1, "n"], [1, -1, "B"], [1, -3, "N"], [2, -3, "B"], [0, 0, "B"], [1, 0, "B"], [-1, 0, "n"]]) c.px(x + dx, y - h + 3 + dy, k)
+  c.px(x - 6, y - h + 3, "N"); c.px(x + 7, y - h + 3, "n"); c.px(x - 7, y - h + 2, "N"); c.px(x + 8, y - h + 2, "B")
+}
+const boarStd = (x, y, h = 30) => (c) => {
+  c.vline(x, y - h, h, "x"); c.vline(x + 1, y - h, h, "W")
+  const b = `
+    ...B.B.B.B....
+    ..BnnnnnnnnB..
+    .BnNNNNNnnnnB.
+    BkNnnnnnnnnnnB
+    NnnnnnnnnnnnB.
+    .BnnnnnnnnBB..
+    ..B.B...B.B...
+    ..B.B...B.B...`.split("\n").filter((r) => r.trim()).map((r) => r.trim())
+  b.forEach((row, j) => [...row].forEach((ch, i) => { if (ch !== ".") c.px(x - 6 + i, y - h - 9 + j, ch) }))
+}
+const vexillum = (x, y, h = 30, mark = null) => (c) => {
+  c.vline(x, y - h, h, "x"); c.vline(x + 1, y - h, h, "W"); c.hline(x - 5, y - h + 2, 12, "x")
+  c.rect(x - 5, y - h + 3, 12, 11, "s"); c.rect(x - 5, y - h + 3, 3, 11, "S"); c.rect(x + 4, y - h + 3, 3, 11, "R")
+  for (let i = 0; i < 12; i += 2) c.px(x - 5 + i, y - h + 14, "N")
+  if (mark) c.text(x - 3 - (mark.length > 1 ? 2 : 0), y - h + 6, mark, "N")
+}
+// Scorpion: a bolt-thrower on a tripod, torsion springs in a bronze-plated frame, a bolt ready.
+sprite("_scorpio", { outline: "k" }, `
+  ...........JJ.........
+  .JjjjjjjjjjjjjJ.......
+  ...xxxxxXXXXxx........
+  .BnBxXXXXXXXXXxBnB....
+  .BnB.WWWWWWWWW.BnB....
+  .BnBxxxxxxxxxxxBnB....
+  .bBb.....xX....bBb....
+  .........xX...........
+  ........xXXX..........
+  .......xx.x.xx........
+  ......xx..x..xx.......
+  .....xx...x...xx......
+  ....xx....x....xx.....
+  ...WW.....W.....WW....`)
+// Ox-drawn cart heavy with grain sacks, and the ox.
+sprite("_cart", { outline: "k" }, `
+  ....QQQqQQQqQQQq........
+  ...QQQqqQQqqQQqqq.......
+  ...QqqQQqqQQqqQQq.......
+  ..XXXXXXXXXXXXXXXXX.....
+  ..xxxxxxxxxxxxxxxxxxxxx.
+  ..WWWWWWWWWWWWWWWWW.....
+  ....xXXx......xXXx......
+  ...xWxxWx....xWxxWx.....
+  ...XxwwxX....XxwwxX.....
+  ...xWxxWx....xWxxWx.....
+  ....xXXx......xXXx......`)
+sprite("_ox", { outline: "k" }, `
+  ...................Q....
+  ..................QlQ...
+  ..qqqqqqqqqqqqqq..qq....
+  .qqQQQQQQqqqqqqqqqQq....
+  qqQQQQQqqqqqqqqqqqqqqq..
+  qqQQqqqqqqqqqqqqqqqkqqq.
+  .qqqqqqqqqqqqqqqqqqqqTTq
+  .TqqqqqqqqqqqqqqqqTTq...
+  ..TTqqqqqqqqqqqqTTT.....
+  ..Tq.Tq......Tq.Tq......
+  ..Tq.Tq......Tq.Tq......
+  ..tt.tt......tt.tt......`)
+// Granary on stilts (against mice and damp), thatched.
+sprite("_granary", { outline: "k" }, `
+  .......oo.......
+  .....oYYyO......
+  ...oYYYyyyOO....
+  .oYYYYyyyyyOOo..
+  oYYYyyyyyyyyOOo.
+  .XXXXxxxxxxxWW..
+  .XxXxxwwxxxxWW..
+  .XxXxxwwxxxxWW..
+  .XXXXxxxxxxxWW..
+  .W..W.....W..W..
+  .W..W.....W..W..`)
+// British war chariot: wicker body, two wheels... seen from the side, pulled by a pony.
+sprite("_chariot", { outline: "k" }, `
+  ..XxXxXxXxXx..........
+  ..xXxXxXxXxX..........
+  ..XxXxXxXxXxxxxxxxxxxx
+  ..xXxXxXxXxX..........
+  ...WWWWWWWWW..........
+  .....xXXXXx...........
+  ....xW..x.Wx..........
+  ...xW...x..Wx.........
+  ...X.x..x.x.X.........
+  ...XxxxxxxxxX.........
+  ...X.x..x.x.X.........
+  ...xW...x..Wx.........
+  ....xW..x.Wx..........
+  .....xXXXXx...........`)
+// Siege tower: timber storeys covered in wet hides, a drawbridge at the top.
+sprite("_tower", { outline: "k" }, `
+  ...xxxxxxxxx...
+  ...XEEEEEEEx...
+  ...XEeeeeeEx...
+  ...XEEEEEEEx...
+  ..xxxxxxxxxxx..
+  ..XEEEEEEEEEx..
+  ..XEeeeEEeeEx..
+  ..XEEEEEEEEEx..
+  ..xxxxxxxxxxx..
+  .XEEEEEEEEEEEx.
+  .XEeeEEEEEeeEx.
+  .XEEEEEEEEEEEx.
+  .xxxxxxxxxxxxx.
+  XEEEEEEEEEEEEEx
+  XEEEEwwwwEEEEEx
+  XEEEEwwwwEEEEEx
+  xxxxxxxxxxxxxxx
+  .xXx.......xXx.
+  xWxWx.....xWxWx
+  .xXx.......xXx.`)
+
 // Depth: the same figure further back, one step darker and cooler (aerial perspective).
 const BACK = { S: "s", s: "R", R: "r", N: "n", n: "B", B: "b", Y: "y", y: "O", F: "f", f: "E", E: "e", J: "j", j: "I", I: "i", X: "x", x: "W", W: "w",
                H: "h", h: "G", G: "g", V: "v", v: "U", U: "u", Q: "q", q: "T", T: "t" }
@@ -362,7 +621,7 @@ unit("cavaliers", (gaul) => [
 ])
 
 // ------------------------------------------------------------------ terrains (320x144)
-const terrain = (name, ...items) => scene("t_" + name, { w: TW, h: TH }, ...items)
+const terrain = (name, ...items) => scene("t_" + name, { w: TW, h: TH, bg: "4" }, ...items)
 // A plateau hill: steep flanks, flat top, lit on the left flank. Returns the top height at x.
 const plateau = (cx, top, half, base, slope = 26) => (x) => {
   const d = Math.abs(x - cx) - half
@@ -422,10 +681,12 @@ const smoke = (x, y, n = 6) => (c) => {
 // Murus gallicus: courses of dry stone with offset joints, the ends of the timber lacing in rows,
 // a palisade of pointed stakes on top. Light from the left: the face is lit, its foot in shadow.
 const murus = (x0, x1, y, h = 9) => (c) => {
+  const ch = h > 14 ? 4 : 3, bw = h > 14 ? 10 : 8                                                         // course height, beam spacing
   c.rect(x0, y, x1 - x0, h, "m"); c.hline(x0, y, x1 - x0, "l")
-  for (let r = 3; r < h; r += 3) c.hline(x0, y + r, x1 - x0, "M")                                            // bedding joints
-  for (let r = 0; r < h; r += 3) for (let x = x0 + (r % 6 ? 3 : 0); x < x1; x += 6) c.vline(x, y + r + 1, 2, "M") // head joints
-  for (let r = 1; r < h - 1; r += 3) for (let x = x0 + 2 + (r % 2) * 4; x < x1; x += 8) c.rect(x, y + r, 2, 2, "w") // beam ends
+  if (h > 14) c.rect(x0, y + h - Math.floor(h / 3), x1 - x0, Math.floor(h / 3), "M")                       // the foot in shade, splashed
+  for (let r = ch; r < h; r += ch) c.hline(x0, y + r, x1 - x0, h > 14 && r > h * 0.66 ? "0" : "M")         // bedding joints
+  for (let r = 0, k = 0; r < h; r += ch, k++) for (let x = x0 + (k % 2 ? 3 : 0) + (k % 3); x < x1; x += 6 + (k % 2)) c.vline(x, y + r + 1, ch - 1, "M")  // head joints
+  for (let r = 1, k = 0; r < h - 2; r += ch * 2, k++) for (let x = x0 + 2 + (k % 2) * (bw / 2); x < x1; x += bw) c.rect(x, y + r + 1, 2, 2, "w")  // beam ends
   c.hline(x0, y + h, x1 - x0, "0")
   for (let x = x0; x < x1; x += 2) { c.vline(x, y - 4, 4, x % 4 ? "x" : "X"); c.px(x, y - 5, "W") }               // palisade
   c.hline(x0, y - 2, x1 - x0, "W")
@@ -524,3 +785,567 @@ sprite("coin_1", { w: 64, h: 64 }, coinDisc("B", "n", "N", "B"),
   ring(31, 50, 4, "B"), line(27, 50, 35, 50, "B"), line(31, 46, 31, 54, "B"),
   circ(16, 13, 2, "B"), circ(46, 13, 2, "B"), px(15, 12, "N"), px(45, 12, "N"),
 )
+
+scene("contact_figs", { w: 200, h: 54, bg: "4" },
+  stamp("_legio", 2, 4), stamp("_centurio", 26, 4), stamp("_archer", 50, 8), bowman(50, 8), stamp("_slinger", 76, 6),
+  stamp("_gaul", 100, 2), stamp("_chief", 126, 2), stamp("_faber", 152, 8), stamp("_druid", 176, 8))
+
+// ------------------------------------------------------------------ more units
+const GTUNIC = { Q: "h", q: "G" }                       // auxiliary tunic -> Gallic green
+const GREEN = { R: "G", s: "h", S: "H", r: "g" }        // red tunic -> green
+const day = (seed = 1, hor = 52) => [sky(CW, hor), stamp("_cloud_b", 10 + seed * 17 % 60, 6 + seed % 3 * 4), stamp("_cloud_far", 70 + seed * 7 % 40, 26)]
+const land = (seed = 1, y = 52) => [hills(y - 12, 4, "3", seed, 60), hills(y - 6, 3, "6", seed + 5, 60), treeline(y - 2, 2, "%", "&", seed + 2), ...meadow(y, CW, CH - y, seed, 60)]
+// Arrows or bolts in flight: short strokes along an arc.
+const volley = (x0, y0, dx, n = 6, seed = 1, k = "x") => (c) => { const r = c.rng(seed); for (let i = 0; i < n; i++) { const x = x0 + Math.floor(r() * 40) * Math.sign(dx), y = y0 + Math.floor(r() * 14); c.line(x, y, x + 4 * Math.sign(dx), y + 1, k); c.px(x + 5 * Math.sign(dx), y + 1, "J") } }
+// The sling whirled overhead: a faint circle and the stone.
+const sling = (x, y, flip = false) => (c) => { const cx = flip ? x + 11 : x + 10, cy = y - 2; for (let a = 0; a < 24; a += 2) { const t = a / 24 * Math.PI * 2; c.px(Math.round(cx + Math.cos(t) * 6), Math.round(cy + Math.sin(t) * 2), "4") } c.px(cx + 6, cy, "M") }
+
+unit("sagittaires", (g) => [
+  ...day(3), ...land(3),
+  layer("shadow", { shade: true }, shadowAt(54, 78, 16), shadowAt(24, 70, 14), shadowAt(84, 70, 14)),
+  ...(g ? [
+    stamp("_archer", 24, 40, { flip: "x", swap: { ...GTUNIC, ...BACK } }), bowman(24, 40, true), stamp("_archer", 84, 41, { flip: "x", swap: { Q: "v", q: "U", ...BACK } }), bowman(84, 41, true),
+    stamp("_archer", 52, 48, { flip: "x", swap: GTUNIC }), bowman(52, 48, true), volley(26, 10, -1, 9, 4),
+  ] : [
+    stamp("_archer", 82, 40, { swap: BACK }), bowman(82, 40), stamp("_archer", 22, 41, { swap: BACK }), bowman(22, 41),
+    stamp("_archer", 52, 48), bowman(52, 48), volley(80, 10, 1, 9, 3),
+  ]),
+])
+unit("frondeurs", (g) => [
+  ...day(5), ...land(5),
+  layer("shadow", { shade: true }, shadowAt(52, 78, 16), shadowAt(22, 70, 14), shadowAt(84, 70, 14)),
+  ...(g ? [
+    stamp("_slinger", 20, 40, { flip: "x", swap: { ...GTUNIC, ...BACK } }), sling(20, 40, true), stamp("_slinger", 84, 41, { flip: "x", swap: { Q: "v", q: "U", ...BACK } }), sling(84, 41, true),
+    stamp("_slinger", 52, 48, { flip: "x", swap: GTUNIC }), sling(52, 48, true), volley(20, 16, -1, 5, 6, "M"),
+  ] : [
+    stamp("_slinger", 84, 40, { swap: BACK }), sling(84, 40), stamp("_slinger", 20, 41, { swap: BACK }), sling(20, 41),
+    stamp("_slinger", 52, 48), sling(52, 48), volley(90, 16, 1, 5, 5, "M"),
+  ]),
+])
+unit("centurion", (g) => g ? [
+  ...day(7), ...land(7),
+  boarStd(88, 50, 34), stamp("_carnyx", 22, 22),
+  stamp("_gaul", 18, 36, { flip: "x", swap: BACK }), stamp("_gaul", 76, 35, { flip: "x", swap: { ...BACK, h: "v", H: "V", G: "U" } }),
+  layer("shadow", { shade: true }, shadowAt(48, 78, 20)),
+  stamp("_chief", 44, 39, { flip: "x" }),
+] : [
+  ...day(7), ...land(7),
+  (c) => { for (let x = 2; x < 126; x += 4) { c.rect(x, 46, 3, 5, x % 8 ? "R" : "r"); c.px(x + 1, 47, "B"); c.line(x + 2, 45, x + 4, 39, "6") } },
+  stamp("_legio", 20, 36, { swap: BACK }), pilum(20, 36, 7, 30), stamp("_legio", 84, 36, { swap: BACK }), pilum(84, 36, 7, 30),
+  layer("shadow", { shade: true }, shadowAt(54, 78, 18)),
+  stamp("_centurio", 52, 42), line(52 + 19, 61, 52 + 24, 50, "x"),                                   // the vine stick
+])
+unit("fabri", (g) => g ? [
+  // Bituriges miners in a counter-mine under the Roman ramp: timber props, an oil lamp
+  vgrad(0, 0, CW, CH, "tTt", 1, 2),
+  (c) => { for (let x = 6; x < CW; x += 30) { c.rect(x, 10, 3, 60, "x"); c.vline(x, 10, 60, "X") } c.rect(0, 8, CW, 3, "x"); c.hline(0, 8, CW, "X"); c.rect(0, 70, CW, 10, "w") },
+  (c) => { const r = c.rng(3); for (let i = 0; i < 30; i++) c.px(Math.floor(r() * CW), 12 + Math.floor(r() * 56), "q") },   // stones in the tunnel wall
+  circ(98, 30, 1, "L"), px(98, 29, "K"), rect(96, 31, 5, 2, "B"), glow("LK", { r: 26, strength: 0.6 }),
+  stamp("_faber", 30, 41, { flip: "x", swap: GREEN }), stamp("_faber", 62, 42, { flip: "x", swap: { ...GREEN, ...BACK } }),
+  poly([0, 70, 24, 62, 30, 70], "T"), poly([4, 70, 20, 64, 24, 70], "q"),
+] : [
+  ...day(9), ...land(9, 50),
+  // the ditch being dug, earth thrown up into a bank, stakes waiting
+  poly([0, 64, 128, 60, 128, 70, 0, 74], "t"), poly([0, 60, 128, 56, 128, 61, 0, 65], "T"), (c) => { for (let x = 4; x < 128; x += 6) c.line(x, 58 - x / 32, x + 2, 52 - x / 32, "X") },
+  stamp("_faber", 30, 44), stamp("_faber", 70, 42, { swap: BACK }),
+  stamp("_legio", 96, 30, { swap: BACK }), pilum(96, 30, 6, 28),
+])
+unit("convoi", (g) => g ? [
+  ...day(11), ...land(11),
+  stamp("_granary", 64, 36), stamp("_granary", 88, 40, { swap: BACK }), stamp("_hut_s", 20, 38),
+  layer("shadow", { shade: true }, shadowAt(66, 50, 20)),
+  rect(50, 52, 6, 5, "Q"), rect(51, 51, 4, 1, "q"), rect(44, 53, 6, 5, "Q"), rect(45, 52, 4, 1, "q"),     // sacks
+  stamp("_gaul", 26, 40, { flip: "x" }),
+] : [
+  ...day(11), ...land(11),
+  layer("road", (c) => { c.poly([0, 66, 128, 58, 128, 70, 0, 78], "q"); c.line(0, 70, 128, 62, "T"); c.line(0, 74, 128, 66, "T") }),
+  layer("shadow", { shade: true }, shadowAt(40, 67, 44)),
+  stamp("_cart", 26, 50), stamp("_ox", 54, 52), line(50, 55, 58, 56, "W"),
+  stamp("_legio", 84, 38, { swap: BACK }), pilum(84, 38, 6, 30),
+])
+unit("scorpion", () => [
+  ...day(13), hills(40, 4, "3", 13, 60), hills(46, 3, "6", 18, 60), ...meadow(50, CW, 30, 13, 30),
+  // on the rampart: an earth bank faced with turf, a palisade behind the crew
+  poly([0, 58, 128, 54, 128, 80, 0, 80], "T"), poly([0, 58, 128, 54, 128, 57, 0, 61], "c"),
+  (c) => { for (let x = 0; x < 128; x += 2) c.vline(x, 48 - x / 32, 8, x % 4 ? "x" : "X") },
+  stamp("_scorpio", 50, 42), stamp("_legio", 28, 24), stamp("_legio", 74, 25, { swap: BACK }),
+  volley(80, 30, 1, 2, 9, "x"),
+])
+unit("aquilifere", (g) => g ? [
+  ...day(15), ...land(15),
+  stamp("_gaul", 80, 36, { flip: "x", swap: BACK }),
+  layer("shadow", { shade: true }, shadowAt(44, 78, 18)),
+  boarStd(64, 76, 52), stamp("_gaul", 42, 38, { flip: "x", swap: { h: "s", H: "S", G: "R" } }),
+] : [
+  ...day(15), ...land(15),
+  stamp("_legio", 84, 36, { swap: BACK }), pilum(84, 36, 7, 30), stamp("_legio", 22, 36, { swap: BACK }), pilum(22, 36, 7, 30),
+  layer("shadow", { shade: true }, shadowAt(52, 78, 18)),
+  aquila(71, 74, 50), stamp("_legio", 50, 41, { swap: { r: "o", R: "O", s: "y", S: "Y" } }),       // the eagle-bearer, his shield small and plain
+])
+unit("druide", () => [
+  sky(CW, 50, "789"), hills(42, 3, "6", 21, 60), ...meadow(52, CW, 28, 21, 40),
+  // a sacred oak with mistletoe, a standing stone
+  rect(84, 18, 6, 40, "w"), rect(85, 18, 2, 40, "W"),
+  (c) => { for (const [x, y, r] of [[74, 14, 12], [96, 12, 13], [86, 4, 10], [106, 22, 8]]) { c.circ(x, y, r, "a"); c.circ(x - 2, y - 2, r - 3, "A"); c.circ(x - 4, y - 4, Math.max(1, r - 7), "c") } },
+  circ(80, 22, 2, "H"), px(80, 22, "5"), circ(98, 24, 2, "H"), px(97, 23, "5"),
+  poly([18, 60, 20, 30, 28, 28, 30, 60], "M"), poly([20, 58, 21, 32, 25, 30, 24, 58], "m"),
+  layer("shadow", { shade: true }, shadowAt(54, 77, 18)),
+  stamp("_druid", 52, 47),
+])
+unit("soldurii", () => [
+  sky(CW, 52, "+2=3~4"), ...land(23),
+  stamp("_chief", 48, 30, { flip: "x", swap: BACK }),
+  layer("shadow", { shade: true }, shadowAt(18, 78, 20), shadowAt(50, 79, 20), shadowAt(82, 78, 20)),
+  // sworn bodyguards in mail, shields locked
+  stamp("_chief", 16, 38, { flip: "x", swap: { h: "I", H: "j", G: "i", O: "U", q: "v", R: "U", s: "v", r: "u" } }),
+  stamp("_chief", 48, 40, { flip: "x", swap: { h: "I", H: "j", G: "i", O: "R", q: "s", R: "G", s: "h", r: "g" } }),
+  stamp("_chief", 80, 38, { flip: "x", swap: { h: "I", H: "j", G: "i", O: "G", q: "h" } }),
+])
+unit("vercingetorix", () => [
+  sky(CW, 52, "789"), hills(40, 4, "7", 25, 60), hills(46, 3, "6", 26, 60), ...meadow(52, CW, 28, 25, 50),
+  boarStd(98, 58, 40), boarStd(16, 56, 36),
+  layer("shadow", { shade: true }, shadowAt(32, 78, 44)),
+  stamp("_cav_gaul", 30, 32, { flip: "x", swap: { h: "s", H: "S", G: "R", q: "N", O: "n", t: "M", T: "m", q: "J", Q: "J" } }),
+])
+unit("char_guerre", () => [
+  ...day(27), ...land(27),
+  layer("dust", dust([[110, 68, 5], [118, 64, 4], [102, 72, 4]])),
+  layer("shadow", { shade: true }, shadowAt(26, 77, 70)),
+  stamp("_horse_dun", 14, 46, { flip: "x" }),
+  stamp("_gaul", 62, 22, { flip: "x", swap: { h: "v", H: "V", G: "U" } }),
+  stamp("_chariot", 58, 46, { flip: "x" }), line(62, 52, 50, 56, "W"),
+])
+unit("decima", () => [
+  ...day(29), ...land(29),
+  (c) => { for (let x = 2; x < 126; x += 4) { c.rect(x, 46, 3, 5, x % 8 ? "R" : "r"); c.px(x + 1, 47, "B") } },
+  vexillum(62, 46, 34, "X"),
+  layer("shadow", { shade: true }, shadowAt(32, 78), shadowAt(54, 79), shadowAt(76, 78)),
+  stamp("_centurio", 32, 42), pilum(32, 42, 8, 32), stamp("_legio", 54, 43), pilum(54, 43, 6, 33), stamp("_legio", 76, 42), pilum(76, 42, 8, 32),
+])
+unit("tour", () => [
+  ...day(31), hills(40, 4, "3", 31, 60), ...meadow(48, CW, 32, 31, 30),
+  // the town wall on the right, the tower rolled up a ramp against it
+  murus(92, 128, 34, 12), rect(92, 46, 36, 34, "M"), (c) => { for (let y = 48; y < 80; y += 3) c.hline(92, y, 36, "0") },
+  poly([20, 80, 92, 46, 92, 80], "T"), poly([20, 80, 92, 46, 92, 49, 26, 80], "q"),
+  stamp("_tower", 62, 35), stamp("_legio", 30, 42), stamp("_legio", 46, 38, { swap: BACK }),
+])
+
+// ------------------------------------------------------------------ orders (one picture each)
+const order = (name, ...items) => scene("c_" + name, { w: CW, h: CH }, ...items)
+order("pluie_traits",
+  ...day(33), ...land(33),
+  (c) => { for (let x = 4; x < 124; x += 5) { c.rect(x, 58, 4, 8, x % 10 ? "s" : "R"); c.hline(x, 58, 4, "S"); c.px(x + 1, 61, "n") } },
+  (c) => { const r = c.rng(5); for (let i = 0; i < 26; i++) { const x = 10 + Math.floor(r() * 110), y = 8 + Math.floor(r() * 36); c.line(x, y, x + 5, y + 3, "x"); c.px(x + 6, y + 4, "J"); c.px(x + 7, y + 4, "J") } })
+order("ravitaillement",
+  ...day(35), ...land(35),
+  layer("road", (c) => { c.poly([0, 70, 128, 60, 128, 68, 0, 80], "q"); c.line(0, 74, 128, 64, "T") }),
+  stamp("_ox", 70, 46, { swap: BACK }), stamp("_cart", 44, 45, { swap: BACK }),
+  stamp("_ox", 32, 56), stamp("_cart", 4, 54))
+order("marche_forcee",
+  sky(CW, 50, "+2=3~4"), ...land(37),
+  layer("road", (c) => { c.poly([0, 62, 128, 54, 128, 62, 0, 72], "q"); c.line(0, 66, 128, 58, "Q") }),
+  layer("dust", dust([[8, 60, 5], [2, 56, 4], [16, 64, 3]])),
+  ...[0, 1, 2, 3, 4].map((i) => stamp("_legio", 102 - i * 20, 24 + i * 2, { swap: i < 2 ? BACK : {} })),
+  ...[0, 1, 2, 3, 4].map((i) => pilum(102 - i * 20, 24 + i * 2, 4, 28)))
+order("espions",
+  sky(CW, 40, "+2=3"), hills(34, 3, "6", 39, 60), ...meadow(42, CW, 38, 39, 20),
+  // a camp far off, watched from the edge of a wood
+  (c) => { for (let x = 64; x < 120; x += 2) c.vline(x, 38, 4, x % 4 ? "x" : "X"); for (let x = 70; x < 116; x += 8) c.poly([x, 38, x + 3, 33, x + 6, 38], "l") },
+  smoke(80, 32, 5),
+  treeline(64, 4, "A", "a", 41, 60, 80), treeline(78, 4, "c", "A", 43, CW, 80),
+  stamp("_archer", 30, 44, { swap: { Q: "G", q: "g" } }))
+order("circonvallation",
+  ...day(43), hills(40, 4, "3", 43, 60), ...meadow(48, CW, 32, 43, 20),
+  // Alesia's works: a ditch with sharpened stakes (cippi), an earth rampart, a palisade, a watchtower
+  poly([0, 52, 128, 48, 128, 58, 0, 62], "T"), poly([0, 52, 128, 48, 128, 50, 0, 54], "c"),
+  (c) => { for (let x = 0; x < 128; x += 2) { c.vline(x, 40 - Math.round(x / 32), 9, x % 4 ? "x" : "X"); c.px(x, 39 - Math.round(x / 32), "W") } },
+  rect(94, 22, 12, 18, "x"), rect(95, 23, 10, 16, "X"), poly([92, 22, 100, 16, 108, 22], "W"), rect(96, 26, 8, 2, "w"),
+  poly([0, 66, 128, 62, 128, 72, 0, 76], "t"),
+  (c) => { for (let x = 3; x < 128; x += 7) { c.line(x, 72 - x / 32, x + 3, 64 - x / 32, "X"); c.px(x + 3, 63 - x / 32, "l") } })
+order("carnyx",
+  sky(CW, 56, "1789"), circ(96, 50, 6, "9"), glow("9", { r: 10, strength: 0.4 }),
+  hills(48, 4, "7", 45, 70), hills(54, 3, "&", 46, 70), rect(0, 60, CW, 20, "a"), hline(0, 60, CW, "A"),
+  ...[[20, 30], [52, 26], [84, 32]].map(([x, y]) => stamp("_carnyx", x, y, {})),
+  stamp("_gaul", 8, 40, { flip: "x", swap: { h: "g", H: "G", G: "g", O: "g", q: "G", Y: "o", y: "o", F: "E", f: "e", B: "b", n: "B", N: "n" } }),
+  stamp("_gaul", 40, 38, { flip: "x", swap: { h: "g", H: "G", G: "g", O: "g", q: "G", Y: "o", y: "o", F: "E", f: "e", B: "b", n: "B", N: "n" } }),
+  stamp("_gaul", 72, 41, { flip: "x", swap: { h: "g", H: "G", G: "g", O: "g", q: "G", Y: "o", y: "o", F: "E", f: "e", B: "b", n: "B", N: "n" } }))
+order("terre_brulee",
+  vgrad(0, 0, CW, 54, "1uUr", 1, 2), hills(46, 3, "u", 47, 70), rect(0, 52, CW, 28, "g"), hline(0, 52, CW, "G"),
+  // a village and its fields on fire at night
+  stamp("_hut", 20, 34, { swap: { Y: "D", y: "R", O: "r", o: "r", X: "W", x: "w" } }), stamp("_granary", 64, 38, { swap: { Y: "D", y: "R", O: "r", o: "r", X: "W", x: "w" } }),
+  stamp("_hut_s", 94, 40, { swap: { Y: "D", y: "R", O: "r", o: "r", X: "W", x: "w" } }),
+  (c) => { for (const [x, y, h] of [[30, 34, 14], [72, 37, 12], [101, 40, 10], [50, 54, 6], [116, 56, 5]]) { c.poly([x - 5, y, x - 2, y - h, x, y - h / 2, x + 2, y - h - 3, x + 5, y], "D"); c.poly([x - 3, y, x - 1, y - h * 0.6, x + 1, y - h * 0.4, x + 3, y], "L"); c.poly([x - 1, y, x, y - h * 0.3, x + 1, y], "K") } },
+  smoke(36, 16, 6), smoke(78, 20, 5), glow("DLK", { r: 14, strength: 0.6 }))
+
+// Card back for face-down cards: Roman red, a gold laurel wreath around SPQR.
+scene("c_back", { w: CW, h: CH, bg: "R" },
+  (c) => { for (let i = -CH; i < CW; i += 8) c.line(i, CH - 1, i + CH, 0, "r") },
+  box(2, 2, CW - 4, CH - 4, "n"), box(4, 4, CW - 8, CH - 8, "B"),
+  (c) => {
+    // two laurel branches: a stem along an arc, a pair of leaves every few pixels, lit on top
+    for (const side of [-1, 1]) for (let a = 0; a <= 40; a++) {
+      const t = 0.35 + a / 40 * 2.3, x = Math.round(64 + side * Math.sin(t) * 28), y = Math.round(40 - Math.cos(t) * 24)
+      c.px(x, y, "B")
+      if (a % 4 === 0) { c.px(x + side, y - 1, "N"); c.px(x + 2 * side, y - 2, "n"); c.px(x - side, y - 1, "n"); c.px(x - 2 * side, y - 1, "B") }
+    }
+    c.circ(64, 64, 2, "n"); c.px(63, 63, "N")
+  },
+  text(52, 38, "SPQR", "N", { shadow: "r" }))
+
+const CARDS = ["legionnaire", "cavaliers", "sagittaires", "frondeurs", "centurion", "fabri", "convoi", "scorpion", "aquilifere", "druide", "soldurii", "vercingetorix", "char_guerre", "decima", "tour"]
+const ORDERS = ["pluie_traits", "ravitaillement", "marche_forcee", "espions", "circonvallation", "carnyx", "terre_brulee", "back"]
+scene("contact_cards", { w: 4 * 130 + 2, h: 10 * 82 + 2, bg: "k" },
+  ...CARDS.map((n, i) => stamp("c_" + n, 2 + (i % 2) * 260, 2 + Math.floor(i / 2) * 82)),
+  ...CARDS.map((n, i) => stamp("c_" + n + "_x", 132 + (i % 2) * 260, 2 + Math.floor(i / 2) * 82)),
+  ...ORDERS.map((n, i) => stamp("c_" + n, (i % 4) * 130 + 2, 2 + (8 + Math.floor(i / 4)) * 82)))
+
+// ------------------------------------------------------------------ more terrain pieces
+// Water band: sky reflected light near the far bank, darker towards us, ripples as short light strokes.
+const water = (y, h, seed = 1, keys = "PpZz") => [vgrad(0, y, TW, h, keys, 1, 2),
+  (c) => { const r = c.rng(seed); for (let i = 0; i < h * 6; i++) { const x = Math.floor(r() * TW), yy = y + 1 + Math.floor(r() * (h - 2)), t = (yy - y) / h; c.hline(x, yy, 2 + Math.floor(r() * (2 + t * 6)), t < 0.4 ? "4" : "P") } }]
+// Reeds: thin stalks with a dark seed head, painted on the near bank.
+sprite("_reed_a", ".w.\n.c.\n.c.\nc.c")
+sprite("_reed_b", "w..\nc..\n.c.\n.c.\ncA.")
+group("_reed", ["_reed_a", "_reed_b"])
+// Roman leather tent (contubernium), seen from the corner, lit on the left slope.
+sprite("_tent", { outline: "k" }, `
+  ......Xx......
+  .....XXxx.....
+  ....XXXxxx....
+  ...XXXXxxxW...
+  ..XXXXXxxxWW..
+  .XXXXXXxxxWWW.
+  XXXXXXwxxxWWWW`)
+// Palisade along a line of stakes, sharpened tops.
+const palisade = (x0, x1, y, h = 6, slope = 0) => (c) => { for (let x = x0; x < x1; x += 2) { const yy = Math.round(y + (x - x0) * slope); c.vline(x, yy, h, x % 4 ? "x" : "X"); c.vline(x + 1, yy + 1, h - 1, "W"); c.px(x, yy - 1, "W") } }
+// Watchtower on four posts with a little roof.
+sprite("_wtower", { outline: "k" }, `
+  ...WWWWW...
+  ..WxxxxxW..
+  .WWWWWWWWW.
+  ..XxwwwxX..
+  ..XxxxxxX..
+  ..WWWWWWW..
+  ..x.x.x.x..
+  ..x..x..x..
+  ..x.x.x.x..
+  ..xx...xx..
+  ..x.x.x.x..
+  ..x..x..x..`)
+// Ditch: a dark trench with a lit far lip, optional stakes (lilia) in it.
+const ditch = (y, h = 5, stakes = false) => (c) => { c.rect(0, y, TW, h, "t"); c.hline(0, y, TW, "T"); c.hline(0, y + h, TW, "A"); if (stakes) for (let x = 3; x < TW; x += 6) { c.line(x, y + h - 1, x + 2, y + 1, "X"); c.px(x + 2, y, "l") } }
+// White chalk or limestone cliff: vertical fissures, lit faces, a grassy top.
+const cliff = (x0, x1, top, base, keys = "lmM0") => (c) => {
+  const r = c.rng(x0 + top)
+  for (let x = x0; x < x1; x++) { const t = top + Math.round(Math.sin(x / 9) * 2 + Math.sin(x / 3.7)); c.vline(x, t, base - t, keys[(x % 11 < 6) ? 0 : 1]); c.px(x, t, "c"); c.px(x, t + 1, "A") }
+  for (let x = x0 + 3; x < x1; x += 4 + Math.floor(r() * 5)) c.vline(x, top + 4 + Math.floor(r() * 4), base - top - 6 - Math.floor(r() * 6), keys[2])
+  for (let x = x0; x < x1; x += 2) c.px(x, base - 1, keys[3])
+}
+// Veneti ship: tall oak hull with a high bow and stern, a leather sail; Roman galley: low, oars, a red sail.
+sprite("_veneti", { outline: "k" }, `
+  ..............w.........
+  ..........EEEEwEEEE.....
+  ..........EeeEwEeeE.....
+  ..........EEEEwEEEE.....
+  ..........EeeEwEeeE.....
+  ..........EEEEwEEEE.....
+  ...........EEEwEEE......
+  ..............w.........
+  WW............w.......WW
+  WxW...................xW
+  WxxWWWWWWWWWWWWWWWWWWxxW
+  .WxxxxxxxxxxxxxxxxxxxxW.
+  .WxXXXXXXXXXXXXXXXXXXxW.
+  ..WxxxxxxxxxxxxxxxxxxW..
+  ...WWWWWWWWWWWWWWWWWW...`)
+sprite("_galley", { outline: "k" }, `
+  ..........w..........
+  .......sssSwsss......
+  .......sSSSwSSs......
+  .......sssSwsss......
+  ........ssSwss.......
+  ..........w..........
+  W.........w.........n
+  WxW................xn
+  .WxxxxxxxxxxxxxxxxxxW
+  ..RRRRRRRRRRRRRRRRRR.
+  ..WWWWWWWWWWWWWWWWW..
+  ...x.x.x.x.x.x.x.x...
+  ..x.x.x.x.x.x.x.x....`)
+
+terrain("plaine",
+  sky(TW, 84), stamp("_cloud_a", 40, 10), stamp("_cloud_a", 200, 4), stamp("_cloud_b", 140, 30), stamp("_cloud_far", 260, 50),
+  hills(68, 4, "3", 2, 100, TW), hills(76, 4, "6", 7, 100, TW), treeline(82, 2, "%", "&", 3, TW, 100),
+  clip((x, y) => y >= 84, quilt(84, 116, 9)), ...meadow(112, TW, 32, 9, 120).map((it) => it),
+  layer("road", (c) => { c.poly([150, 84, 158, 84, 210, 144, 120, 144], "q"); c.line(154, 84, 165, 144, "T"); c.line(156, 84, 182, 144, "T") }),
+  bigTree(70, 92, 12), layer("shadow", { shade: true }, ellipse(82, 118, 14, 3, "k")),
+  rect(196, 104, 3, 8, "m"), rect(196, 104, 1, 8, "l"),                                                  // a milestone by the road
+)
+terrain("gue",
+  sky(TW, 80), stamp("_cloud_a", 220, 8), stamp("_cloud_b", 30, 18),
+  hills(64, 4, "3", 12, 100, TW), hills(72, 4, "6", 13, 100, TW), treeline(80, 3, "%", "&", 14, TW, 96),
+  ...meadow(90, TW, 54, 15, 80),
+  ...water(98, 22, 16),
+  // the ford: a pale gravel bar across the river, stones breaking the current, cart tracks going in
+  poly([130, 98, 190, 98, 210, 120, 110, 120], "Q"), (c) => { const r = c.rng(4); for (let i = 0; i < 40; i++) { const x = 116 + Math.floor(r() * 90), y = 100 + Math.floor(r() * 19); c.px(x, y, r() < 0.5 ? "m" : "q") } },
+  (c) => { for (const [x, y] of [[112, 108], [206, 112], [124, 116], [196, 102]]) { c.ellipse(x, y, 3, 1, "M"); c.hline(x - 2, y - 1, 3, "m"); c.hline(x + 3, y + 1, 4, "4") } },
+  line(150, 90, 152, 98, "T"), line(168, 90, 170, 98, "T"), line(150, 120, 146, 144, "T"), line(170, 120, 176, 144, "T"),
+  scatter("_reed", 0, 118, TW, 8, 70, { seed: 3 }), scatter("_reed", 0, 92, TW, 6, 50, { seed: 5 }),
+  treeline(142, 3, "A", "a", 17, TW, 144),
+)
+terrain("foret",
+  vgrad(0, 0, TW, 144, "&Aa", 1, 2),
+  // deep woods: rows of trunks, farther ones paler in the mist, light shafts slanting from the left
+  (c) => { const r = c.rng(2); for (let row = 0; row < 3; row++) for (let x = Math.floor(r() * 10); x < TW; x += 12 + Math.floor(r() * 14) - row * 3) { const w = 2 + row * 2, k = ["%", "W", "w"][row]; c.rect(x, 0, w, 120 + row * 8, k); if (row) c.vline(x, 0, 120 + row * 8, row === 1 ? "x" : "W") } },
+  layer("shafts", { light: true, density: 0.35 }, poly([60, 0, 90, 0, 170, 144, 120, 144], "k"), poly([180, 0, 200, 0, 270, 144, 240, 144], "k")),
+  (c) => { for (const [x, y, r] of [[30, 6, 22], [100, 0, 26], [170, 8, 22], [240, 2, 26], [300, 6, 20]]) { c.circ(x, y, r, "a"); c.circ(x - 3, y - 3, r - 6, "A") } },
+  vgrad(0, 124, TW, 20, "Aa", 1, 2), scatter("_tuft", 0, 126, TW, 18, 80, { seed: 7, on: "Aa" }),
+)
+terrain("camp",
+  sky(TW, 70), stamp("_cloud_b", 40, 10), stamp("_cloud_a", 230, 6),
+  hills(56, 4, "3", 22, 80, TW), hills(64, 4, "6", 23, 90, TW), ...meadow(70, TW, 74, 24, 50),
+  // rows of tents inside the rampart, the standards in the middle
+  ...[0, 1, 2, 3].flatMap((row) => Array.from({ length: 14 }, (_, i) => stamp("_tent", 30 + i * 19 + (row % 2) * 9, 66 + row * 9))),
+  vexillum(160, 74, 26, "X"), aquila(176, 76, 30), smoke(110, 70, 6), smoke(220, 72, 5),
+  // the agger: earth bank, turf facing and palisade, the ditch in front, the gate
+  poly([0, 110, TW, 110, TW, 124, 0, 124], "T"), hline(0, 110, TW, "c"), palisade(0, TW, 102, 9),
+  rect(150, 96, 22, 28, "w"), stamp("_wtower", 140, 84), stamp("_wtower", 170, 84),
+  ditch(126, 6), vgrad(0, 132, TW, 12, "cA", 1, 2),
+)
+terrain("murus",
+  sky(TW, 60), stamp("_cloud_a", 180, 8),
+  hills(48, 4, "3", 30, 80, TW), treeline(56, 3, "%", "&", 31, TW, 80),
+  stamp("_hut", 60, 22), stamp("_hut_s", 100, 30), stamp("_hut", 220, 24), smoke(70, 20, 6), smoke(230, 22, 6),
+  murus(0, TW, 46, 40), layer("wallshade", { shade: true }, rect(0, 84, TW, 2, "k")),
+  // the gate: a deep passage between the wall's turned-in ends, a timber bridge over it
+  rect(140, 50, 40, 36, "w"), rect(138, 40, 44, 10, "x"), hline(138, 40, 44, "X"), (c) => { for (let x = 140; x < 180; x += 4) c.vline(x, 42, 8, "W") },
+  rect(144, 56, 32, 30, "0"), (c) => { for (let x = 146; x < 176; x += 3) c.vline(x, 58, 28, "W") },
+  ...meadow(86, TW, 58, 32, 50), layer("road", (c) => c.poly([144, 86, 176, 86, 200, 144, 120, 144], "q")),
+)
+terrain("riviere",
+  sky(TW, 76), stamp("_cloud_a", 20, 8), stamp("_cloud_b", 180, 20), stamp("_cloud_far", 260, 44),
+  hills(60, 5, "3", 40, 100, TW), hills(70, 4, "6", 41, 100, TW), treeline(78, 3, "%", "&", 42, TW, 100),
+  ...meadow(84, TW, 60, 43, 80),
+  // a river winding from the far hills to us
+  (c) => { for (let y = 84; y < 144; y++) { const t = (y - 84) / 60, cx = 160 + Math.sin(t * 4) * 60, w = 6 + t * 70; c.hline(Math.round(cx - w / 2), y, Math.round(w), t < 0.3 ? "P" : t < 0.7 ? "p" : "Z"); if (y % 3 === 0) c.hline(Math.round(cx - w / 4), y, Math.round(w / 6), "4") } },
+  scatter("_reed", 0, 128, TW, 14, 50, { seed: 9 }), bigTree(30, 104, 14), bigTree(290, 110, 12),
+)
+terrain("marais",
+  sky(TW, 70, "+2=3~4"), hills(58, 3, "6", 50, 90, TW), treeline(66, 2, "%", "&", 51, TW, 90),
+  vgrad(0, 70, TW, 74, "^cA", 1, 2),
+  // pools of still water among the reeds, dead trees, a low mist
+  (c) => { const r = c.rng(5); for (let i = 0; i < 14; i++) { const x = Math.floor(r() * TW), y = 78 + Math.floor(r() * 60), rx = 10 + Math.floor(r() * 24); c.ellipse(x, y, rx, 2 + Math.floor((y - 70) / 18), y < 100 ? "P" : "p"); c.hline(x - rx + 3, y - 1, rx, "4") } },
+  scatter("_reed", 0, 76, TW, 66, 200, { seed: 11 }),
+  (c) => { for (const [x, h] of [[60, 34], [210, 40], [270, 26]]) { c.vline(x, 104 - h, h, "w"); c.line(x, 104 - h + 8, x - 8, 104 - h, "w"); c.line(x, 104 - h + 14, x + 7, 104 - h + 6, "w") } },
+)
+terrain("cote",
+  sky(TW, 70), stamp("_cloud_a", 60, 6), stamp("_cloud_b", 230, 16),
+  ...water(70, 74, 61, "3pZz"),
+  cliff(0, 110, 54, 118), poly([0, 118, 110, 118, 130, 144, 0, 144], "Q"), (c) => { for (let x = 0; x < 130; x += 3) c.px(x, 120 + (x % 7), "q") },
+  stamp("_veneti", 190, 56), stamp("_veneti", 250, 74, { swap: BACK }), stamp("_galley", 140, 92),
+  (c) => { for (let x = 110; x < TW; x += 9) c.hline(x, 118 + (x % 5), 4, "5") },
+)
+terrain("village",
+  sky(TW, 70), stamp("_cloud_a", 140, 6), stamp("_cloud_far", 40, 30),
+  hills(56, 4, "3", 60, 90, TW), hills(64, 4, "6", 61, 90, TW), treeline(70, 2, "%", "&", 62, TW, 90),
+  ...meadow(74, TW, 70, 63, 60), clip((x, y) => y > 74 && y < 90, quilt(74, 90, 63)),
+  stamp("_hut", 40, 72), stamp("_hut_s", 80, 82), stamp("_granary", 120, 80), stamp("_hut", 160, 74), stamp("_hut", 230, 78), stamp("_hut_s", 270, 88), stamp("_granary", 200, 92),
+  smoke(50, 70, 7), smoke(170, 72, 7), smoke(240, 76, 6),
+  (c) => { for (let x = 20; x < 300; x += 3) { c.vline(x, 106, 5, "x"); } c.hline(20, 107, 280, "X"); c.hline(20, 109, 280, "W") },   // wattle fence
+  layer("road", (c) => c.poly([140, 112, 170, 112, 200, 144, 110, 144], "q")),
+)
+terrain("lignes",
+  sky(TW, 64), stamp("_cloud_b", 220, 12),
+  hills(40, 5, "3", 70, 80, TW), fillUnder(plateau(160, 30, 50, 66, 30), "6", 80), hills(60, 3, "6", 71, 80, TW),
+  ...meadow(66, TW, 78, 72, 40),
+  // the two lines facing outwards and inwards: rampart, palisade and towers, ditches with stakes between
+  poly([0, 76, TW, 76, TW, 84, 0, 84], "T"), hline(0, 76, TW, "c"), palisade(0, TW, 70, 7),
+  ...[30, 110, 190, 270].map((x) => stamp("_wtower", x, 56)),
+  ditch(88, 4, true), ditch(98, 5, true),
+  poly([0, 110, TW, 110, TW, 120, 0, 120], "T"), hline(0, 110, TW, "c"), palisade(0, TW, 103, 8),
+  ...[60, 150, 240].map((x) => stamp("_wtower", x, 88)),
+  (c) => { for (let x = 4; x < TW; x += 8) for (let y = 126; y < 144; y += 6) { c.ellipse(x + (y % 12 ? 4 : 0), y, 2, 1, "t"); c.px(x + (y % 12 ? 4 : 0), y - 1, "l") } },   // the lilia: pits with a stake
+)
+
+// ------------------------------------------------------------------ campaign terrains with their own picture
+terrain("morbihan",
+  sky(TW, 64, "1+2=3~4"), stamp("_cloud_a", 30, 6), stamp("_cloud_far", 200, 30),
+  ...water(64, 80, 71, "3pZz"),
+  // islands of the gulf, the Veneti fleet under leather sails, the Roman galleys closing in
+  (c) => { for (const [x, w, h] of [[20, 70, 6], [150, 40, 4], [250, 60, 5]]) { c.ellipse(x + w / 2, 66, w / 2, h, "6"); c.hline(x + 4, 66 - h + 1, w - 8, "%") } },
+  stamp("_veneti", 40, 70, { swap: BACK }), stamp("_veneti", 200, 66, { swap: BACK }), stamp("_veneti", 110, 84),
+  stamp("_galley", 30, 104), stamp("_galley", 230, 100), stamp("_galley", 150, 118),
+  (c) => { for (const [x, y] of [[40, 116], [156, 130], [240, 112]]) for (let i = 0; i < 14; i++) c.px(x - i, y + (i % 3 === 0 ? 1 : 0), "5") },   // wakes
+)
+terrain("kent",
+  sky(TW, 88), stamp("_cloud_a", 140, 4), stamp("_cloud_b", 260, 14),
+  // the white cliffs, the shingle beach, the legions wading ashore from grounded ships
+  cliff(0, 200, 28, 86, "5lmM"), poly([0, 86, 200, 86, 240, 100, 0, 100], "Q"),
+  ...water(86, 58, 81, "3pZz"), poly([0, 96, 230, 96, 250, 104, 0, 104], "Q"), (c) => { for (let x = 0; x < 250; x += 3) c.px(x, 98 + (x % 5), "q") },
+  (c) => { for (let x = 0; x < 250; x += 8) c.hline(x, 104 + (x % 3), 5, "5") },
+  stamp("_galley", 200, 100), stamp("_galley", 260, 112, { swap: BACK }),
+  stamp("_legio", 120, 98), stamp("_legio", 150, 104), stamp("_legio", 176, 108), aquila(140, 128, 40),
+  ...water(124, 20, 83, "pZZz"), (c) => { for (const x of [128, 158, 184]) { c.hline(x, 124, 9, "5"); c.px(x - 1, 125, "4"); c.px(x + 9, 125, "4") } },
+  stamp("_gaul", 40, 64, { flip: "x", swap: { h: "v", H: "V", G: "U", F: "v", f: "U" } }), stamp("_gaul", 70, 62, { flip: "x", swap: { h: "v", H: "V", G: "U", F: "v", f: "U" } }),
+)
+terrain("pont_rhin",
+  sky(TW, 70), stamp("_cloud_a", 220, 8),
+  hills(56, 4, "3", 90, 90, TW), treeline(66, 4, "&", "a", 91, TW, 90),
+  ...water(72, 52, 92, "PpZz"),
+  // the timber bridge on paired piles, raked downstream, a breakwater of logs upstream
+  (c) => {
+    for (let x = 0; x < TW; x++) { const y = Math.round(76 + x * 0.12); c.rect(x, y, 1, 4, x % 6 < 3 ? "X" : "x"); c.px(x, y + 4, "W") }
+    for (let x = 6; x < TW; x += 18) { const y = Math.round(76 + x * 0.12); c.line(x, y + 4, x - 3, y + 26, "w", 2); c.line(x + 6, y + 4, x + 9, y + 26, "w", 2); c.line(x, y + 12, x + 6, y + 12, "W") }
+  },
+  stamp("_legio", 100, 52), stamp("_legio", 124, 55), stamp("_faber", 170, 60),
+  ...meadow(124, TW, 20, 93, 40), scatter("_reed", 0, 120, TW, 8, 40, { seed: 13 }),
+)
+terrain("avaricum",
+  sky(TW, 70, "+2=3~4"), stamp("_cloud_a", 30, 8),
+  hills(56, 3, "6", 100, 90, TW),
+  // the town on its rise, behind the murus; the Roman ramp (agger) climbs to it between two siege towers
+  fillUnder(plateau(170, 58, 80, 84, 30), "c"), murus(80, 260, 50, 16), stamp("_hut", 110, 30), stamp("_hut", 200, 32), stamp("_hut_s", 150, 36), smoke(120, 28, 7), smoke(210, 30, 6),
+  vgrad(0, 84, TW, 60, "^cA", 1, 2), (c) => { const r = c.rng(6); for (let i = 0; i < 10; i++) { const x = Math.floor(r() * TW), y = 96 + Math.floor(r() * 40); c.ellipse(x, y, 12 + Math.floor(r() * 16), 2, "p"); c.hline(x - 8, y - 1, 10, "P") } },
+  scatter("_reed", 0, 92, TW, 50, 120, { seed: 15 }),
+  poly([60, 144, 140, 66, 200, 66, 170, 144], "T"), poly([60, 144, 140, 66, 146, 66, 70, 144], "q"),
+  stamp("_tower", 110, 46), stamp("_tower", 196, 46, { swap: BACK }),
+)
+terrain("gergovie",
+  sky(TW, 60), stamp("_cloud_a", 60, 4), stamp("_cloud_b", 240, 12),
+  hills(52, 5, "3", 110, 90, TW),
+  // the long plateau of the Arverni, steep on every side, the small Roman camp on a knoll below
+  flankShade(plateau(150, 34, 110, 110, 34), 0, TW, "Cc^A"),
+  murus(48, 252, 30, 6), stamp("_hut_s", 70, 16), stamp("_hut", 120, 12), stamp("_hut_s", 180, 16), stamp("_hut", 220, 12), smoke(130, 12, 6), smoke(230, 12, 6),
+  clip((x, y) => y > plateau(150, 34, 110, 110, 34)(x) + 4, stamp("_copse", 40, 70), stamp("_copse", 250, 66), stamp("_copse", 60, 90), stamp("_copse", 270, 92)),
+  ...meadow(110, TW, 34, 111, 50),
+  // the Roman camp: a square rampart with tents
+  poly([200, 118, 300, 118, 300, 132, 200, 132], "T"), palisade(200, 300, 113, 6), ...[0, 1, 2, 3].map((i) => stamp("_tent", 210 + i * 20, 116)),
+)
+terrain("alesia",
+  sky(TW, 56, "789"), circ(250, 36, 8, "9"), glow("9", { r: 14, strength: 0.35 }), stamp("_cloud_far", 40, 20),
+  hills(44, 5, "7", 120, 80, TW), hills(52, 4, "6", 121, 80, TW),
+  // Mont Auxois with the oppidum, ringed in the plain by the Roman double line, the relief army's campfires beyond
+  flankShade(plateau(160, 40, 70, 96, 44), 0, TW, "Cc^A"),
+  murus(96, 224, 36, 6), stamp("_hut_s", 110, 22), stamp("_hut", 140, 18), stamp("_hut_s", 176, 22), stamp("_hut", 196, 18), smoke(150, 18, 7), smoke(206, 18, 6),
+  ...meadow(96, TW, 48, 122, 40),
+  poly([0, 104, TW, 104, TW, 110, 0, 110], "T"), hline(0, 104, TW, "c"), palisade(0, TW, 99, 5),
+  ...[20, 100, 180, 260].map((x) => stamp("_wtower", x, 86)), ditch(112, 3, true),
+  poly([0, 124, TW, 124, TW, 130, 0, 130], "T"), hline(0, 124, TW, "c"), palisade(0, TW, 118, 6), ...[60, 140, 220, 300].map((x) => stamp("_wtower", x, 104)),
+  (c) => { for (let x = 6; x < TW; x += 14) { c.px(x, 138, "L"); c.px(x, 137, "K"); c.px(x + 1, 138, "D") } }, glow("LK", { r: 5, strength: 0.5 }),
+)
+terrain("uxellodunum",
+  sky(TW, 70), stamp("_cloud_a", 200, 6),
+  hills(60, 4, "3", 130, 90, TW),
+  // the oppidum on its limestone spur above the river, the spring at the cliff foot, the Roman tower facing it
+  cliff(60, 260, 44, 112, "lmM0"), murus(70, 250, 36, 7), stamp("_hut", 100, 18), stamp("_hut_s", 150, 24), stamp("_hut", 200, 18), smoke(110, 16, 6), smoke(210, 16, 6),
+  fillUnder(plateau(160, 44, 100, 112, 20), "c", 112, 0, 60), fillUnder(plateau(160, 44, 100, 112, 20), "c", 112, 260, TW),
+  ...meadow(108, TW, 36, 131, 40), ...water(124, 20, 132, "PpZz"),
+  circ(180, 112, 3, "P"), px(179, 111, "5"), line(180, 115, 186, 124, "p"),                                // the spring
+  stamp("_tower", 236, 84), stamp("_legio", 210, 92), stamp("_faber", 196, 96),
+)
+
+// ------------------------------------------------------------------ campaign map (640x280), the same lon/lat frame as pack.js
+// An antique chart: parchment land, sea in hatched teal, rivers, hachured mountains, forests in little trees, Latin names.
+const MW = 640, MH = 280
+const P = (lon, lat) => [Math.round((lon + 7) / 22 * MW), Math.round((53 - lat) / 10.5 * MH)]
+const path = (pts) => pts.flatMap(([lon, lat]) => P(lon, lat))
+const river = (pts, k = "p") => (c) => { for (let i = 0; i < pts.length - 1; i++) { const [x0, y0] = P(...pts[i]), [x1, y1] = P(...pts[i + 1]); c.line(x0, y0, x1, y1, k, i > pts.length / 2 ? 2 : 1) } }
+const ridge = (lon0, lat0, lon1, lat1, n, seed = 1) => (c) => {
+  const r = c.rng(seed)
+  for (let i = 0; i < n; i++) { const t = r(), [x, y] = P(lon0 + (lon1 - lon0) * t + (r() - 0.5) * 1.2, lat0 + (lat1 - lat0) * t + (r() - 0.5) * 0.9); c.line(x - 3, y + 2, x, y - 2, "q"); c.line(x, y - 2, x + 3, y + 2, "T"); c.px(x - 1, y, "Q") }
+}
+const wood = (lon0, lat0, lon1, lat1, n, seed = 1) => (c) => {
+  const r = c.rng(seed)
+  for (let i = 0; i < n; i++) { const [x, y] = P(lon0 + (lon1 - lon0) * r(), lat0 + (lat1 - lat0) * r()); c.px(x, y - 1, "h"); c.px(x - 1, y, "G"); c.px(x, y, "G"); c.px(x + 1, y, "G"); c.px(x, y + 1, "W") }
+}
+const ATLANTIC = [[-7, 53], [5.5, 53], [4.7, 52.9], [4.2, 51.9], [3.5, 51.4], [2.5, 51.1], [1.6, 50.9], [1.4, 50.1], [0.2, 49.5], [-1.1, 49.4], [-1.3, 49.7], [-1.9, 49.7],
+  [-1.6, 48.7], [-2.0, 48.6], [-3.0, 48.8], [-4.0, 48.7], [-4.7, 48.4], [-4.4, 47.9], [-3.5, 47.7], [-2.5, 47.3], [-2.2, 46.8], [-1.2, 46.0], [-1.2, 44.6], [-1.6, 43.4],
+  [-3.8, 43.5], [-5.8, 43.6], [-7, 43.7]]
+const BRITAIN = [[-5.7, 50.0], [-4.2, 50.4], [-3.4, 50.6], [-2.0, 50.7], [-1.0, 50.8], [0.3, 50.8], [1.4, 51.2], [1.4, 51.4], [0.9, 51.6], [1.7, 52.1], [1.7, 52.7], [0.3, 53.1],
+  [-3.0, 53.1], [-4.5, 52.8], [-4.2, 52.0], [-5.2, 51.7], [-3.0, 51.5], [-4.5, 51.2]]
+const IRELAND = [[-7, 52.2], [-6.3, 52.2], [-6.0, 53.1], [-7, 53.1]]
+const MEDIT = [[2.6, 42.4], [3.1, 43.0], [3.5, 43.3], [4.5, 43.4], [5.3, 43.3], [6.2, 43.1], [7.0, 43.5], [7.5, 43.8], [8.2, 43.9], [8.8, 44.4], [9.5, 44.1], [10.2, 43.9], [10.5, 43.3], [10.7, 42.9], [11.2, 42.4]]
+const ADRIA = [[12.3, 44.4], [12.4, 45.4], [13.8, 45.6], [13.6, 45.1], [14.0, 44.9], [14.5, 45.3], [15.1, 45.2], [15.1, 42.4], [14.2, 42.4], [13.5, 43.6], [12.6, 44.0]]
+const CORSICA = [[9.4, 43.0], [9.55, 42.4], [8.6, 42.4], [8.7, 42.7]]
+scene("map_gaule", { w: MW, h: MH, bg: "Q" },
+  // parchment: a warm wash darker towards the edges, a few stains
+  rect(0, 0, MW, MH, "l"),
+  // seas
+  poly(path(ATLANTIC), "p"), poly(path(MEDIT.concat([[11.2, 42.4]])), "p"), poly(path(ADRIA), "p"),
+  poly(path(BRITAIN), "l"), poly(path(IRELAND), "l"), poly(path(CORSICA), "l"),
+  // sea hatching parallel to the coasts (waves), lighter by the shore
+  (c) => { for (let y = 2; y < MH; y += 4) for (let x = (y % 8) * 2; x < MW; x += 10) if (c.is(x, y, "p") && c.is(x + 4, y, "p")) c.hline(x, y, 4, "P") },
+  // coastlines
+  (c) => { const L = (ch) => "lQq".includes(ch); for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) if (c.is(x, y, "p") && (L(c.key(x - 1, y)) || L(c.key(x + 1, y)) || L(c.key(x, y - 1)) || L(c.key(x, y + 1)))) c.px(x, y, "Z") },
+  // relief and forests
+  ridge(5.8, 45.2, 13.5, 46.6, 160, 1), ridge(6.0, 44.2, 7.5, 45.5, 40, 2),            // Alps
+  ridge(2.4, 44.6, 3.9, 46.0, 50, 3), ridge(5.7, 46.4, 6.8, 47.3, 18, 4), ridge(6.8, 47.8, 7.4, 48.9, 18, 5),   // Massif Central, Jura, Vosges
+  ridge(-1.4, 42.6, 3.0, 42.95, 40, 6), ridge(-4.2, 43.0, -1.6, 43.2, 18, 7),          // Pyrenees, Cantabrians
+  wood(4.6, 49.7, 6.8, 50.5, 60, 8), wood(8.6, 48.6, 14.5, 51.6, 220, 9), wood(0.8, 47.8, 2.0, 48.4, 20, 10), wood(-1.0, 51.0, 0.6, 51.3, 20, 11),
+  // rivers
+  river([[0.2, 49.45], [1.0, 49.4], [1.5, 49.1], [2.3, 48.85], [3.0, 48.5], [3.6, 48.3], [4.5, 48.0], [4.7, 47.6]]),               // Seine
+  river([[-2.2, 47.3], [-1.5, 47.2], [0.0, 47.3], [0.7, 47.4], [1.9, 47.9], [2.7, 47.6], [3.0, 47.0], [3.2, 46.5], [4.0, 46.0], [4.1, 45.2]]),  // Loire
+  river([[4.8, 43.4], [4.8, 44.2], [4.8, 45.0], [4.85, 45.75], [5.5, 46.0], [6.2, 46.2]]), river([[4.85, 45.75], [4.8, 46.8], [5.2, 47.3], [5.9, 47.9]]),  // Rhône, Saône
+  river([[4.2, 51.9], [5.5, 51.9], [6.2, 51.8], [6.8, 51.2], [7.2, 50.6], [7.6, 50.3], [8.3, 49.9], [8.4, 49.0], [7.8, 48.3], [7.6, 47.6], [8.5, 47.6], [9.5, 47.6]]),  // Rhine
+  river([[-1.0, 45.6], [-0.5, 44.9], [0.6, 44.3], [1.4, 43.6]]), river([[-0.5, 44.9], [0.5, 44.85], [1.5, 44.9], [2.2, 45.4]]),    // Garonne, Dordogne
+  river([[4.2, 51.9], [5.8, 51.5], [5.7, 50.8], [4.9, 50.5], [4.8, 49.5]]), river([[4.9, 50.5], [4.0, 50.3], [3.6, 50.1]]),      // Meuse, Sambre
+  river([[1.0, 51.5], [0.0, 51.5], [-1.0, 51.7], [-1.8, 51.7]]), river([[12.4, 45.0], [10.5, 45.1], [9.0, 45.2], [7.6, 45.0]]),   // Thames, Po
+  // names, in Roman capitals
+  text(...P(-6.2, 46.6), "OCEANVS", "Z", { scale: 2 }), text(...P(0.2, 46.6), "GALLIA", "T", { scale: 2 }), text(...P(-4.0, 52.4), "BRITANNIA", "T"),
+  text(...P(9.6, 50.6), "GERMANIA", "T", { scale: 2 }), text(...P(9.3, 44.9), "ITALIA", "T"), text(...P(4.6, 43.05), "MARE NOSTRVM", "Z"),
+  text(...P(-0.4, 50.3), "FRETVM", "Z"), text(...P(3.6, 51.0), "BELGAE", "T"), text(...P(-1.4, 44.0), "AQVITANI", "T"), text(...P(10.4, 46.5), "ALPES", "q"),
+  // compass rose, top right, and a frame
+  (c) => { const [cx, cy] = [606, 36]; c.ring(cx, cy, 12, "T"); c.ring(cx, cy, 9, "q"); c.poly([cx, cy - 17, cx + 3, cy, cx, cy + 17, cx - 3, cy], "T"); c.poly([cx - 17, cy, cx, cy - 3, cx + 17, cy, cx, cy + 3], "q"); c.poly([cx, cy - 17, cx + 3, cy, cx, cy], "s"); c.text(cx - 1, cy - 26, "N", "T") },
+  // aged edges over everything, land and sea: two dithered steps darker towards the border
+  (c) => {
+    const e = (x, y) => Math.min(x, y, MW - 1 - x, MH - 1 - y), b = (x, y) => BAYER[(y & 7) * 8 + (x & 7)] / 64
+    const AGE = { l: "Q", Q: "q", q: "T", P: "p", p: "Z", Z: "z", G: "g", h: "G", T: "t", s: "R" }
+    c.recolor(AGE, (x, y) => e(x, y) < 18 + b(x, y) * 10); c.recolor(AGE, (x, y) => e(x, y) < 6 + b(x, y) * 6)
+  },
+  box(0, 0, MW, MH, "T"), box(3, 3, MW - 6, MH - 6, "q"),
+)
+
+// ------------------------------------------------------------------ attribute icons (shown 9-11 px tall: kept at native size)
+sprite("i_glaive", { outline: "k" }, `
+  .........JJ
+  ........JJj
+  .......JJj.
+  ......JJj..
+  .....JJj...
+  ..n.JJj....
+  ...nJj.....
+  ...BnB.....
+  ..xB.Bn....
+  .xx........`)
+sprite("i_cheval", { outline: "k" }, `
+  ....x.x.....
+  ...wXxXx....
+  ..wwXXXXx...
+  .wwXXkXXXx..
+  .wwXXXXXXXx.
+  wwXXXXxXXXXx
+  wwXXXx..xXXx
+  wXXXx....xx.
+  wXXXx.......
+  xXXXXx......`)
+sprite("i_arc", { outline: "k" }, `
+  ..xW.......
+  .xW..J.....
+  .xW...J....
+  xW.....J...
+  xWxxxxxxJJ.
+  xW.....J...
+  .xW...J....
+  .xW..J.....
+  ..xW.......`)
+sprite("i_dolabra", { outline: "k" }, `
+  ...JJ.......
+  ..JjjJ......
+  jJjjjjxJJJj.
+  ..JjjJx.....
+  ...JJ.x.....
+  ......x.....
+  ......x.....
+  ......x.....
+  ......x.....
+  ......W.....`)
