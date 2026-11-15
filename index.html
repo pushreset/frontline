@@ -122,7 +122,10 @@
                       background:repeating-linear-gradient(135deg,#000a 0 8px,#000c 8px 16px); color:#f0d98a; font:bold 16px var(--ui); letter-spacing:2px; text-transform:uppercase; }
   .card.order { background:#cbbfae; border-color:#6b4a7a; }
   .card b { font-size:15px; line-height:1.1; } .card small { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.65; }
-  .card p { margin:0; font-size:12px; line-height:1.25; flex:1; overflow:hidden; }
+  .card p { margin:0; font-size:12px; line-height:1.25; flex:1; overflow:hidden; } .card p > span { display:block; }
+  /* A power too long for its card scrolls slowly on hover: hold, down, hold, back up (--over and --dur set by rollText). */
+  .card:hover p.roll > span { animation:roll var(--dur) ease-in-out infinite alternate; }
+  @keyframes roll { 0%, 20% { transform:none; } 80%, 100% { transform:translateY(var(--over)); } }
   #end { position:fixed; inset:0; z-index:10; background:#000b; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
   #end.show { display:flex; } #end h2 { font-family:var(--title); font-size:44px; margin:0; letter-spacing:4px; text-transform:uppercase; color:var(--paper); }
   #end .row { display:flex; gap:10px; } #end p { max-width:520px; text-align:center; margin:0; }
@@ -504,7 +507,7 @@ const baseV = (key, vet) => { const C = E.CARDS[key], v = C.v.slice(); if (vet) 
 const nameV = (key, owner, vet) => (vet ? '★ ' : '') + I.cardName(key, owner);
 function cardInner(key, owner, vet) {
   const C = E.CARDS[key], order = C.type === 'Ordre';
-  return `<img class="art" src="${art(key, owner)}" alt=""><b>${nameV(key, owner, vet)}</b><small>${I.typeName(C.type)}${vet ? ' · ' + L('vet') : ''}</small>${order ? '' : `<span class="vals">${valsHTML(baseV(key, vet))}</span>`}<p>${I.cardText(key) || L('noPower')}</p>`;
+  return `<img class="art" src="${art(key, owner)}" alt=""><b>${nameV(key, owner, vet)}</b><small>${I.typeName(C.type)}${vet ? ' · ' + L('vet') : ''}</small>${order ? '' : `<span class="vals">${valsHTML(baseV(key, vet))}</span>`}<p><span>${I.cardText(key) || L('noPower')}</span></p>`;
 }
 // Hover zoom: a board unit is too small to read, show it full size next to the pointer.
 function peek(e) {
@@ -914,6 +917,12 @@ document.addEventListener('keydown', e => {
   else if (e.key.toLowerCase() === 'c' && handCard() && !sel.pre.length) { hiddenMode = !hiddenMode; render(); }
 });
 $('front').addEventListener('mouseover', peek);
+// Hand card whose power text overflows: measure how far it has to scroll, about 10 px a second (reading pace).
+$('hand').addEventListener('mouseover', e => {
+  const p = e.target.closest('.card')?.querySelector('p'), over = p ? p.scrollHeight - p.clientHeight : 0;
+  if (!p || p.classList.contains('roll') || over < 2) return;
+  p.style.setProperty('--over', -over + 'px'); p.style.setProperty('--dur', (1.5 + over / 10).toFixed(1) + 's'); p.classList.add('roll');
+});
 $('front').addEventListener('mouseover', hoverPreview);
 $('front').addEventListener('mouseover', showTips);
 $('front').addEventListener('mouseleave', () => showTips());
