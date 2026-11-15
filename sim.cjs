@@ -274,6 +274,49 @@ for (const [id, P] of Object.entries(PACKS)) {
   E.use('normandie'); C.use('normandie');
 }
 
+// Gallic Wars: testudo, charge, ford, coast, Vercingetorix's aura, two roads to Uxellodunum.
+{
+  E.use('gaule'); C.use('gaule');
+  assert.deepEqual([...C.roots], ['bibracte']);
+  const lens = new Set(), roads = new Set(), walk = (id, n, path) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1, [...path, x])) : (assert.equal(id, 'uxellodunum'), lens.add(n), roads.add(path[3]));
+  C.roots.forEach(r => walk(r, 1, [r]));
+  assert.deepEqual([...lens], [10], `Gaul run length ${[...lens]}`);
+  assert.deepEqual([...roads].sort(), ['aduatuques', 'venetes'], 'two roads after the Sambre');
+  assert(C.BATTLES.every(b => !b.defend || b.first === 1), 'a defensive battle: the enemy attacks first');
+  assert(C.BATTLES.every(b => !(b.aiCards || []).includes('vercingetorix') || b.day >= 2190), 'Vercingetorix only in 52');
+  const mk = (keys, owner, base, down = false) => keys.map((key, i) => ({ id: base + i, key, owner, down, malus: 0 }));
+  const ids = (s, t, p) => s.terrains[t].side[p].map(u => u.key);
+  // Testudo: two face-up legionaries side by side cannot be destroyed, a lone one can.
+  let s = E.newGame(['plaine', 'village', 'camp'], {}, { first: 0 });
+  s.terrains[0].side[1] = mk(['legionnaire', 'legionnaire'], 1, 900);
+  s.terrains[1].side[1] = mk(['legionnaire'], 1, 910);
+  for (const T of s.terrains) for (const u of T.side[1]) u.malus = 3; // worth 1: in Pila Volley range
+  s.players[0].hand = [{ id: 920, key: 'pluie_traits' }];
+  assert.deepEqual(E.moves(s).filter(m => m.kind === 'order').map(m => m.u), [910], 'testudo');
+  // Charge: pushes an enemy unit to a neighbouring terrain.
+  s = E.newGame(['plaine', 'village', 'camp'], {}, { first: 0 });
+  s.terrains[0].side[1] = mk(['sagittaires'], 1, 930);
+  s.players[0].hand = [{ id: 940, key: 'cavaliers' }];
+  E.play(s, E.moves(s).find(m => m.kind === 'deploy' && m.t === 0 && m.u === 930));
+  assert.deepEqual(ids(s, 1, 1), ['sagittaires'], 'charge pushes the archers to the village');
+  // Ford: horsemen lose 1 Cavalry and cannot leave; coast: infantry and horsemen are worth nothing.
+  s = E.newGame(['gue', 'cote', 'plaine']);
+  s.terrains[0].side[0] = mk(['cavaliers'], 0, 950);
+  s.terrains[1].side[0] = mk(['legionnaire', 'cavaliers', 'scorpion'], 0, 960);
+  assert.deepEqual(E.totals(s, 0, 0), [0, 2, 0, 1], 'ford: -1 Cavalry');
+  s.turn = 0; s.players[0].hand = [{ id: 965, key: 'marche_forcee' }];
+  assert(!E.moves(s).some(m => m.kind === 'order' && m.u === 950), 'ford: horsemen stay');
+  assert.deepEqual(E.totals(s, 1, 0), [0, 0, 2, 1], 'coast: only the scorpion counts');
+  // Vercingetorix face up: his other infantry there gets +1, not the enemy's.
+  s = E.newGame(['plaine', 'village', 'camp']);
+  s.terrains[0].side[1] = mk(['vercingetorix', 'legionnaire'], 1, 970);
+  s.terrains[0].side[0] = mk(['legionnaire'], 0, 980);
+  assert.deepEqual([E.totals(s, 0, 1)[0], E.totals(s, 0, 0)[0]], [5, 3], 'Vercingetorix: +1 to the warriors');
+  s.terrains[0].side[1][0].down = true;
+  assert.equal(E.totals(s, 0, 1)[0], 3, 'face-down king: no aura');
+  E.use('normandie'); C.use('normandie');
+}
+
 // The rule checks above test Normandy cards; the modes below run on the chosen pack.
 if (PACK !== 'normandie') { E.use(PACK); C.use(PACK); }
 

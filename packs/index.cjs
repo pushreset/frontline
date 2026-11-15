@@ -4,6 +4,7 @@ const LIST = {
   normandie: ['pack', 'cards', 'terrains', 'battles'],
   verdun: ['pack', 'cards', 'terrains', 'battles'],
   pacifique: ['pack', 'cards', 'terrains', 'battles'],
+  gaule: ['pack', 'cards', 'terrains', 'battles'],
   test: ['pack'],                   // hidden test campaign, simulator only
 };
 for (const [id, files] of Object.entries(LIST)) for (const f of files) require(`./${id}/${f}.js`);
