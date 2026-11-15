@@ -80,6 +80,10 @@ const SND = (() => {
     horn: t => { for (const [dt, d] of [[0, 0.8], [1.0, 1.3]]) { tone(98, t + dt, d, { type: 'sawtooth', gain: 0.1, a: 0.06, lp: 420, wet: true }); tone(147, t + dt, d, { type: 'sawtooth', gain: 0.05, a: 0.06, lp: 420 }); } },
     // Ship under way: diesel throb and the bow wave.
     naval: t => { tone(48, t, 1.4, { type: 'sawtooth', gain: 0.12, a: 0.3, lp: 180 }); noise(t, 1.4, { f: 500, to: 220, gain: 0.22, a: 0.3 }); noise(t + 0.4, 0.6, { type: 'bandpass', f: 2600, q: 0.7, gain: 0.07, a: 0.2 }); },
+    // Gallop: three hoofbeats (thud + dirt) per stride, three strides fading away.
+    hooves: t => { for (let s = 0; s < 3; s++) for (const dt of [0, 0.07, 0.15]) { const at = t + s * 0.34 + dt, k = 1 - s * 0.25; tone(110, at, 0.06, { gain: 0.16 * k, to: 60 }); noise(at, 0.05, { f: 420, gain: 0.3 * k }); } },
+    // Roman cornu: a bronze horn, a rising fifth, brassy (sawtooth through a lowpass), with the hall's echo.
+    cornu: t => { for (const [f, dt, d] of [[196, 0, 0.55], [294, 0.6, 1.1]]) { tone(f, t + dt, d, { type: 'sawtooth', gain: 0.08, a: 0.05, lp: 1300, wet: true, vib: 2 }); tone(f * 2, t + dt, d, { type: 'square', gain: 0.015, a: 0.06, lp: 1800 }); } },
     smoke: t => noise(t, 1.8, { type: 'bandpass', f: 900, to: 400, q: 0.5, gain: 0.25, a: 0.2 }),
     drumroll: t => { for (let i = 0; i < 12; i++) noise(t + i * 0.045, 0.05, { type: 'bandpass', f: 2200, q: 1.5, gain: 0.08 + i * 0.012 }); noise(t + 0.55, 0.25, { type: 'bandpass', f: 2000, gain: 0.25, wet: true }); },
     // Bugle calls: horn-ish triangle + quiet square, through the hall.

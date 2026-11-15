@@ -20,7 +20,8 @@ Reste possible : une autre campagne 1914–1918 dans la même époque (la Marne,
 - **Mécaniques** : barrage roulant, gaz (malus sur tout un terrain), sape et mine, relève des troupes, guerre d'usure lente.
 - **Sons** : sifflet de l'assaut.
 
-### Guerre des Gaules
+### Guerre des Gaules — fait : `packs/gaule/` (Bibracte → Uxellodunum, routes de l'Océan et du Rhin, art en double résolution)
+Reste possible : la campagne côté gaulois (Vercingétorix en 52), ou repasser les autres packs en double résolution.
 - **Base** : le pack test `packs/test/pack.js` (Cavalerie, Infanterie, Tir, Stratégie).
 - **Batailles** : Bibracte, la Sambre, Gergovie, Avaricum, Alésia, Uxellodunum.
 - **Côtés** : jouer Rome ou Vercingétorix ? Deux decks possibles.

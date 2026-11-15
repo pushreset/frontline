@@ -13,7 +13,7 @@ dependencies. Available in French and English.
 Each battle is fought over **three terrains**. Every terrain has a **threshold** to reach in four
 attributes, which depend on the era: **Tank**, **Infantry**, **Air** and **Strategy** in Normandy,
 **Artillery**, **Infantry**, **Engineering** and **Morale** at Verdun (for example 2 / 3 / 0 / 1). You play
-the Allies (in 1916, the French) against an AI that plays the German side with its own deck.
+the Allies (in 1916, the French; in Gaul, Caesar) against an AI that plays the other side with its own deck.
 
 - Fill a terrain's whole threshold with your units and you **hold** it.
 - If you still hold it at the start of your next turn, it is **captured**: the opponent had a full
@@ -60,6 +60,28 @@ tank can move in or out of the marsh, the hill lets your artillery hit any terra
 
 The menu offers a **campaign** picker and, for a quick battle, a **theatre** picker (one tile per campaign,
 in chronological order). Each campaign keeps its own progress.
+
+#### Gallic Wars 58–51 BC
+
+Caesar's conquest of Gaul on an antique chart, from Bibracte (58 BC) to Uxellodunum (51 BC). **14 battles**,
+a campaign lasts 10. You are Caesar; the AI plays the Helvetii, the Belgae, the Britons and Vercingetorix.
+
+- **Two roads.** After Bibracte, the Vosges and the Sambre, choose the **Ocean** (the Veneti's fleet in the
+  Morbihan, the landings in Britain, the Thames) or the **Rhine** (the Aduatuci, the bridge, the camp at
+  Atuatuca). Both lead to the revolt of 52: Avaricum, then Gergovia or Lutetia, Alesia, and Uxellodunum.
+  Bibracte, the Sambre, Atuatuca and Alesia are defensive battles.
+- **Infantry, Cavalry, Missile, Engineering.** Legionaries throw their pilum (1 Missile) and lock shields:
+  a legionary cannot be destroyed while another face-up infantry unit stands with him (testudo). Cavalry
+  charges push an enemy unit onto the next terrain. Fords hold horsemen, forests hide units, a captured camp
+  strengthens your infantry everywhere, the murus gallicus makes face-down cards worth 2, sea fights are won
+  by archers and engineers only, Alesia's siege lines let nothing be destroyed.
+- **Asymmetric decks**: Roman scorpions, the eagle, engineers and circumvallation; Gallic soldurii that cannot
+  be destroyed, druids, the carnyx and scorched earth. **Vercingetorix** joins the enemy deck in 52 (+1
+  Infantry to the warriors at his side), the British **war chariots** in Britain.
+- Rewards: veterans, new cards (Tenth Legion, Siege Tower, Aquilifer, Scorpion) and powers (Commentaries,
+  Celeritas, Vallum, Ballistae, Caesar's Clemency).
+- **Finer pictures.** Its cards, terrains and map are drawn at twice the resolution of the other campaigns
+  (cards 128×80, terrains 320×144, map 640×280).
 
 #### Verdun 1916
 
@@ -172,8 +194,9 @@ powers bring their own behaviour as small functions ("hooks").
      Also its `era` (`{ key, fr, en, years }`: the menus show it on the campaign's tile and sort campaigns by
      its years), and optionally its look: `theme` (CSS
      colours: `olive`, `btn`, `btnHi`, `edge`, `bg1`-`bg3`, `panel`, `panelEdge`, `tile1`, `tile2`; the
-     defaults are Normandy's), `font: 'serif'` (titles in Georgia instead of the stencil) and `startSound`
-     (a sound of `audio.js` played when a battle starts).
+     defaults are Normandy's), `font` (titles in `'serif'` Georgia or `'roman'` Cinzel capitals instead of the
+     stencil), `startSound` (a sound of `audio.js` played when a battle starts) and `artScale` (pictures drawn
+     at 2× the base sizes below, like Gaul's: the game scales them, the gallery shows their real size).
    - `cards.js`: `cards`, the two `decks` (player, AI), the campaign `powers` and the `rewards` pools.
    - `terrains.js`: `traits` (how a terrain plays), `terrains` (name, threshold, trait, text) and
      `quick`, the terrains a quick battle draws from.
@@ -182,9 +205,10 @@ powers bring their own behaviour as small functions ("hooks").
      are the starting choices; a battle with no `next` ends the campaign. Optional `first`: who takes the
      first turn (`0` the player, `1` the AI); without it, a coin toss. Optional `defend: true`: at nightfall
      without a majority, the player keeps the ground and wins (by default the AI does). Optional `aiCards`:
-     card keys added to the AI's deck for this battle only (the Pacific's kamikazes from Leyte on).
-   - `art.px.js` → `out/`: pictures named `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's
-     version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
+     card keys added to the AI's deck for this battle only (the Pacific's kamikazes from Leyte on, Vercingetorix
+     in 52).
+   - `art.px.js` → `out/`: pictures (cards 64×40, terrains 160×72, map 320×140, times `artScale`) named
+     `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
      player, `coin_1.png` the AI). Build
      with `node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/<id>/art.px.js --no-preview`.
      A card or terrain can borrow another picture with `art: '<key>'`.

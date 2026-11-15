@@ -1,3 +1,5 @@
+Cinzel: Copyright 2020 The Cinzel Project Authors (https://github.com/NDISCOVER/Cinzel), SIL Open Font License 1.1 (below).
+
 Copyright (c) 2011 by vernon adams (vern@newtypography.co.uk),
 with Reserved Font Names "Stardos" and "Stardos Stencil".
 
