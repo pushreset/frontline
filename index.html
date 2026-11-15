@@ -210,6 +210,13 @@
   .tile .era { font-size:10px; letter-spacing:2px; white-space:nowrap; text-transform:uppercase; color:#d9b56a; }
   .tile b { font-size:26px; line-height:1.1; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--paper); text-shadow:0 2px 0 #000; }
   #menu .tile small { color:#d8cfae; font-size:13px; }
+  /* Rules & tactics: two tabs over one scrolling page. */
+  #menu .gtabs { display:flex; gap:10px; } #menu .gtabs button { width:220px; font-size:16px; }
+  #menu .guide { width:min(780px, calc(100vw - 32px)); max-height:64vh; overflow:auto; box-sizing:border-box; padding:6px 30px 20px; text-align:left;
+    background:#14160fee; border:1px solid var(--panelEdge); border-radius:8px; color:#e6dcc0; font:16px/1.55 Georgia,serif; }
+  #menu .guide h3 { margin:20px 0 6px; font:700 20px var(--title); letter-spacing:.5px; color:var(--paper); }
+  #menu .guide b { color:#f0e2b6; } #menu .guide ul { margin:6px 0; padding-left:22px; } #menu .guide li { margin:5px 0; } #menu .guide p { margin:6px 0; }
+  #menu .guide .lead { margin-top:16px; color:#d9b56a; font-style:italic; }
   #map { gap:16px; padding:16px; background:var(--bg3); }
   #mapbox { flex:1; position:relative; align-self:center; aspect-ratio:320/140; max-height:100%; }
   #mapbox img { width:100%; height:100%; display:block; image-rendering:pixelated; border:2px solid var(--edge); border-radius:6px; }
@@ -342,6 +349,8 @@
     #menu { justify-content:safe center; overflow:auto; padding:calc(env(safe-area-inset-top) + 24px) 0 calc(env(safe-area-inset-bottom) + 24px); }
     #menu h1 { font-size:36px; letter-spacing:4px; text-align:center; } #menu h2 { font-size:22px; letter-spacing:3px; } #menu .sub { font-size:11px; letter-spacing:2px; text-align:center; padding:0 12px; } #menu .sub::before, #menu .sub::after { margin:0 6px; }
     #menu button { width:min(300px, calc(100vw - 32px)); min-height:48px; } #menu .row { width:min(300px, calc(100vw - 32px)); } #menu .row button { flex:1; width:auto; }
+    #menu .gtabs { width:min(300px, calc(100vw - 32px)); } #menu .gtabs button { flex:1; width:auto; font-size:14px; }
+    #menu .guide { max-height:none; overflow:visible; padding:4px 18px 16px; font-size:15px; }
     #menu .tiles { width:100%; padding:0 16px; gap:12px; } #menu button.tile { width:100%; height:140px; } .covers div { margin:0 -12%; }
     /* Campaign map: draggable, pinch to zoom; the briefing is the bottom panel. */
     #map { flex-direction:column; padding:env(safe-area-inset-top) 0 0; gap:0; }
@@ -393,32 +402,32 @@
 <div id="toss"></div>
 <div id="peek" class="card"></div>
 <div id="sheet"><div class="in"></div></div>
-<script src="engine.js?v=12"></script>
+<script src="engine.js?v=13"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=12"></script>
-<script src="packs/normandie/cards.js?v=12"></script>
-<script src="packs/normandie/terrains.js?v=12"></script>
-<script src="packs/normandie/battles.js?v=12"></script>
-<script src="packs/verdun/pack.js?v=12"></script>
-<script src="packs/verdun/cards.js?v=12"></script>
-<script src="packs/verdun/terrains.js?v=12"></script>
-<script src="packs/verdun/battles.js?v=12"></script>
-<script src="packs/pacifique/pack.js?v=12"></script>
-<script src="packs/pacifique/cards.js?v=12"></script>
-<script src="packs/pacifique/terrains.js?v=12"></script>
-<script src="packs/pacifique/battles.js?v=12"></script>
-<script src="packs/gaule/pack.js?v=12"></script>
-<script src="packs/gaule/cards.js?v=12"></script>
-<script src="packs/gaule/terrains.js?v=12"></script>
-<script src="packs/gaule/battles.js?v=12"></script>
-<script src="packs/terre_milieu/pack.js?v=12"></script>
-<script src="packs/terre_milieu/cards.js?v=12"></script>
-<script src="packs/terre_milieu/terrains.js?v=12"></script>
-<script src="packs/terre_milieu/battles.js?v=12"></script>
-<script src="campaign.js?v=12"></script>
-<script src="audio.js?v=12"></script>
-<script src="i18n.js?v=12"></script>
+<script src="packs/normandie/pack.js?v=13"></script>
+<script src="packs/normandie/cards.js?v=13"></script>
+<script src="packs/normandie/terrains.js?v=13"></script>
+<script src="packs/normandie/battles.js?v=13"></script>
+<script src="packs/verdun/pack.js?v=13"></script>
+<script src="packs/verdun/cards.js?v=13"></script>
+<script src="packs/verdun/terrains.js?v=13"></script>
+<script src="packs/verdun/battles.js?v=13"></script>
+<script src="packs/pacifique/pack.js?v=13"></script>
+<script src="packs/pacifique/cards.js?v=13"></script>
+<script src="packs/pacifique/terrains.js?v=13"></script>
+<script src="packs/pacifique/battles.js?v=13"></script>
+<script src="packs/gaule/pack.js?v=13"></script>
+<script src="packs/gaule/cards.js?v=13"></script>
+<script src="packs/gaule/terrains.js?v=13"></script>
+<script src="packs/gaule/battles.js?v=13"></script>
+<script src="packs/terre_milieu/pack.js?v=13"></script>
+<script src="packs/terre_milieu/cards.js?v=13"></script>
+<script src="packs/terre_milieu/terrains.js?v=13"></script>
+<script src="packs/terre_milieu/battles.js?v=13"></script>
+<script src="campaign.js?v=13"></script>
+<script src="audio.js?v=13"></script>
+<script src="i18n.js?v=13"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
@@ -439,7 +448,7 @@ const THEME = ['olive', 'btn', 'btnHi', 'edge', 'bg1', 'bg2', 'bg3', 'panel', 'p
 const coverOf = id => `${PACKS[id].art}scenes/t_${PACKS[id].terrains[PACKS[id].cover].art || PACKS[id].cover}.png`;
 // Single quotes: the value goes into a style="" attribute.
 const titleFont = P => ({ serif: 'Georgia,serif', roman: "'Cinzel',Georgia,serif" })[P.font] || "'Stardos Stencil',Georgia,serif";
-let menuView = 'main'; // main · campaign (pick a campaign) · quick (pick a theatre for a quick battle)
+let menuView = 'main', guideTab = 'rules'; // main · campaign (pick a campaign) · quick (pick a theatre for a quick battle) · guide (rules / tactics)
 const $ = id => document.getElementById(id);
 // Phone layout (portrait, one hand): same state machine, other rendering. Re-render when crossing the breakpoint.
 const M = matchMedia('(max-width:600px)');
@@ -572,10 +581,15 @@ function renderMenu() {
     <div class="tiles">${PACK_IDS.map(id => { const P = PACKS[id];
       return tile(id, 'data-quick', `<span class="era">${era(P)}</span><b style="font-family:${titleFont(P)}; font-size:21px">${I.pack('title', P)}</b><small>${I.pack('dates', P)}</small>`); }).join('')}</div>
     <button data-go="menuBack">${L('back')}</button>`
+  : menuView === 'guide' ? `<h2>${L('guide')}</h2>
+    <div class="gtabs" role="tablist">${['rules', 'tactics'].map(k => `<button data-go="guide_${k}" role="tab" aria-selected="${guideTab === k}" class="${guideTab === k ? 'on' : ''}">${L(k === 'rules' ? 'guideRules' : 'guideTactics')}</button>`).join('')}</div>
+    <article class="guide">${I.guide(guideTab)}</article>
+    <button data-go="menuBack">${L('back')}</button>`
   : `<h1>${L('title')}</h1><p class="sub">${L('tagline')}</p>
     ${live ? `<button data-go="resume" class="on">${L('resume', where)}</button>` : ''}
     <button data-go="menuCampaign">${L('campaign')}</button>
     <button data-go="menuQuick">${L('quick')}</button>
+    <button data-go="menuGuide">${L('guide')}</button>
     <div class="row"><button data-go="mus" class="snd"></button><button data-go="sfx" class="snd"></button></div>
     <div class="row"><button data-go="lang" class="lng"></button><button data-go="diff" class="dif"></button></div>
     <small id="diffTip"></small>`);
@@ -928,7 +942,8 @@ document.addEventListener('click', e => {
     if (g === 'playCard') { sel = { c: sheetArg.hand, pre: [] }; hiddenMode = flipHint = false; closeSheet(); SND.play('card'); return render(); } // sel first: the history entry stays
     if (g === 'zin' || g === 'zout') return mapZoom(g === 'zin' ? 1.5 : 1 / 1.5);
     if (g === 'resume') return resume();
-    if (g === 'menuCampaign' || g === 'menuQuick' || g === 'menuBack') { menuView = { menuCampaign: 'campaign', menuQuick: 'quick' }[g] || 'main'; return renderMenu(); }
+    if (g === 'menuCampaign' || g === 'menuQuick' || g === 'menuGuide' || g === 'menuBack') { menuView = { menuCampaign: 'campaign', menuQuick: 'quick', menuGuide: 'guide' }[g] || 'main'; return renderMenu(); }
+    if (g.startsWith('guide_')) { guideTab = g.slice(6); return renderMenu(); }
     if (go.dataset.camp || go.dataset.quick) { save.pack = go.dataset.camp || go.dataset.quick; persist(); }
     if (go.dataset.quick) { menuView = 'main'; return startBattle('rapide'); }
     if (go.dataset.camp) { menuView = 'main'; usePack(save.pack); pick = save.cur && camp() && save.cur.s.pack === save.pack ? save.cur.battle : C.open(runNow().path)[0] || C.BATTLES.find(b => C.last(b.id)).id; return screen('map'); }

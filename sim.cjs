@@ -14,6 +14,7 @@ const PACK = Object.keys(PACKS).find(id => process.argv.includes(id)) || 'norman
 // battle is reachable from a start and leads to an end, time moving forward on every link.
 assert.deepEqual(Object.keys(I.UI.en).sort(), Object.keys(I.UI.fr).sort(), 'same UI keys in FR and EN');
 assert.deepEqual(Object.keys(I.LOG.en).sort(), Object.keys(I.LOG.fr).sort(), 'same log events in FR and EN');
+assert.deepEqual(Object.keys(I.GUIDE.en).sort(), Object.keys(I.GUIDE.fr).sort(), 'same rules & tactics pages in FR and EN');
 for (const [id, P] of Object.entries(PACKS)) {
   const both = (o, what) => assert(o && o.fr && o.en, `${id}: FR and EN for ${what}`);
   E.use(id); C.use(id);

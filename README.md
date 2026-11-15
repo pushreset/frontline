@@ -174,6 +174,8 @@ The legendary era, on an old map of Middle-earth, from Weathertop (October 3018)
     every opening.
 - No level cheats: the AI never sees your hand or your face-down cards.
 
+The home page also has **Rules & tactics**: the full rules and a ten-point tactics guide, in French and English (`I18N.GUIDE` in `i18n.js`).
+
 Progress is saved automatically in the browser. Music and sound effects are generated with Web Audio.
 
 ### Phone and offline
