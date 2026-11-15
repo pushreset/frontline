@@ -5,7 +5,8 @@
 const E = (() => {
   // Balance knobs, mutable so balance.cjs can sweep them. Defaults = the rules index.html plays.
   // thrDelta shifts every non-zero threshold (min 1); replace = deploy onto a full side by discarding one of your units.
-  const RULES = { turns: 13, thrDelta: 0, slots: 4, replace: true };
+  // hand = most cards kept: you always draw, then discard the excess of your choice.
+  const RULES = { turns: 13, thrDelta: 0, slots: 4, replace: true, hand: 7 };
   const ORDER = 'Ordre';   // the one card type the engine knows: orders are played, not deployed
   const ZERO = [0, 0, 0, 0];
   // What the AI (and the player's preview) sees instead of an enemy face-down card.
@@ -73,7 +74,7 @@ const E = (() => {
   const log = (s, ev) => s.log.push(ev);
   function draw(s, p, n) {
     const P = s.players[p];
-    while (n-- > 0 && P.deck.length && P.hand.length < 7) P.hand.push(P.deck.pop());
+    while (n-- > 0 && P.deck.length) P.hand.push(P.deck.pop());
   }
   function destroy(s, id) {
     const f = find(s, id);
@@ -203,7 +204,10 @@ const E = (() => {
     for (let t = 0; t < 3; t++) if (live(s, t)) for (const u of [...s.terrains[t].side[p]]) { const C = CARDS[u.key]; if (C.onTurnStart) C.onTurnStart(g, u); }
     control(s, p);
     draw(s, p, 1 + sum(s.terrains.map(T => T.captured === p ? trait(T).drawBonus || 0 : 0)));
+    if (full(s, p)) s.trim = 'start'; // discard the excess before acting
   }
+  // More cards than the hand keeps: the side to play discards (s.trim) before acting ('start') or before its turn ends ('end').
+  const full = (s, p) => s.players[p].hand.length > RULES.hand;
 
   function timeout(s) {
     const n = [0, 0];
@@ -232,6 +236,7 @@ const E = (() => {
   // walks through (h<id> hand card, t<n> terrain, u<id> unit); the AI just ignores it.
   function moves(s) {
     const p = s.turn, H = s.players[p].hand, out = [], g = new G(s, p);
+    if (s.trim) return H.map(c => ({ kind: 'trim', c: c.id, steps: [] }));
     const T = [0, 1, 2].filter(t => live(s, t));
     const n = t => s.terrains[t].side[p].length;
     for (const t of T) for (const u of s.terrains[t].side[p]) if (u.down) out.push({ kind: 'reveal', u: u.id, steps: ['u' + u.id] });
@@ -261,6 +266,14 @@ const E = (() => {
 
   function play(s, m) {
     const p = s.turn, P = s.players[p], g = new G(s, p);
+    if (m.kind === 'trim') {
+      const c = take(s, p, m.c);
+      P.discard.push(c); log(s, { e: 'trim', p, card: c.key });
+      if (full(s, p)) return;
+      const end = s.trim === 'end';
+      s.trim = null;
+      return end ? endTurn(s) : undefined;
+    }
     if (m.kind === 'supply') { P.discard.push(take(s, p, m.c)); draw(s, p, 2); log(s, { e: 'supply', p }); }
     else if (m.kind === 'hidden') { put(s, p, take(s, p, m.c), m.t, true); log(s, { e: 'hidden', p, t: s.terrains[m.t].key }); }
     else if (m.kind === 'reveal') flip(s, m.u, null);
@@ -278,8 +291,10 @@ const E = (() => {
       P.powers = P.powers.filter(x => x !== m.w);
       log(s, { e: 'power', p, pw: m.w });
       POWERS[m.w].onPlay(g, null, m);
+      if (full(s, p)) s.trim = 'start';
       return control(s, p);
     } else log(s, { e: 'pass', p });
+    if (full(s, p)) { s.trim = 'end'; return control(s, p); } // the turn ends once the excess is discarded
     endTurn(s);
   }
 
@@ -294,7 +309,7 @@ const E = (() => {
       pack: PACK.id,
       terrains: keys.map(key => ({ key, side: [[], []], holder: null, ripe: false, captured: null })),
       players: lists.map((list, p) => ({ list, powers: p ? [] : [...(bonus.powers || [])], deck: shuffle(list.map(c => ({ id: id++, ...c }))), hand: [], discard: [], turns: 0 })),
-      total, first, defender, turn: first, winner: null, timeout: false, smoke: [false, false], log: [],
+      total, first, defender, turn: first, winner: null, timeout: false, smoke: [false, false], trim: null, log: [],
     };
     // ponytail: no mulligan — add when hand quality shows up as a problem in playtests.
     draw(s, 0, 5); draw(s, 1, 5);
@@ -364,8 +379,22 @@ const E = (() => {
   }
   const uniq = m => !(m.a > m.b || (m.us && m.us[0] > m.us[1])); // mirrored duplicates exist for the UI only
   const foes = (s, p) => s.terrains.reduce((n, T) => n + T.side[1 - p].length, 0);
+  // Full hand: discard the card whose best play scores lowest (a card with no play at all goes first).
+  function trimPick(b, p, w) {
+    const c0 = clone(b), best = {};
+    c0.trim = null;
+    for (const m of moves(c0)) if (m.kind === 'deploy' || m.kind === 'order') {
+      const c = clone(c0);
+      play(c, m);
+      const v = score(c, p, w);
+      if (!(best[m.c] >= v)) best[m.c] = v;
+    }
+    const val = h => best[h.id] ?? -Infinity;
+    return b.players[p].hand.reduce((a, h) => val(h) < val(a) ? h : a);
+  }
   function aiMove(s, level = 'normal') {
     const p = s.turn, b = blind(s, p), w = LEVELS[level] || LEVELS.normal;
+    if (s.trim) return { kind: 'trim', c: trimPick(b, p, w).id, steps: [] };
     const ranked = moves(b).filter(uniq).map(m => {
       const c = clone(b);
       play(c, m);

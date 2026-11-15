@@ -56,8 +56,32 @@ for (const [id, P] of Object.entries(PACKS)) {
   for (const first of [0, 1]) {
     const s = E.newGame(undefined, {}, { first });
     assert.equal(s.turn, first, 'the first player takes the first turn');
-    for (let i = 0; i < 2 * E.TURNS; i++) { assert.equal(s.winner, null, 'no night before the last turn'); E.play(s, { kind: 'pass' }); }
+    for (let i = 0; i < 2 * E.TURNS; i++) {
+      assert.equal(s.winner, null, 'no night before the last turn');
+      while (s.trim) E.play(s, E.moves(s)[0]); // full hand: discard down to 7 first
+      E.play(s, { kind: 'pass' });
+      while (s.trim) E.play(s, E.moves(s)[0]);
+    }
     assert(s.timeout && s.players.every(P => P.turns === E.TURNS), 'night after the last turn');
+  }
+  // Full hand: you always draw, then discard the excess of your choice; at the start of a turn you keep your action,
+  // after an action (resupply: discard 1, draw 2) the turn ends once the excess is gone. The AI discards its weakest card.
+  {
+    const s = E.newGame(undefined, {}, { first: 1 });
+    s.players[0].hand = s.players[0].deck.splice(0, 7);
+    E.play(s, { kind: 'pass' }); // the AI passes, you draw an 8th card
+    assert.equal(s.players[0].hand.length, 8, 'the draw happens, hand of 8');
+    assert(s.trim === 'start' && E.moves(s).every(m => m.kind === 'trim') && E.moves(s).length === 8, 'start of turn: only discards');
+    const gone = s.players[0].hand[3].id;
+    E.play(s, { kind: 'trim', c: gone });
+    assert(!s.trim && s.turn === 0 && s.players[0].hand.length === 7 && s.players[0].discard.some(c => c.id === gone), 'the chosen card is discarded, the action is still yours');
+    E.play(s, E.moves(s).find(m => m.kind === 'supply'));
+    assert(s.trim === 'end' && s.turn === 0 && s.players[0].hand.length === 8, 'resupply at 7: 6 + 2, one to discard before the turn ends');
+    E.play(s, E.moves(s)[0]);
+    assert(!s.trim && s.turn === 1, 'excess gone: the turn passes');
+    s.players[1].hand = s.players[1].deck.splice(0, 8); s.trim = 'start';
+    const m = E.aiMove(s, 'normal');
+    assert(m.kind === 'trim' && s.players[1].hand.some(c => c.id === m.c), 'the AI picks a card to discard');
   }
 }
 { // Normandy map: 3 beaches, runs of 8-10 battles ending in Paris, sibling branches closed on victory.
@@ -218,7 +242,7 @@ for (const [id, P] of Object.entries(PACKS)) {
   // Defence: without a majority at nightfall, the defender wins; the player when the scenario says so.
   for (const defender of [0, 1]) {
     s = E.newGame(['fort', 'boyau', 'cote'], {}, { defender });
-    while (s.winner === null) E.play(s, { kind: 'pass' });
+    while (s.winner === null) E.play(s, s.trim ? E.moves(s)[0] : { kind: 'pass' }); // a full hand discards first
     assert(s.timeout && s.winner === defender, `nightfall without a majority: defender ${defender} wins`);
   }
   E.use('normandie'); C.use('normandie');
@@ -520,7 +544,7 @@ for (let i = 0; i < N; i++) {
     const m = E.aiMove(s);
     kinds[m.kind] = (kinds[m.kind] || 0) + 1;
     E.play(s, m);
-    assert(++guard <= 2 * E.TURNS, 'battle must end by nightfall');
+    if (m.kind !== 'trim') assert(++guard <= 2 * E.TURNS, 'battle must end by nightfall'); // discards are not turns
     for (let t = 0; t < 3; t++) for (const p of [0, 1]) assert.equal(E.lack(s, t, p).every(x => x === 0), E.fills(s, t, p), 'nothing missing <=> threshold filled');
     const cards = s.players.reduce((n, P) => n + P.deck.length + P.hand.length + P.discard.length, 0)
       + s.terrains.reduce((n, T) => n + T.side[0].length + T.side[1].length, 0);

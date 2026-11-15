@@ -405,32 +405,32 @@
 <div id="toss"></div>
 <div id="peek" class="card"></div>
 <div id="sheet"><div class="in"></div></div>
-<script src="engine.js?v=13"></script>
+<script src="engine.js?v=14"></script>
 <!-- Campaign packs: one folder each (see README, "Adding a campaign"); same list as packs/index.cjs.
      ?v=N: bump it on every release so browsers drop their cached copy (old and new files mixed = blank page). -->
-<script src="packs/normandie/pack.js?v=13"></script>
-<script src="packs/normandie/cards.js?v=13"></script>
-<script src="packs/normandie/terrains.js?v=13"></script>
-<script src="packs/normandie/battles.js?v=13"></script>
-<script src="packs/verdun/pack.js?v=13"></script>
-<script src="packs/verdun/cards.js?v=13"></script>
-<script src="packs/verdun/terrains.js?v=13"></script>
-<script src="packs/verdun/battles.js?v=13"></script>
-<script src="packs/pacifique/pack.js?v=13"></script>
-<script src="packs/pacifique/cards.js?v=13"></script>
-<script src="packs/pacifique/terrains.js?v=13"></script>
-<script src="packs/pacifique/battles.js?v=13"></script>
-<script src="packs/gaule/pack.js?v=13"></script>
-<script src="packs/gaule/cards.js?v=13"></script>
-<script src="packs/gaule/terrains.js?v=13"></script>
-<script src="packs/gaule/battles.js?v=13"></script>
-<script src="packs/terre_milieu/pack.js?v=13"></script>
-<script src="packs/terre_milieu/cards.js?v=13"></script>
-<script src="packs/terre_milieu/terrains.js?v=13"></script>
-<script src="packs/terre_milieu/battles.js?v=13"></script>
-<script src="campaign.js?v=13"></script>
-<script src="audio.js?v=13"></script>
-<script src="i18n.js?v=13"></script>
+<script src="packs/normandie/pack.js?v=14"></script>
+<script src="packs/normandie/cards.js?v=14"></script>
+<script src="packs/normandie/terrains.js?v=14"></script>
+<script src="packs/normandie/battles.js?v=14"></script>
+<script src="packs/verdun/pack.js?v=14"></script>
+<script src="packs/verdun/cards.js?v=14"></script>
+<script src="packs/verdun/terrains.js?v=14"></script>
+<script src="packs/verdun/battles.js?v=14"></script>
+<script src="packs/pacifique/pack.js?v=14"></script>
+<script src="packs/pacifique/cards.js?v=14"></script>
+<script src="packs/pacifique/terrains.js?v=14"></script>
+<script src="packs/pacifique/battles.js?v=14"></script>
+<script src="packs/gaule/pack.js?v=14"></script>
+<script src="packs/gaule/cards.js?v=14"></script>
+<script src="packs/gaule/terrains.js?v=14"></script>
+<script src="packs/gaule/battles.js?v=14"></script>
+<script src="packs/terre_milieu/pack.js?v=14"></script>
+<script src="packs/terre_milieu/cards.js?v=14"></script>
+<script src="packs/terre_milieu/terrains.js?v=14"></script>
+<script src="packs/terre_milieu/battles.js?v=14"></script>
+<script src="campaign.js?v=14"></script>
+<script src="audio.js?v=14"></script>
+<script src="i18n.js?v=14"></script>
 <script>
 // Battle UI + campaign map + localStorage save. Campaign content comes from the active pack (packs/<id>/).
 // ---- campaign packs (packs/<id>/): the active one gives cards, terrains, art, map and texts ------------
@@ -706,8 +706,8 @@ function render() {
   const mv = myTurn() ? E.moves(s) : [], reveals = new Set(mv.filter(m => m.kind === 'reveal').map(m => m.u));
   const c = myTurn() ? cands() : [], next = sel && myTurn() ? nextSteps(c) : new Set();
   const exact = sel && c.find(m => m.steps.length === sel.pre.length);
-  // Action bar state: wait (not my turn) / idle / card (a hand card is selected) / pend (a power or an order is under way).
-  const st = !myTurn() ? 'wait' : !sel ? 'idle' : sel.pre.length || typeof sel.c !== 'number' ? 'pend' : 'card';
+  // Action bar state: wait (not my turn) / trim (full hand: discard first) / idle / card (a hand card is selected) / pend (a power or an order is under way).
+  const st = !myTurn() ? 'wait' : s.trim ? 'trim' : !sel ? 'idle' : sel.pre.length || typeof sel.c !== 'number' ? 'pend' : 'card';
   const hc = handCard(), order = hc && E.CARDS[hc.key].type === E.ORDER, replace = c.some(m => m.rep != null);
   const pt = st === 'pend' && hc && !order && sel.pre[0][0] === 't' ? +sel.pre[0].slice(1) : null; // terrain the unit is being played on
   const others = c.filter(m => m !== exact), pm = st !== 'pend' ? null : others.length === 1 ? others[0] : exact;
@@ -774,7 +774,7 @@ function render() {
   $('hand').style.setProperty('--n', Math.max(2, s.players[0].hand.length));
   $('hand').innerHTML = s.players[0].hand.map((h, i) => {
     const C = E.CARDS[h.key], order = C.type === 'Ordre';
-    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${h.vet ? 'vet' : ''} ${sel && sel.c === h.id ? `sel ${hiddenMode ? 'down' : ''}` : sel && myTurn() && !next.has('h' + h.id) ? 'dim' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" data-down="${L('faceDown')}" style="--i:${i}">${cardInner(h.key, 0, h.vet)}${order ? `<em class="olong">${L('orderLong')}</em>` : ''}</div>`;
+    return `<div class="card ${intro ? 'late' : ''} ${order ? 'order' : ''} ${h.vet ? 'vet' : ''} ${sel && sel.c === h.id ? `sel ${hiddenMode ? 'down' : ''}` : sel && myTurn() && !s.trim && !next.has('h' + h.id) ? 'dim' : ''} ${next.has('h' + h.id) ? 'target' : ''}" data-hand="${h.id}" data-down="${L('faceDown')}" style="--i:${i}">${cardInner(h.key, 0, h.vet)}${order ? `<em class="olong">${L('orderLong')}</em>` : ''}</div>`;
   }).join('');
 
   // Action bar: what is going on, one instruction, then the ways forward and out (each exit says what it costs or its key).
@@ -782,6 +782,8 @@ function render() {
   const thumb = hc ? `<img class="th" src="${art(hc.key, 0)}" alt="">` : '', pw = sel && !hc ? sel.c.slice(2) : null;
   let bar;
   if (st === 'wait') bar = `<span class="turn">${s.winner !== null ? (endShown ? '' : L('hEnd')) : busy && s.turn === 0 ? '' : L('hAi')}</span>`;
+  else if (st === 'trim') bar = `${thumb}<span class="turn">${L('trimTitle', s.players[0].hand.length - E.RULES.hand)}</span>
+    <span class="info">${hc ? L('trimPick', nameV(hc.key, 0, hc.vet)) : L('trimInfo')}</span>${hc ? `<button data-act="trim" class="on">${L('trimBtn')}</button>` : ''}`;
   else if (st === 'idle') bar = `<span class="turn">${L('yourTurn')}</span><span class="info">${L(M.matches ? 'barInfoM' : 'barInfo')}</span>
     <button data-act="flip" class="${flipHint ? 'on' : ''}" ${reveals.size ? '' : 'disabled'}>${L(M.matches ? 'flipShort' : 'flipBtn')}<small>${L(reveals.size ? 'flipSub' : 'flipNone')}</small></button>
     ${(camp ? runNow().powers : []).map(w => `<button data-power="${w}" class="pw" title="${I.powerText(w)}" ${mv.some(m => m.c === 'p:' + w) ? '' : 'disabled'}>⚡ ${I.powerName(w)}</button>`).join('')}`;
@@ -975,6 +977,7 @@ document.addEventListener('click', e => {
   if (act === 'up' || act === 'down') { hiddenMode = act === 'down'; return render(); }
   if (act === 'flip') { flipHint = !flipHint; return render(); }
   if (act === 'cancel') return cancel();
+  if (act === 'trim') return commit(E.moves(s).find(m => m.kind === 'trim' && m.c === sel.c));
   if (act === 'supply') return commit(E.moves(s).find(m => m.kind === 'supply' && m.c === sel.c));
   if (act === 'ok') return commit(cands().find(m => m.steps.length === sel.pre.length));
   const pb = e.target.closest('[data-power]');

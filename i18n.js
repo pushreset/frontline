@@ -10,6 +10,7 @@ const I18N = (() => {
     fr: {
       title: 'Ligne de Front', resume: w => `Reprendre — ${w}`, campaign: 'Campagne', quick: 'Bataille rapide',
       tagline: "Batailles de cartes à travers l'histoire", chooseCampaign: 'Choisis ta campagne', chooseEra: 'Choisis ton théâtre', back: 'Retour', battles: n => `${n} batailles`,
+      trimTitle: n => `Main pleine · défausse ${n} carte${n > 1 ? 's' : ''}`, trimInfo: 'Choisis une carte de ta main à défausser (7 au maximum).', trimPick: c => `Défausser <b>${c}</b> ?`, trimBtn: 'Défausser',
       guide: 'Règles et tactique', guideRules: 'Les règles', guideTactics: 'Guide tactique',
       // phone layout
       hourShort: (h, n) => `Heure <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">Toi <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> IA</span>`,
@@ -72,6 +73,7 @@ const I18N = (() => {
     en: {
       title: 'Front Line', resume: w => `Resume — ${w}`, campaign: 'Campaign', quick: 'Quick battle',
       tagline: 'Card battles through history', chooseCampaign: 'Choose your campaign', chooseEra: 'Choose your theatre', back: 'Back', battles: n => `${n} battles`,
+      trimTitle: n => `Full hand · discard ${n} card${n > 1 ? 's' : ''}`, trimInfo: 'Pick a card in your hand to discard (7 at most).', trimPick: c => `Discard <b>${c}</b>?`, trimBtn: 'Discard',
       guide: 'Rules & tactics', guideRules: 'The rules', guideTactics: 'Tactics guide',
       // phone layout
       hourShort: (h, n) => `Hour <b>${h}</b>/${n}`, scoreShort: (a, b) => `<span style="color:var(--me)">You <b>${a}</b></span> · <span style="color:var(--ai)"><b>${b}</b> AI</span>`,
@@ -152,6 +154,7 @@ const I18N = (() => {
       hidden: (p, c, x) => `${p ? "L'IA pose" : 'Tu poses'} une carte face cachée sur ${x}.`,
       order: (p, c) => `${p ? "L'IA joue" : 'Tu joues'} ${c}.`,
       supply: p => (p ? "L'IA se ravitaille." : 'Tu te ravitailles.'),
+      trim: (p, c) => (p ? "L'IA défausse une carte (main pleine)." : `Tu défausses ${c} (main pleine).`),
       pass: p => (p ? "L'IA passe." : 'Tu passes.'),
       first: p => (p ? "L'IA a l'initiative." : "Tu as l'initiative."),
       destroy: (p, c, x) => `✖ ${c} détruit (${x}).`,
@@ -169,6 +172,7 @@ const I18N = (() => {
       hidden: (p, c, x) => `${p ? 'The AI plays' : 'You play'} a card face down on ${x}.`,
       order: (p, c) => `${p ? 'The AI plays' : 'You play'} ${c}.`,
       supply: p => (p ? 'The AI resupplies.' : 'You resupply.'),
+      trim: (p, c) => (p ? 'The AI discards a card (full hand).' : `You discard ${c} (full hand).`),
       pass: p => (p ? 'The AI passes.' : 'You pass.'),
       first: p => (p ? 'The AI has the initiative.' : 'You have the initiative.'),
       destroy: (p, c, x) => `✖ ${c} destroyed (${x}).`,
@@ -196,7 +200,7 @@ const I18N = (() => {
 <li>Si les deux camps atteignent le seuil, le plus gros <b>surplus</b> (le total au-delà du seuil) prend la tenue. À égalité, celui qui tenait le premier garde le terrain.</li>
 </ul>
 <h3>Ton tour : une seule action</h3>
-<p>Tu commences avec 5 cartes et tu en pioches 1 au début de chaque tour (7 en main au maximum). Puis tu fais <b>une</b> action :</p>
+<p>Tu commences avec 5 cartes et tu en pioches 1 au début de chaque tour. Tu gardes 7 cartes au maximum : si une pioche te fait dépasser, tu choisis aussitôt la ou les cartes à défausser. Puis tu fais <b>une</b> action :</p>
 <ul>
 <li><b>Poser une unité face visible.</b> Elle ajoute ses valeurs, et beaucoup d'unités ont un pouvoir qui se déclenche à la pose.</li>
 <li><b>Poser une carte face cachée.</b> Elle vaut 0 et son pouvoir est inactif : c'est un bluff, l'IA ne voit que « ??? ».</li>
@@ -267,7 +271,7 @@ const I18N = (() => {
 <li>If both sides reach the threshold, the larger <b>surplus</b> (the total above the threshold) takes the hold. On a tie, whoever held it first keeps it.</li>
 </ul>
 <h3>Your turn: one action</h3>
-<p>You start with 5 cards and draw 1 at the start of each turn (7 in hand at most). Then you take <b>one</b> action:</p>
+<p>You start with 5 cards and draw 1 at the start of each turn. You keep 7 cards at most: when a draw takes you over, you pick at once the card or cards to discard. Then you take <b>one</b> action:</p>
 <ul>
 <li><b>Deploy a unit face up.</b> It adds its values, and many units have a power that triggers when they are played.</li>
 <li><b>Play a card face down.</b> It is worth 0 and its power is inactive: it is a bluff, the AI only sees "???".</li>

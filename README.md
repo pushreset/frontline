@@ -30,7 +30,8 @@ the Allies (in 1916, the French; in Gaul, Caesar; in Middle-earth, the Free Peop
 
 ### Your turn: one action
 
-You start with 5 cards, draw 1 at the start of each turn, and can hold up to 7. Each turn you take
+You start with 5 cards and draw 1 at the start of each turn. You keep up to 7: a draw always happens,
+then you pick the card or cards to discard down to 7. Each turn you take
 **one** action:
 
 - **Deploy a unit face up** on a terrain. It adds its values to your side, and many units have a power
