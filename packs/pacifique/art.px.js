@@ -1,550 +1,555 @@
-// Pacific 1942–1945 — card (64x40) and terrain (160x72) illustrations, map, icons, coin.
+// Pacific 1942–1945 — card (128x80) and terrain (320x144) illustrations, map, icons, coin, at the resolution of the Gallic Wars.
 // Build (writes packs/pacifique/out/): node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/pacifique/art.px.js --no-preview
-// Palette of the Pacific war: hard tropical light, deep ocean and turquoise lagoons, white sand, palm green, black
-// volcanic ash. US olive drab and haze-gray ships against Japanese khaki and darker naval gray.
+//
+// Hard tropical light, deep ocean and turquoise lagoons, white sand, palm green, black volcanic ash. US olive drab and
+// haze-gray ships against Japanese khaki and darker naval gray. Shared style rules: see packs/art-lib.px.js.
 pal({
-  k: "#14110f", M: "#2e2f2c",
-  u: "#4f86bd", s: "#78aad6", S: "#a9cfe6", h: "#ddeeea",            // tropical sky, top -> horizon
-  7: "#d9845a", 8: "#f2c27a",                                        // dusk
-  1: "#111a2e", 2: "#1d2c4b", 3: "#32507e", 9: "#7f95b8",            // night
-  w: "#f6f3e8", W: "#cdd6d6",                                        // cloud, foam, white
-  B: "#173f62", b: "#285f8c", c: "#3f86b0", C: "#7fbdd6",            // ocean, deep -> light
-  L: "#2fa5a3", Q: "#7cd3c3",                                        // lagoon
-  m: "#ecd9a2", d: "#cdb077", D: "#9b7f4c", e: "#5b4529",            // sand, wood
-  g: "#78b04c", G: "#46833a", f: "#2b5e30", F: "#173a24",            // palms, jungle
-  n: "#77716a", N: "#45413d", x: "#a49e94",                          // ash, smoke
-  l: "#9ea86a", o: "#737d46", O: "#535b33", v: "#363d22",            // US olive drab
-  Z: "#cbbb7e", a: "#aa975b", A: "#7d6d3f", z: "#4e4428",            // Japanese khaki
-  t: "#b2bcc2", T: "#848f97", q: "#5a656e",                          // US haze gray, steel
-  i: "#9a9c98", I: "#6c6f6c", j: "#474a48",                          // Japanese naval gray
-  p: "#e0b088", P: "#b07e56",                                        // skin
-  y: "#ffe08a", Y: "#f29a3a", r: "#c8352c", R: "#7e2622",            // fire, red
-  6: "#2b4a8c",                                                      // US insignia blue
-  4: "#e4d6aa", 5: "#c0aa76", H: "#8b7a52",                          // chart paper
+  k: "#14110f",
+  1: "#4580ba", "+": "#5891c5", 2: "#71a5d2", "=": "#8bb9dc", 3: "#a6cce4", "~": "#c0dce8", 4: "#daebe8", 5: "#f6f3e8",   // tropical sky, cloud, foam
+  6: "#8db0b2", "%": "#6c988b", "&": "#4c7b68",                                     // far islands in the haze
+  a: "#122d1d", A: "#1f4d2b", c: "#337634", "^": "#4c913f", C: "#71ab4a", d: "#a3c464",   // palms, jungle
+  t: "#5a4428", T: "#9a7e4b", q: "#ccaf76", Q: "#ebd8a1",                           // sand, chart paper
+  0: "#2a2826", M: "#44403c", m: "#76706a", l: "#a39d93",                           // volcanic ash, smoke
+  z: "#133a5b", Z: "#235985", p: "#3a81ac", P: "#7bb9d3",                           // ocean, deep -> light
+  "@": "#2fa5a3", "$": "#7cd3c3",                                                   // lagoon
+  w: "#2a1c13", W: "#5a4128", x: "#8a6a40", X: "#b4935e",                           // wood, palm trunks
+  o: "#584318", O: "#8a6a2a", y: "#c39a44", Y: "#e6c873",                           // straw, brass
+  u: "#2f351d", U: "#4f5830", v: "#717b45", V: "#9aa468",                           // US olive drab
+  g: "#4d4328", G: "#7c6c3f", h: "#a9965a", H: "#cabb7d",                           // Japanese khaki
+  i: "#56616a", I: "#808b93", j: "#aeb8be", J: "#d4dade",                           // US haze gray, steel
+  7: "#464947", 8: "#6b6e6b", 9: "#999b97",                                         // Japanese naval gray
+  e: "#4a2b20", E: "#7d4b35", f: "#b6795a", F: "#e0ad89",                           // skin
+  r: "#4a1416", R: "#7e2622", s: "#c8352c", S: "#e8684f",                           // red
+  b: "#111a2e", B: "#1d2c4b", n: "#32507e", N: "#7f95b8",                           // night, insignia blue
+  D: "#c9501f", L: "#f0a43a", K: "#fbeeb0",                                         // fire
 })
-ramps("kFfGg", "kvOol", "kzAaZ", "keDdm", "kqTt", "kjIi", "kBbcC", "kRrYy", "kNnx", "k123", "kWw", "kus", "k5")
+ramps("1+2=3~45", "&%6345", "kaAc^Cd", "ktTqQ", "k0Mml", "kzZpP", "@$", "kwWxX", "koOyY", "kuUvV", "kgGhH", "kiIjJ", "k789", "keEfF", "krRsS", "kbBnN", "DLK")
+include("../art-lib.px.js")
 
-const JP = { l: "Z", o: "a", O: "A", v: "z", t: "i", T: "I", q: "j" }
-const NIGHT = { l: "3", o: "2", O: "1", v: "1", p: "3", P: "2", d: "2", D: "1", m: "2", e: "1", t: "3", T: "2", q: "1", Z: "3", a: "2", A: "1", z: "1" }
+const JP = { V: "H", v: "h", U: "G", u: "g", i: "7", I: "8", j: "9", J: "9" }
+const BACK = { V: "v", v: "U", U: "u", H: "h", h: "G", G: "g", F: "f", f: "E", E: "e", X: "x", x: "W", W: "w", J: "j", j: "I", I: "i", 9: "8", 8: "7" }
+const NIGHT = { V: "n", v: "B", U: "b", u: "b", H: "n", h: "B", G: "b", g: "b", F: "N", f: "n", E: "B", e: "b", X: "B", x: "b", W: "b", w: "b", J: "N", j: "n", I: "B", i: "b", 9: "n", 8: "B", 7: "b", y: "n", s: "B", q: "B", Q: "n", T: "b", m: "B", l: "n" }
 
-// ------------------------------------------------------------------ parts
-sprite("_cloud_a", `
-  ....wwww......
-  ..wwwwwwww.ww.
-  .wwwwwwwwwwwww
-  wwwwwwwwwwwwWW
-  .WWWWWWWWWWWW.`)
-sprite("_cloud_b", `
-  ...www...
-  .wwwwwww.
-  wwwwwwWWW
-  .WWWWWW..`)
-
-// Infantry facing right. Rows 0-1: the M1 helmet (US) or the Japanese helmet with its neck cloth.
+// ------------------------------------------------------------------ figures (about 36 px tall)
+// Marine advancing, facing right: M1 helmet with its camouflage cover, olive drab utilities, leggings, M1 rifle.
 const SOL = `
-  ...OOOO......
-  ..OOOOOOO....
-  ..vOpppP.....
-  ...ppppP.....
-  ...ooooo.....
-  ..oloooooMMMM
-  ..olooqqqM...
-  ..ooooodO....
-  ..oooooOO....
-  ..ooooooo....
-  ...oooOO.....
-  ..ooo.OO.....
-  ..oo...OO....
-  .ooo...oO....
-  .ee....ee....
-  eee....eee...`
+  .........VVVV...............
+  ........VcvVvV..............
+  .......VvVvcvvU.............
+  .......UUUUUUUUU............
+  .........EfFFFU.............
+  .........fFkFFf.............
+  .........ffFFFFf............
+  .........EffFFE.............
+  ..........EffE..............
+  .......VVvvEvvV.............
+  ......VVvvvvvvvU............
+  ......VvvVvvvvvvU...........
+  ......VvvVvvvvvvvU..........
+  ......VvvVvvvvvvUffXXxxxxxjjJ
+  ......VvyVvvvvvvyfFWWWWWWj..
+  ......VvvVvvvvvvU.ff........
+  ......VvvVvvvvvvU...........
+  ......Uvvvvvvvvvv...........
+  ......UyyyOyyyyyU...........
+  ......UyvyvvvvyvU...........
+  ......UUvvvvvvvUU...........
+  .......UUUUUUUUU............
+  .......UUUU.UUUUU...........
+  .......UUUU..UUUU...........
+  ......UUUU....UUUU..........
+  ......UUU......UUUU.........
+  .....UUUU.......UUU.........
+  .....UUU........UUUU........
+  .....UUU.........UUU........
+  ....qqq..........qqqq.......
+  ....qqqq..........qqq.......
+  ....qqq...........qqqq......
+  ...WWWW...........WWWWW.....
+  ..WWWWW...........WWWWWW....`
 const KNEEL = `
-  ...OOOO.....
-  ..OOOOOOO...
-  ..vOpppP....
-  ...ppppP....
-  ...ooooo....
-  ..oloooooMMM
-  ..oloooo.pp.
-  ..oooooO....
-  ...dddd.....
-  ...oooooooo.
-  ..ooOO...oo.
-  .ooOO....oo.
-  eeOO.....ee.
-  ee.......eee`
-const hat = (grid, a, b) => { const r = grid.split("\n").filter((x) => x.trim()); r[0] = a; r[1] = b; return r.join("\n") }
-const JPHAT = ["  ...OOOO.....", "  ..OOOOOO...."]
-const JPHAT_K = ["  ...OOOO....", "  .OOOOOOO..."]
+  .........VVVV.................
+  ........VcvVvV................
+  .......VvVvcvvU...............
+  .......UUUUUUUUU..............
+  .........EfFFFfFXxxxxxxxxjjjJ
+  .........fFkFFfWWWWWWWWWj.....
+  .........ffFFFF...............
+  .........EffFE................
+  ..........EfE.................
+  .......VVvvvvvVff.............
+  ......VVvvvvvvvvFf............
+  ......VvvVvvvvvvvf............
+  ......VvvVvvvvvvv.............
+  ......VvyVvvvvvvy.............
+  ......VvvVvvvvvvU.............
+  ......UyyyOyyyyyU.............
+  ......UUvvvvvvvUU.............
+  ......UUUUUUUUUUUUUUU.........
+  .......UUUUUUUUUUUUUUU........
+  .......UUUU.......UUUU........
+  ......UUUU........UUUU........
+  .....UUUU.........qqqq........
+  ....UUUU..........qqq.........
+  ...qqqqqq.........qqq.........
+  ..WWqqqqqq........WWWW........
+  .WWWWWWWWW........WWWWW.......`
+const put = (grid, rows) => { const r = grid.split("\n").filter((x) => x.trim()).map((x) => x.trim()); for (const [i, s] of Object.entries(rows)) r[i] = s; return r.join("\n") }
+// Japanese infantry: the helmet with its neck cloth hanging behind, khaki, puttees.
+const JPHEAD = { 0: ".........HHHH...............", 1: "........HhhhhH..............", 2: ".......HhHhhhhG.............", 3: "......HHGGGGGGG.............", 4: ".....Hh..EfFFFG.............", 5: ".....hh..fFkFFf.............", 6: "......h..ffFFFFf............" }
+const JPHEADK = { 0: ".........HHHH.................", 1: "........HhhhhH................", 2: ".......HhHhhhhG...............", 3: "......HHGGGGGGG...............", 4: ".....Hh..EfFFFfFXxxxxxxxxjjjJ", 5: ".....hh..fFkFFfWWWWWWWWWj.....", 6: "......h..ffFFFF..............." }
 sprite("_sol", { outline: "k" }, SOL)
 sprite("_kneel", { outline: "k" }, KNEEL)
-sprite("_sol_x", { outline: "k", swap: JP }, hat(SOL, ...JPHAT).replace("..vOpppP", ".OvOpppP"))
-sprite("_kneel_x", { outline: "k", swap: JP }, hat(KNEEL, ...JPHAT_K).replace("..vOpppP", ".OvOpppP"))
-sprite("_sol_night", { outline: "k", swap: NIGHT }, SOL)
-sprite("_sol_x_night", { outline: "k", swap: { ...NIGHT, ...{ o: "2" } } }, hat(SOL, ...JPHAT).replace("..vOpppP", ".OvOpppP"))
+sprite("_sol_x", { outline: "k", swap: { ...JP, q: "h", c: "h" } }, put(SOL, JPHEAD))
+sprite("_kneel_x", { outline: "k", swap: { ...JP, q: "h", c: "h" } }, put(KNEEL, JPHEADK))
 
-// Ships, side view facing right. len = hull length. kind: bb battleship, dd destroyer, cv carrier, ss submarine,
-// ak freighter, lc landing craft. Japanese versions swap the grays.
+// ------------------------------------------------------------------ ships (side view, facing right)
+// kind: bb battleship, dd destroyer, cv carrier, ss submarine, ak freighter. Hull with a sheer line, a dark boot
+// topping at the waterline, superstructure in tiers, turrets and barrels, funnels, masts. Japanese: darker gray.
 function ship(name, kind, len, swap) {
-  const H = { bb: 16, dd: 12, cv: 14, ss: 8, ak: 15, lc: 7 }[kind]
-  sprite(name, { w: len + 2, h: H, swap }, (c) => {
-    const y = H - 4                                                               // waterline - 1
-    // hull: raked bow on the right, rounded stern on the left
-    c.poly([0, y - 1, len - 4, y - 2, len + 1, y - 4, len - 2, y + 2, 2, y + 2], "T")
-    c.hline(1, y - 1, len - 4, "t"); c.hline(2, y + 2, len - 4, "q")
+  const H = { bb: 34, dd: 24, cv: 28, ss: 16, ak: 30 }[kind]
+  sprite(name, { w: len + 4, h: H, outline: "k", swap }, (c) => {
+    const y = H - 6                                                                           // waterline
+    c.poly([0, y - 3, len * 0.3, y - 4, len - 8, y - 5, len + 3, y - 9, len - 3, y + 4, 4, y + 4, 0, y], "I")   // hull: raked bow, rounded stern
+    c.hline(2, y - 3, len - 8, "j"); c.line(len - 8, y - 5, len + 2, y - 9, "j")
+    c.rect(4, y + 2, len - 8, 2, "i"); c.hline(3, y + 4, len - 6, "0")                        // boot topping
+    for (let x = 12; x < len - 16; x += 8) c.px(x, y - 1, "i")                                // portholes
     if (kind === "bb") {
-      c.rect(len * 0.35, y - 6, len * 0.3, 5, "t"); c.rect(len * 0.42, y - 10, 6, 4, "T"); c.vline(len * 0.45, y - 14, 4, "q")   // superstructure, tower, mast
-      c.rect(len * 0.38, y - 8, 3, 2, "q")                                                                                     // funnel
-      for (const gx of [len * 0.12, len * 0.24, len * 0.72, len * 0.84]) { c.rect(gx, y - 3, 5, 2, "q"); c.hline(gx + (gx > len / 2 ? 5 : -5), y - 3, 5, "q") }   // turrets, barrels
+      c.rect(len * 0.34, y - 12, len * 0.32, 8, "I"); c.hline(len * 0.34, y - 12, len * 0.32, "j")              // superstructure
+      c.rect(len * 0.42, y - 20, 12, 8, "I"); c.hline(len * 0.42, y - 20, 12, "j"); c.rect(len * 0.44, y - 18, 8, 2, "i")   // tower, bridge windows
+      c.vline(len * 0.46, y - 28, 8, "i"); c.hline(len * 0.46 - 4, y - 25, 9, "i")                               // mast, yard
+      c.rect(len * 0.36, y - 16, 6, 4, "i"); c.hline(len * 0.36, y - 16, 6, "I")                                 // funnel
+      for (const gx of [len * 0.12, len * 0.24, len * 0.72, len * 0.84]) { const r = gx > len / 2; c.rect(gx, y - 7, 10, 4, "I"); c.hline(gx, y - 7, 10, "j"); c.hline(r ? gx + 10 : gx - 10, y - 6, 10, "i") }   // turrets, barrels
+      for (let x = len * 0.36; x < len * 0.66; x += 5) c.px(x, y - 13, "J")                                      // AA guns
     } else if (kind === "dd") {
-      c.rect(len * 0.55, y - 5, 6, 4, "t"); c.vline(len * 0.6, y - 9, 4, "q")                                                // bridge, mast
-      c.rect(len * 0.35, y - 4, 3, 3, "q"); c.rect(len * 0.25, y - 4, 3, 3, "q")                                             // two funnels
-      c.rect(len * 0.78, y - 2, 3, 1, "q"); c.hline(len * 0.82, y - 2, 4, "q"); c.rect(len * 0.08, y - 2, 3, 1, "q")
+      c.rect(len * 0.55, y - 10, 12, 6, "I"); c.hline(len * 0.55, y - 10, 12, "j"); c.rect(len * 0.57, y - 9, 8, 2, "i"); c.vline(len * 0.6, y - 18, 8, "i")   // bridge, mast
+      c.rect(len * 0.35, y - 9, 5, 5, "i"); c.rect(len * 0.24, y - 9, 5, 5, "i"); c.hline(len * 0.35, y - 9, 5, "I"); c.hline(len * 0.24, y - 9, 5, "I")   // two funnels
+      c.rect(len * 0.78, y - 6, 6, 2, "I"); c.hline(len * 0.84, y - 6, 8, "i"); c.rect(len * 0.06, y - 6, 6, 2, "I")   // guns
+      c.rect(len * 0.42, y - 5, 10, 2, "i")                                                                       // torpedo tubes
     } else if (kind === "cv") {
-      c.rect(0, y - 3, len, 2, "q"); c.hline(0, y - 3, len, "T")                                                             // flight deck
-      c.rect(len * 0.6, y - 8, 5, 5, "t"); c.rect(len * 0.6 + 1, y - 10, 3, 2, "q"); c.vline(len * 0.6 + 2, y - 13, 3, "q")  // island
-      for (let x = 4; x < len - 6; x += 7) c.px(x, y - 3, "w")                                                               // deck markings
+      c.rect(0, y - 7, len, 4, "i"); c.hline(0, y - 7, len, "I"); c.hline(0, y - 6, len, "8")                    // flight deck
+      c.rect(len * 0.62, y - 17, 10, 10, "I"); c.hline(len * 0.62, y - 17, 10, "j"); c.rect(len * 0.62 + 2, y - 21, 6, 4, "i"); c.vline(len * 0.62 + 5, y - 27, 6, "i")   // island, funnel, mast
+      for (let x = 6; x < len - 10; x += 12) c.hline(x, y - 7, 5, "J")                                            // deck markings
     } else if (kind === "ss") {
-      c.rect(len * 0.42, y - 4, 5, 3, "q"); c.vline(len * 0.45, y - 7, 3, "q"); c.hline(len * 0.65, y - 2, 3, "q")          // conning tower, periscope, deck gun
+      c.rect(len * 0.42, y - 9, 10, 6, "i"); c.hline(len * 0.42, y - 9, 10, "I"); c.vline(len * 0.46, y - 14, 5, "i"); c.vline(len * 0.5, y - 12, 3, "i")   // conning tower, periscopes
+      c.hline(len * 0.65, y - 5, 6, "i"); c.px(len * 0.7, y - 6, "I")                                            // deck gun
     } else if (kind === "ak") {
-      c.rect(len * 0.42, y - 6, 8, 5, "t"); c.rect(len * 0.46, y - 9, 3, 3, "q")                                             // bridge, funnel
-      for (const mx of [len * 0.2, len * 0.75]) { c.vline(mx, y - 11, 10, "q"); c.line(mx, y - 10, mx + 5, y - 3, "q") }      // masts, derricks
-      c.rect(len * 0.1, y - 3, 7, 2, "D"); c.rect(len * 0.68, y - 3, 6, 2, "d")                                              // deck cargo
-    } else if (kind === "lc") {
-      c.rect(len - 4, y - 3, 3, 4, "q"); c.rect(2, y - 2, 4, 2, "q")                                                         // ramp, wheelhouse
+      c.rect(len * 0.42, y - 12, 16, 8, "I"); c.hline(len * 0.42, y - 12, 16, "j"); c.rect(len * 0.44, y - 10, 12, 2, "i"); c.rect(len * 0.48, y - 18, 6, 6, "i")   // bridge, funnel
+      for (const mx of [len * 0.2, len * 0.76]) { c.vline(mx, y - 22, 18, "i"); c.line(mx, y - 20, mx + 10, y - 6, "i") }      // masts, derricks
+      c.rect(len * 0.08, y - 7, 14, 4, "W"); c.box(len * 0.08, y - 7, 14, 4, "w"); c.rect(len * 0.66, y - 7, 12, 4, "x")    // deck cargo
     }
   })
 }
-ship("_bb", "bb", 50); ship("_bb_x", "bb", 50, JP); ship("_yamato", "bb", 58, JP)
-ship("_dd", "dd", 36); ship("_dd_x", "dd", 36, JP)
-ship("_cv", "cv", 52); ship("_cv_x", "cv", 52, JP)
-ship("_ss", "ss", 34); ship("_ss_x", "ss", 34, JP)
-ship("_ak", "ak", 42); ship("_ak_x", "ak", 42, JP)
-ship("_bb_far", "bb", 26); ship("_dd_far", "dd", 18); ship("_cv_far", "cv", 24); ship("_ak_far", "ak", 20)
-ship("_bb_far_x", "bb", 26, JP); ship("_dd_far_x", "dd", 18, JP); ship("_cv_far_x", "cv", 24, JP); ship("_ak_far_x", "ak", 20, JP)
+ship("_bb", "bb", 100); ship("_bb_x", "bb", 100, JP); ship("_yamato", "bb", 116, JP)
+ship("_dd", "dd", 72); ship("_dd_x", "dd", 72, JP)
+ship("_cv", "cv", 104); ship("_cv_x", "cv", 104, JP)
+ship("_ss", "ss", 68); ship("_ss_x", "ss", 68, JP)
+ship("_ak", "ak", 84); ship("_ak_x", "ak", 84, JP)
+ship("_bb_far", "bb", 52); ship("_dd_far", "dd", 36); ship("_cv_far", "cv", 48); ship("_ak_far", "ak", 40)
+ship("_bb_far_x", "bb", 52, JP); ship("_dd_far_x", "dd", 36, JP); ship("_cv_far_x", "cv", 48, JP); ship("_ak_far_x", "ak", 40, JP)
 
-// Monoplane facing right. US: blue fuselage and the white star; Japan: light gray or green and the red disc.
-// kind: fighter, bomber (longer canopy, bomb), torpedo (deep belly, torpedo).
+// Monoplane facing right. US: dark blue over light gray and the white star; Japan: light gray or green and the
+// red disc. kind: fighter, bomber (longer canopy, a bomb), torpedo (a torpedo under the belly). dive = degrees nose down.
 function plane(name, kind, jp, body, dive = 0) {
-  const [b1, b2] = body || (jp ? ["i", "I"] : ["c", "b"])
-  const S = dive ? 32 : 0
-  sprite(name, dive ? { w: S, h: S, outline: "k" } : { w: 30, h: 13, outline: "k" }, (c0) => {
-    // Diving: draw level into a buffer, then copy it rotated by `dive` degrees (nose down) around the centre.
-    const buf = new Map(), c = dive ? { poly: (pts, k) => c0.poly(pts, k), hline: (...a) => c0.hline(...a), rect: (...a) => c0.rect(...a), vline: (...a) => c0.vline(...a), px: (...a) => c0.px(...a), circ: (...a) => c0.circ(...a) } : c0
-    c.poly([1, 6, 6, 5, 22, 4, 26, 5, 27, 7, 23, 9, 6, 8, 1, 7], b1); c.hline(6, 8, 17, b2)      // fuselage
-    c.poly([1, 6, 1, 1, 4, 1, 7, 5], b1); c.hline(0, 6, 6, b2)                                   // fin, tailplane
-    c.rect(25, 4, 3, 5, "M"); c.vline(29, 1, 11, "n")                                            // cowling, prop disc
-    c.poly([9, 7, 21, 7, 19, 11, 12, 11], b2); c.hline(12, 10, 7, b1)                            // wing (seen from slightly below)
-    c.rect(15, 3, kind === "bomber" || kind === "torpedo" ? 8 : 4, 2, "C"); c.px(17, 3, "W")    // canopy
-    if (kind === "torpedo") { c.hline(10, 11, 12, "q"); c.px(22, 11, "M") }                      // torpedo
-    if (kind === "bomber") { c.rect(15, 10, 4, 2, "M") }                                         // bomb
-    if (jp) { c.circ(15, 9, 1, "r"); c.circ(4, 6, 1, "r") }
-    else { c.circ(15, 9, 1, "6"); c.px(15, 9, "w"); c.px(14, 9, "w"); c.px(16, 9, "w"); c.circ(4, 6, 1, "6"); c.px(4, 6, "w") }
+  const [b1, b2] = body || (jp ? ["9", "8"] : ["n", "B"])
+  const S = dive ? 64 : 0
+  sprite(name, dive ? { w: S, h: S, outline: "k" } : { w: 60, h: 26, outline: "k" }, (c) => {
+    c.poly([2, 12, 12, 10, 44, 8, 52, 10, 54, 14, 46, 18, 12, 16, 2, 14], b1)
+    c.poly([12, 15, 46, 17, 52, 14, 54, 15, 46, 18, 12, 16], jp ? b2 : "j")                    // belly: light gray under the US blue
+    c.hline(12, 10, 32, jp ? "J" : "N")
+    c.poly([2, 12, 2, 2, 8, 2, 14, 10], b1); c.hline(0, 12, 12, b2)                            // fin, tailplane
+    c.rect(50, 8, 6, 10, "M"); c.vline(50, 8, 10, "0"); c.vline(58, 2, 22, "l"); c.px(58, 13, "m")   // cowling, prop disc
+    c.poly([18, 14, 42, 14, 38, 22, 24, 22], b2); c.hline(24, 20, 14, b1)                      // wing, seen from slightly below
+    c.rect(30, 6, kind === "fighter" ? 8 : 16, 4, "P"); c.px(33, 6, "5"); c.vline(36, 6, 4, "M")   // canopy
+    if (kind === "torpedo") { c.hline(20, 23, 24, "I"); c.px(44, 23, "j") }
+    if (kind === "bomber") c.rect(30, 21, 8, 3, "M")
+    if (jp) { c.circ(30, 17, 3, "5"); c.circ(30, 17, 2, "s"); c.circ(8, 12, 2, "s") }
+    else { c.circ(30, 17, 3, "n"); c.grid(28, 15, "..5..\n55555\n.5.5."); c.circ(8, 12, 2, "n"); c.px(8, 12, "5") }
     if (!dive) return
-    for (let y = 0; y < 13; y++) for (let x = 0; x < 30; x++) { const k = c0.key(x, y); if (k && k !== ".") buf.set(x + "," + y, k) }
-    c0.rect(0, 0, S, S, "_")
+    // diving: read the level drawing back, clear, rewrite it rotated nose-down around the centre
+    const buf = new Map()
+    for (let y = 0; y < 26; y++) for (let x = 0; x < 60; x++) { const k = c.key(x, y); if (k && k !== ".") buf.set(x + "," + y, k) }
+    c.rect(0, 0, S, S, "_")
     const a = dive * Math.PI / 180, co = Math.cos(a), si = Math.sin(a)
     for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-      const dx = x - 15.5, dy = y - 15.5, sx = Math.round(co * dx + si * dy + 15), sy = Math.round(-si * dx + co * dy + 6.5)
-      const k = buf.get(sx + "," + sy); if (k) c0.px(x, y, k)
+      const dx = x - 31.5, dy = y - 31.5, sx = Math.round(co * dx + si * dy + 30), sy = Math.round(-si * dx + co * dy + 13)
+      const k = buf.get(sx + "," + sy); if (k) c.px(x, y, k)
     }
   })
 }
-plane("_hellcat", "fighter", false); plane("_zero", "fighter", true, ["i", "I"])
-plane("_sbd", "bomber", false); plane("_val", "bomber", true, ["f", "F"])
-plane("_tbf", "torpedo", false); plane("_kate", "torpedo", true, ["G", "f"])
-plane("_corsair", "fighter", false, ["b", "B"]); plane("_george", "fighter", true, ["G", "f"])
-plane("_sbd_dive", "bomber", false, null, 50); plane("_val_dive", "bomber", true, ["f", "F"], 50)
-plane("_zero_dive", "fighter", true, ["i", "I"], 35); plane("_hellcat_dive", "fighter", false, null, 35)
-plane("_zero_fall", "fighter", true, ["i", "I"], 70); plane("_val_fall", "bomber", true, ["f", "F"], 60)
-// Small far-away plane silhouettes.
+plane("_hellcat", "fighter", false); plane("_zero", "fighter", true)
+plane("_sbd", "bomber", false); plane("_val", "bomber", true, ["c", "A"])
+plane("_tbf", "torpedo", false); plane("_kate", "torpedo", true, ["^", "c"])
+plane("_corsair", "fighter", false, ["B", "b"]); plane("_george", "fighter", true, ["^", "c"])
+plane("_sbd_dive", "bomber", false, null, 50); plane("_val_dive", "bomber", true, ["c", "A"], 50)
+plane("_zero_dive", "fighter", true, null, 35); plane("_hellcat_dive", "fighter", false, null, 35)
+plane("_zero_fall", "fighter", true, null, 70); plane("_val_fall", "bomber", true, ["c", "A"], 60)
+// Far-away plane silhouette.
 sprite("_dot_plane", `
-  ..k..
-  kkkkk
-  ..k..
-  .kkk.`)
+  ....m....
+  ...mmm...
+  mmmmmmmmm
+  ....m....
+  ...mmm...`)
 
-// Palm tree, leaning: trunk of `h` px, fronds on top.
+// Palm tree, leaning: a ringed trunk, a crown of fronds lit on the top left, coconuts.
 function palm(name, h, lean) {
-  sprite(name, { w: 21, h: h + 6 }, (c) => {
-    for (let i = 0; i < h; i++) { const x = 10 + Math.round(lean * (i / h) ** 1.6); c.px(x, h + 5 - i, i % 3 ? "D" : "e"); c.px(x + 1, h + 5 - i, "d") }
-    const tx = 10 + lean, ty = 6
-    for (const [dx, dy] of [[-9, 3], [-7, -2], [-2, -5], [5, -4], [9, 1], [8, 5], [-5, 5]]) c.line(tx, ty, tx + dx, ty + dy, "G", 2)
-    for (const [dx, dy] of [[-8, 2], [-6, -3], [4, -4], [8, 0]]) c.line(tx, ty - 1, tx + dx, ty + dy, "g")
-    c.px(tx, ty + 1, "e"); c.px(tx + 1, ty + 1, "D")
+  sprite(name, { w: 44, h: h + 14 }, (c) => {
+    for (let i = 0; i < h; i++) { const x = 21 + Math.round(lean * (i / h) ** 1.6); c.hline(x, h + 13 - i, 3, i % 4 ? "x" : "W"); c.px(x + 2, h + 13 - i, "W"); c.px(x, h + 13 - i, i % 4 ? "X" : "x") }
+    const tx = 22 + lean, ty = 12
+    for (const [dx, dy] of [[-18, 6], [-14, -4], [-4, -10], [10, -8], [18, 2], [16, 10], [-10, 10]]) { c.line(tx, ty, tx + dx, ty + dy, "A", 3); c.line(tx, ty - 1, tx + dx, ty + dy - 1, "c") }
+    for (const [dx, dy] of [[-16, 4], [-12, -6], [8, -8], [16, 0]]) c.line(tx, ty - 2, tx + dx, ty + dy - 1, "C")
+    c.circ(tx, ty + 2, 2, "W"); c.px(tx - 1, ty + 1, "x")
   })
 }
-palm("_palm_a", 22, 4); palm("_palm_b", 16, -3); palm("_palm_c", 28, 6); palm("_palm_d", 12, 2)
+palm("_palm_a", 44, 8); palm("_palm_b", 32, -6); palm("_palm_c", 56, 12); palm("_palm_d", 24, 4)
 group("_palms", ["_palm_a", "_palm_b", "_palm_c", "_palm_d"])
 // Shattered palm after a bombardment.
-sprite("_stump", { w: 7, h: 16 }, (c) => { c.rect(2, 2, 3, 14, "D"); c.vline(2, 2, 14, "e"); c.px(3, 1, "D"); c.px(5, 0, "e"); c.line(4, 5, 6, 3, "e") })
-
-sprite("_boom", { w: 17, h: 16 }, (c) => {
-  c.circ(8, 5, 4, "N"); c.circ(4, 7, 3, "n"); c.circ(12, 6, 3, "n"); c.circ(8, 2, 2, "n")
-  c.circ(8, 11, 5, "r"); c.circ(8, 11, 3, "Y"); c.circ(8, 12, 1, "y")
-  c.poly([0, 16, 4, 12, 13, 12, 17, 16], "r"); c.poly([3, 16, 6, 13, 11, 13, 14, 16], "Y")
+sprite("_stump", { w: 14, h: 32 }, (c) => { c.rect(4, 4, 6, 28, "x"); c.vline(4, 4, 28, "X"); c.vline(9, 4, 28, "W"); c.poly([4, 4, 6, 0, 8, 3, 10, 1, 10, 4], "x"); c.line(9, 10, 13, 6, "W", 2) })
+// Explosion, water column, flak burst.
+sprite("_boom", { w: 34, h: 32 }, (c) => {
+  for (const [x, y, r, k] of [[17, 10, 8, "0"], [9, 14, 6, "M"], [25, 13, 6, "M"], [17, 4, 4, "M"]]) { c.circ(x, y, r, k); c.circ(x - 2, y - 2, Math.max(1, r - 4), "m") }
+  c.circ(17, 22, 9, "D"); c.circ(17, 22, 6, "L"); c.circ(17, 23, 3, "K")
+  c.poly([0, 32, 8, 24, 26, 24, 34, 32], "D"); c.poly([6, 32, 12, 26, 22, 26, 28, 32], "L")
 })
-// Water column thrown up by a shell or a bomb.
-sprite("_splash", { w: 11, h: 18 }, (c) => {
-  c.poly([1, 17, 4, 5, 5, 0, 6, 5, 9, 17], "C"); c.poly([3, 17, 5, 7, 5, 2, 6, 7, 7, 17], "w")
-  c.circ(2, 8, 1, "C"); c.circ(8, 6, 1, "C"); c.ellipse(5, 17, 5, 1, "w")
+sprite("_splash", { w: 22, h: 36 }, (c) => {
+  c.poly([2, 35, 8, 10, 10, 0, 12, 10, 18, 35], "P"); c.poly([6, 35, 10, 14, 10, 4, 11, 14, 14, 35], "5")
+  for (const [x, y] of [[3, 16], [17, 12], [6, 6], [15, 22]]) c.circ(x, y, 2, "P")
+  c.ellipse(10, 35, 10, 2, "5")
 })
 sprite("_flak", `
-  .nn.
-  nNNn
-  nNNn
-  .nn.`)
+  ..mmm..
+  .mMMMm.
+  mMMMMMm
+  mMM0MMm
+  .mMMMm.
+  ..mmm..`)
 
 // ------------------------------------------------------------------ backdrop helpers
-const sky = (w, hor, keys = "usS") => grad(0, 0, w, hor, keys, "v", 0.35)
-// Sea from y to the bottom: bands deep -> light toward the horizon, short wave dashes.
-const sea = (y, w, h, seed = 1, keys = "cbB") => (c) => {
-  c.rect(0, y, w, h - y, keys[0])
-  if (keys[1]) c.rect(0, y + Math.round((h - y) * 0.35), w, h, keys[1])
-  if (keys[2]) c.rect(0, y + Math.round((h - y) * 0.75), w, h, keys[2])
-  c.hline(0, y, w, "C")
-  const r = c.rng(seed)
-  for (let i = 0; i < w * (h - y) / 60; i++) { const yy = y + 2 + Math.floor(r() * (h - y - 2)), len = 2 + Math.floor((yy - y) / 6); c.hline(Math.floor(r() * w), yy, len, yy - y < (h - y) * 0.4 ? "C" : "c") }
-}
-// Foam line where waves break: dashed white along a row.
-const surf = (y, x0, x1, seed = 1) => (c) => { const r = c.rng(seed); for (let x = x0; x < x1; x++) if (r() < 0.75) c.px(x, y + (r() < 0.2 ? 1 : 0), "w"); for (let x = x0; x < x1; x += 4) c.px(x + 2, y - 1, "W") }
+// Ocean from y down: light at the horizon, deep in front, wave dashes, foam crests.
+const sea = (y, w, h, seed = 1, keys = "PpZz") => [vgrad(0, y, w, h - y, keys, 1, 2), hline(0, y, w, "4"),
+  (c) => { const r = c.rng(seed); for (let i = 0; i < w * (h - y) / 40; i++) { const yy = y + 2 + Math.floor(r() * (h - y - 2)), t = (yy - y) / (h - y); c.hline(Math.floor(r() * w), yy, 2 + Math.floor(t * 8), t < 0.4 ? "4" : "P"); if (r() < 0.15) c.px(Math.floor(r() * w), yy - 1, "5") } }]
+// Foam line where waves break.
+const surf = (y, x0, x1, seed = 1) => (c) => { const r = c.rng(seed); for (let x = x0; x < x1; x++) if (r() < 0.75) c.px(x, y + (r() < 0.2 ? 1 : 0), "5"); for (let x = x0; x < x1; x += 6) c.hline(x + 2, y - 1, 3, "4") }
 // Wake behind a ship (to its left), widening.
-const wake = (x, y, len) => (c) => { for (let i = 0; i < len; i++) { const sp = Math.round(i / 5); c.px(x - i, y - sp, "w"); c.px(x - i, y + sp, i % 2 ? "W" : "w") } }
-const beach = (y, w, h, seed = 1) => (c) => {
-  c.rect(0, y, w, h - y, "m"); const r = c.rng(seed)
-  for (let i = 0; i < w / 6; i++) c.hline(Math.floor(r() * w), y + 2 + Math.floor(r() * (h - y - 2)), 2 + Math.floor(r() * 3), "d")
-}
-const smoke = (pts, keys = "Nnx") => (c) => { for (const [x, y, r, k = 0] of pts) c.circ(x, y, r, keys[k]) }
-const hills = (y, amp, key, seed = 0, to) => (c) => {
-  const r = c.rng(seed + 1), ph = r() * 6
-  for (let x = 0; x < c.w; x++) { const top = Math.round(y - amp * (Math.sin(x * 0.07 + ph) + 0.6 * Math.sin(x * 0.19 + 2 * ph))); c.vline(x, top, (to || c.h) - top, key) }
-}
+const wake = (x, y, len) => (c) => { for (let i = 0; i < len; i++) { const sp = Math.round(i / 6); c.px(x - i, y - sp, "5"); c.px(x - i, y + sp, i % 2 ? "4" : "5") } }
+// White sand beach with ripples left by the tide.
+const beach = (y, w, h, seed = 1) => [vgrad(0, y, w, h - y, "Qq", 1, 2), (c) => { const r = c.rng(seed); for (let i = 0; i < w / 6; i++) c.hline(Math.floor(r() * w), y + 3 + Math.floor(r() * (h - y - 3)), 4 + Math.floor(r() * 5), "q") }]
+const smokeP = (pts) => (c) => { for (const [x, y, r, k = 0] of pts) { c.circ(x, y, r, ["0", "M", "m"][k]); c.circ(x - 2, y - 2, Math.max(1, r - 3), ["M", "m", "l"][k]) } }
+// Jungle wall: a bumpy dark mass, round crowns lit on top.
 const jungleWall = (y, w, seed = 1) => (c) => {
   const r = c.rng(seed)
-  for (let x = 0; x < w; x++) { const top = y - Math.round(4 + 3 * Math.sin(x * 0.3 + seed) + 2 * Math.sin(x * 0.11)); c.vline(x, top, c.h - top, "f") }
-  for (let i = 0; i < w * 1.2; i++) { const x = Math.floor(r() * w), yy = y - 6 + Math.floor(r() * 10); c.circ(x, yy, 1 + Math.floor(r() * 2), r() < 0.5 ? "G" : "f") }
-  for (let i = 0; i < w / 2; i++) c.px(Math.floor(r() * w), y - 8 + Math.floor(r() * 8), "g")
+  for (let x = 0; x < w; x++) { const top = y - Math.round(8 + 6 * Math.sin(x * 0.15 + seed) + 4 * Math.sin(x * 0.055)); c.vline(x, top, c.h - top, "A") }
+  for (let i = 0; i < w / 3; i++) { const x = Math.floor(r() * w), yy = y - 12 + Math.floor(r() * 16), rr = 3 + Math.floor(r() * 4); c.circ(x, yy, rr, "A"); c.circ(x - 1, yy - 1, rr - 2, "c"); c.circ(x - 2, yy - 2, Math.max(1, rr - 4), "^") }
 }
 function stamps2(name, pts) { return (c) => { for (const [x, y, o] of pts) c.stamp(name, x, y, o) } }
+// Muzzle blast pointing right.
+const blast = (x, y) => [poly([x, y, x + 18, y - 6, x + 14, y, x + 18, y + 6], "L"), poly([x, y, x + 10, y - 3, x + 8, y, x + 10, y + 3], "K"), circ(x + 1, y, 3, "K"),
+  smokeP([[x + 22, y - 6, 6, 1], [x + 28, y - 12, 5, 2], [x + 18, y - 14, 4, 2]]), glow("LK", { r: 8, strength: 0.4 })]
 
-// ------------------------------------------------------------------ cards (64x40)
-const CW = 64, CH = 40
+scene("contact_parts", { w: 340, h: 170, bg: "4" },
+  stamp("_sol", 2, 4), stamp("_sol_x", 34, 4), stamp("_kneel", 66, 12), stamp("_kneel_x", 98, 12), stamp("_palm_a", 130, 0), stamp("_boom", 180, 4), stamp("_splash", 216, 0),
+  stamp("_bb", 2, 50), stamp("_yamato", 110, 46), stamp("_cv", 2, 90), stamp("_dd_x", 112, 92), stamp("_ss", 200, 96), stamp("_ak", 240, 46),
+  stamp("_hellcat", 2, 130), stamp("_zero", 66, 130), stamp("_sbd_dive", 130, 106), stamp("_val", 196, 132), stamp("_tbf", 260, 130))
+
+// ------------------------------------------------------------------ cards (128x80)
 function unit(name, build) {
   scene("c_" + name, { w: CW, h: CH }, ...build(""))
   scene("c_" + name + "_x", { w: CW, h: CH }, ...build("_x"))
 }
 const P2 = (x, us, jp) => (x ? jp : us)
+const order = (name, ...items) => scene("c_" + name, { w: CW, h: CH }, ...items)
 
 unit("cuirasse", (x) => [
-  sky(CW, 24, "uss"), stamp("_cloud_a", 6, 4), sea(24, CW, CH, 1),
-  stamp("_bb" + x, 6, 13), wake(8, 27, 8),
-  smoke([[52, 14, 4, 2], [57, 10, 3, 2], [48, 10, 3, 1]]), poly([50, 19, 60, 15, 57, 19], "Y"), circ(51, 18, 2, "y"),
-  glow("y", { r: 5, strength: 0.4 }),
+  sky(CW, 48), stamp("_cloud_a", 10, 6), ...sea(48, CW, CH, 1),
+  stamp("_bb" + x, 6, 22), wake(10, 52, 14),
+  ...blast(102, 34),
 ])
 unit("destroyer", (x) => [
-  sky(CW, 20), stamp("_cloud_b", 44, 3), sea(20, CW, CH, 2),
-  stamp("_dd" + x, 22, 12), poly([58, 22, 62, 19, 62, 24], "w"), wake(24, 22, 18),
-  stamp("_splash", 4, 9), stamp("_splash", 14, 12),
+  sky(CW, 40), stamp("_cloud_b", 88, 6), ...sea(40, CW, CH, 2),
+  stamp("_dd" + x, 40, 26), poly([114, 44, 124, 38, 124, 48], "5"), wake(44, 46, 36),
+  stamp("_splash", 6, 16), stamp("_splash", 26, 22),
 ])
 unit("sous_marin", (x) => [
-  grad(0, 0, CW, 22, "123", "v", 0.6), circ(52, 6, 3, "w"), glow("w", { r: 8, strength: 0.4 }),
-  sea(22, CW, CH, 3, "321"), hline(0, 22, CW, "9"),
-  stamp(P2(x, "_ss", "_ss_x"), 2, 16, { swap: NIGHT }), (c) => { for (let i = 0; i < 22; i++) c.px(38 + i, 30 + Math.round(i / 4), i % 2 ? "9" : "w") },   // torpedo wake
-  stamp(P2(x, "_ak_far_x", "_ak_far"), 42, 13, { swap: NIGHT }), stamp("_boom", 46, 6),
+  vgrad(0, 0, CW, 44, "bBn", 1, 2), circ(104, 12, 6, "5"), glow("5", { r: 14, strength: 0.4 }),
+  ...sea(44, CW, CH, 3, "nBbb"), hline(0, 44, CW, "N"),
+  stamp(P2(x, "_ss", "_ss_x"), 4, 38, { swap: NIGHT }), (c) => { for (let i = 0; i < 44; i++) c.px(76 + i, 62 + Math.round(i / 4), i % 2 ? "N" : "5") },   // torpedo wake
+  stamp(P2(x, "_ak_far_x", "_ak_far"), 80, 24, { swap: NIGHT }), stamp("_boom", 92, 10),
 ])
 unit("dauntless", (x) => [
-  sky(CW, 26), stamp("_cloud_a", 40, 2), sea(26, CW, CH, 4),
-  stamp(P2(x, "_sbd_dive", "_val_dive"), 4, -2),
-  stamp(P2(x, "_cv_far_x", "_cv_far"), 30, 20), stamp("_splash", 40, 12), stamp("_boom", 24, 14),
-  hline(16, 8, 3, "W"), hline(13, 3, 3, "W"),
+  sky(CW, 52), stamp("_cloud_a", 80, 4), ...sea(52, CW, CH, 4),
+  stamp(P2(x, "_sbd_dive", "_val_dive"), 4, -6),
+  stamp(P2(x, "_cv_far_x", "_cv_far"), 60, 40), stamp("_splash", 82, 22), stamp("_boom", 50, 28),
+  hline(32, 16, 6, "4"), hline(26, 6, 6, "4"),
 ])
 unit("hellcat", (x) => [
-  sky(CW, CH, "uss"), stamp("_cloud_a", 2, 26), stamp("_cloud_b", 44, 4), stamp("_cloud_b", 30, 30),
-  stamp(P2(x, "_hellcat", "_zero"), 14, 10),
-  hline(2, 14, 8, "W"), hline(4, 17, 6, "W"),
-  stamp(P2(x, "_zero_fall", "_hellcat_dive"), 40, 14), smoke([[50, 24, 2, 0], [47, 21, 2, 1], [45, 18, 1, 2]]),
+  sky(CW, CH, "1+2=3~"), stamp("_cloud_a", 4, 52), stamp("_cloud_b", 88, 8), stamp("_cloud_b", 60, 60),
+  stamp(P2(x, "_hellcat", "_zero"), 24, 18),
+  hline(4, 28, 16, "4"), hline(8, 34, 12, "4"),
+  stamp(P2(x, "_zero_fall", "_hellcat_dive"), 76, 24), smokeP([[96, 44, 4, 0], [90, 38, 4, 1], [86, 32, 3, 2]]),
 ])
 unit("marines", (x) => [
-  sky(CW, 14, "ush"), sea(14, CW, 26, 5), beach(26, CW, CH, 5), surf(25, 0, CW, 5),
-  stamp("_palm_b", 46, -2), stamp("_palm_d", 30, 4),
-  stamp("_sol" + x, 4, 15), stamp("_sol" + x, 20, 18), stamp("_kneel" + x, 40, 22),
-  rect(0, 26, 18, 2, "C"), rect(15, 30, 10, 1, "C"),
+  sky(CW, 28, "1+2=34"), ...sea(28, CW, 52, 5), ...beach(52, CW, CH, 5), surf(51, 0, CW, 5),
+  stamp("_palm_b", 88, -8), stamp("_palm_d", 60, 8),
+  stamp("_sol" + x, 8, 32), stamp("_sol" + x, 40, 38, { swap: BACK }), stamp("_kneel" + x, 84, 46),
 ])
 unit("lance_flammes", (x) => [
-  sky(CW, 12, "u78"), rect(0, 12, CW, 28, "n"), hills(16, 2, "N", 3, 40),
-  rect(44, 18, 20, 22, "N"), ellipse(54, 28, 6, 5, "k"), rect(48, 28, 13, 12, "N"),          // cave mouth
-  beach(34, CW, CH, 6), dither(0, 33, CW, 2, "n", "m", 0.5),
-  stamp("_sol" + x, 4, 19), rect(4, 24, 4, 7, "q"), hline(4, 24, 4, "T"),
-  line(16, 26, 22, 25, "M"),
-  poly([22, 24, 38, 21, 52, 26, 54, 31, 38, 30, 22, 26], "r"), poly([22, 24, 36, 23, 46, 27, 38, 28, 22, 26], "Y"), poly([22, 25, 32, 24, 38, 26, 30, 26], "y"),
-  glow("Yy", { r: 7, strength: 0.5 }),
+  sky(CW, 24, "+=~YS"), rect(0, 24, CW, 56, "m"), hills(32, 4, "M", 3, 80),
+  rect(88, 36, 40, 44, "M"), ellipse(108, 56, 12, 10, "k"), rect(96, 56, 26, 24, "M"), rect(98, 58, 22, 22, "k"),   // cave mouth
+  ...beach(68, CW, CH, 6),
+  stamp("_sol" + x, 8, 38), rect(8, 48, 8, 14, "I"), hline(8, 48, 8, "j"),
+  poly([44, 48, 76, 42, 104, 52, 108, 62, 76, 60, 44, 52], "D"), poly([44, 48, 72, 46, 92, 54, 76, 56, 44, 52], "L"), poly([44, 50, 64, 48, 76, 52, 60, 52], "K"),
+  glow("LK", { r: 12, strength: 0.5 }),
 ])
 unit("seabees", (x) => [
-  sky(CW, 18), stamp("_cloud_b", 6, 3), jungleWall(20, CW, 4), rect(0, 24, CW, 16, "d"), rect(0, 27, CW, 8, "x"),
-  (c) => { for (let px = 2; px < CW; px += 6) c.hline(px, 31, 3, "W") },                       // pierced-steel planking
-  // bulldozer
-  rect(18, 22, 20, 8, "Y"), rect(20, 17, 9, 5, "q"), rect(21, 18, 7, 3, "C"), vline(31, 18, 4, "M"),
-  rect(16, 30, 24, 4, "M"), (c) => { for (let wx = 18; wx < 40; wx += 4) c.circ(wx, 32, 1, "q") }, rect(38, 23, 3, 11, "q"), rect(41, 26, 3, 8, "T"),
-  stamp("_kneel" + x, 6, 22), stamp(P2(x, "_palm_d", "_palm_d"), 48, 8),
+  sky(CW, 36), stamp("_cloud_b", 12, 6), jungleWall(40, CW, 4), rect(0, 48, CW, 32, "q"), rect(0, 54, CW, 16, "T"),
+  (c) => { for (let px_ = 4; px_ < CW; px_ += 12) { c.hline(px_, 62, 6, "W"); c.hline(px_ + 6, 58, 4, "t") } },   // pierced-steel planking
+  // bulldozer: yellow body, cab, tracks, blade
+  rect(36, 44, 40, 16, "y"), hline(36, 44, 40, "Y"), rect(40, 34, 18, 10, "I"), rect(42, 36, 14, 6, "P"), vline(62, 36, 8, "M"),
+  rect(32, 60, 48, 8, "M"), (c) => { for (let wx = 36; wx < 80; wx += 8) c.circ(wx, 64, 3, "I") }, rect(76, 46, 6, 22, "I"), rect(82, 52, 6, 16, "j"),
+  stamp("_kneel" + x, 8, 44), stamp("_palm_d", 96, 16),
 ])
 unit("cargo", (x) => [
-  sky(CW, 22, "ush"), sea(22, CW, CH, 7, "cb"),
-  rect(0, 28, 20, 12, "D"), hline(0, 28, 20, "d"), (c) => { for (let px = 1; px < 20; px += 5) c.vline(px, 29, 11, "e") },   // pier
-  stamp("_ak" + x, 18, 11), wake(20, 24, 6),
-  (c) => { for (const [bx, by] of [[2, 22], [9, 22], [5, 17]]) { c.rect(bx, by, 6, 5, "d"); c.box(bx, by, 6, 5, "D"); c.line(bx, by, bx + 5, by + 4, "D") } },   // crates
+  sky(CW, 44, "1+2=34"), ...sea(44, CW, CH, 7, "PpZ"),
+  rect(0, 56, 40, 24, "W"), hline(0, 56, 40, "x"), (c) => { for (let px_ = 2; px_ < 40; px_ += 10) c.vline(px_, 58, 22, "w") },   // pier
+  stamp("_ak" + x, 36, 20), wake(40, 48, 12),
+  (c) => { for (const [bx, by] of [[4, 44], [18, 44], [10, 34]]) { c.rect(bx, by, 12, 10, "x"); c.box(bx, by, 12, 10, "W"); c.line(bx, by, bx + 11, by + 9, "W") } },   // crates
 ])
 unit("porte_avions", (x) => [
-  sky(CW, 20), stamp("_cloud_a", 40, 2), sea(20, CW, CH, 8),
-  stamp("_cv" + x, 4, 12), wake(6, 22, 6),
-  (c) => { for (const px of [10, 18, 26]) c.grid(px, 13, "k.k\nkkk", x ? JP : undefined) },   // planes on deck
-  stamp("_dot_plane", 46, 6), stamp("_dot_plane", 54, 10), stamp("_dot_plane", 38, 4),
+  sky(CW, 40), stamp("_cloud_a", 80, 4), ...sea(40, CW, CH, 8),
+  stamp("_cv" + x, 8, 24), wake(12, 44, 12),
+  (c) => { for (const px_ of [20, 36, 52]) c.grid(px_, 25, x ? "9.9.9\n99999" : "n.n.n\nnnnnn") },   // planes on deck
+  stamp("_dot_plane", 92, 12), stamp("_dot_plane", 108, 20), stamp("_dot_plane", 76, 8),
 ])
 unit("corsair", (x) => [
-  sky(CW, 20, "ush"), jungleWall(30, CW, 9), smoke([[52, 26, 4, 0], [56, 20, 5, 1], [50, 18, 3, 2]]),
-  stamp(P2(x, "_corsair", "_george"), 8, 6),
-  line(36, 13, 48, 22, "y"), line(37, 14, 49, 23, "Y"), stamp("_boom", 44, 18),
+  sky(CW, 64, "1+2=34"), jungleWall(60, CW, 9), smokeP([[104, 52, 8, 0], [112, 40, 10, 1], [100, 36, 6, 2]]),
+  stamp(P2(x, "_corsair", "_george"), 16, 12),
+  line(72, 26, 96, 44, "L"), line(74, 28, 98, 46, "D"), stamp("_boom", 88, 36),
 ])
 unit("lvt", (x) => [
-  sky(CW, 12), sea(12, CW, 24, 10), beach(24, CW, CH, 10), surf(23, 0, CW, 10),
-  // amtrac climbing out of the surf: boxy hull, tracks
-  poly([14, 30, 18, 20, 44, 20, 48, 26, 46, 32, 14, 32], P2(x, "o", "a")), hline(18, 20, 26, P2(x, "l", "Z")), rect(16, 30, 30, 4, "M"),
-  (c) => { for (let tx = 17; tx < 46; tx += 3) c.px(tx, 33, "q") }, rect(36, 16, 6, 4, P2(x, "O", "A")), hline(41, 17, 4, "M"),
-  stamp("_kneel" + x, 20, 9), stamp("_kneel" + x, 28, 9), poly([10, 30, 14, 26, 14, 32], "w"), surf(31, 4, 16, 3),
+  sky(CW, 24), ...sea(24, CW, 48, 10), ...beach(48, CW, CH, 10), surf(47, 0, CW, 10),
+  // amtrac climbing out of the surf: boxy hull, tracks, men inside
+  poly([28, 60, 36, 40, 88, 40, 96, 52, 92, 64, 28, 64], P2(x, "v", "h")), hline(36, 40, 52, P2(x, "V", "H")), rect(32, 60, 60, 8, "M"),
+  (c) => { for (let tx = 34; tx < 92; tx += 6) c.rect(tx, 66, 3, 2, "I") }, rect(72, 32, 12, 8, P2(x, "U", "G")), hline(82, 34, 8, "M"),
+  stamp("_kneel" + x, 40, 18), stamp("_kneel" + x, 56, 18), poly([20, 60, 28, 52, 28, 64], "5"), surf(62, 8, 32, 3),
 ])
 unit("code_talkers", (x) => [
-  sky(CW, 14), jungleWall(18, CW, 11), rect(0, 26, CW, 14, "D"), ellipse(32, 30, 26, 6, "e"),    // foxhole
-  rect(24, 22, 12, 9, P2(x, "O", "A")), rect(25, 23, 10, 3, "q"), (c) => { for (let i = 0; i < 4; i++) c.px(26 + 2 * i, 27, "y") }, vline(34, 6, 16, "M"), px(34, 5, "q"),   // radio, antenna
-  stamp("_kneel" + x, 8, 18), stamp("_kneel" + x, 40, 18, { flip: "x" }), line(17, 22, 23, 24, "M"), line(46, 22, 36, 24, "M"),
+  sky(CW, 28), jungleWall(36, CW, 11), rect(0, 52, CW, 28, "T"), ellipse(64, 60, 52, 12, "t"),    // foxhole
+  rect(48, 44, 24, 18, P2(x, "U", "G")), rect(50, 46, 20, 6, "I"), (c) => { for (let i = 0; i < 4; i++) c.px(52 + 4 * i, 54, "L") }, vline(68, 12, 32, "M"), px(68, 10, "I"),   // radio, antenna
+  stamp("_kneel" + x, 16, 36), stamp("_kneel" + x, 80, 36, { flip: "x" }), line(34, 44, 46, 48, "M"), line(92, 44, 72, 48, "M"),
 ])
 unit("yamato", (x) => [
-  sky(CW, 22, "u78"), sea(22, CW, CH, 12, "7cb"), hline(0, 22, CW, "8"),
-  stamp(P2(x, "_yamato", "_yamato"), 2, 9), wake(4, 25, 5),
-  smoke([[36, 5, 3, 1], [40, 2, 3, 2]]),
+  sky(CW, 44, "+=~YS"), ...sea(44, CW, CH, 12, "YpZz"), hline(0, 44, CW, "Y"),
+  stamp("_yamato", 4, 18), wake(8, 50, 10),
+  smokeP([[72, 10, 6, 1], [80, 4, 6, 2]]),
 ])
 unit("garnison", (x) => [
-  rect(0, 0, CW, CH, "N"), (c) => { const r = c.rng(13); for (let i = 0; i < 60; i++) c.px(Math.floor(r() * CW), Math.floor(r() * CH), r() < 0.5 ? "n" : "k") },
-  ellipse(30, 24, 26, 14, "k"), rect(4, 24, 52, 16, "k"), rect(0, 36, CW, 4, "e"),              // tunnel
-  stamp("_kneel" + x, 8, 20), stamp("_sol" + x, 34, 17),
-  rect(20, 27, 10, 2, "q"), hline(30, 27, 4, "M"), line(22, 29, 20, 33, "q"), line(26, 29, 28, 33, "q"),   // machine gun
-  circ(50, 8, 1, "y"), light([50, 9, 14]),
+  vgrad(0, 0, CW, CH, "mM0", 1, 2), (c) => { for (const [cx, cy] of [[12, 10], [40, 6], [100, 12], [116, 30], [8, 40]]) { c.ellipse(cx, cy, 6, 3, "M"); c.hline(cx - 4, cy - 2, 6, "l") } },   // rock strata
+  ellipse(60, 48, 52, 28, "k"), rect(8, 48, 104, 32, "k"), rect(0, 72, CW, 8, "t"),                // tunnel
+  stamp("_kneel" + x, 16, 40), stamp("_sol" + x, 68, 34),
+  rect(40, 54, 20, 4, "I"), hline(60, 54, 8, "M"), line(44, 58, 40, 66, "I"), line(52, 58, 56, 66, "I"),   // machine gun
+  circ(100, 16, 2, "L"), px(100, 15, "K"), glow("LK", { r: 26, strength: 0.5 }),
 ])
 unit("tireurs", (x) => [
-  sky(CW, 20, "ush"), sea(20, CW, 28, 14), beach(28, CW, CH, 14), surf(27, 0, CW, 14),
-  stamp("_palm_c", 30, -2), stamp("_kneel" + x, 40, 2), line(48, 7, 56, 6, "M"),
-  stamp(P2(x, "_sol_x", "_sol"), 6, 24), smoke([[57, 6, 1, 2]]),
+  sky(CW, 40, "1+2=34"), ...sea(40, CW, 56, 14), ...beach(56, CW, CH, 14), surf(55, 0, CW, 14),
+  stamp("_palm_c", 56, -12), stamp("_kneel" + x, 80, 4), line(96, 14, 112, 12, "M"),
+  stamp(P2(x, "_sol_x", "_sol"), 12, 44), px(114, 12, "K"),
 ])
 unit("kamikaze", (x) => [
-  sky(CW, 26, "usS"), sea(26, CW, CH, 15),
-  stamp(P2(x, "_zero_dive", "_hellcat_dive"), 2, -4), smoke([[8, 2, 2, 0], [5, 0, 2, 1]]),
-  stamps2("_flak", [[30, 4], [44, 10], [22, 14], [52, 2]]),
-  stamp(P2(x, "_cv_far", "_cv_far_x"), 30, 20), stamp("_boom", 38, 12), glow("Yy", { r: 6, strength: 0.4 }),
+  sky(CW, 52, "1+2=3~4"), ...sea(52, CW, CH, 15),
+  stamp(P2(x, "_zero_dive", "_hellcat_dive"), 4, -8), smokeP([[16, 4, 4, 0], [10, 0, 4, 1]]),
+  stamps2("_flak", [[60, 8], [88, 20], [44, 28], [104, 4]]),
+  stamp(P2(x, "_cv_far", "_cv_far_x"), 60, 40), stamp("_boom", 76, 24), glow("LK", { r: 10, strength: 0.4 }),
 ])
 unit("avenger", (x) => [
-  sky(CW, 22), stamp("_cloud_b", 40, 2), sea(22, CW, CH, 16),
-  stamp(P2(x, "_tbf", "_kate"), 4, 10),
-  hline(14, 30, 6, "q"), (c) => { for (let i = 0; i < 18; i++) c.px(20 + i, 31, i % 2 ? "W" : "w") },
-  stamp(P2(x, "_bb_far_x", "_bb_far"), 36, 18), stamp("_splash", 50, 12),
+  sky(CW, 44), stamp("_cloud_b", 80, 4), ...sea(44, CW, CH, 16),
+  stamp(P2(x, "_tbf", "_kate"), 8, 18),
+  hline(28, 60, 12, "I"), (c) => { for (let i = 0; i < 36; i++) c.px(40 + i, 62, i % 2 ? "4" : "5") },
+  stamp(P2(x, "_bb_far_x", "_bb_far"), 72, 34), stamp("_splash", 100, 24),
 ])
 unit("corpsman", (x) => [
-  sky(CW, 14, "ush"), sea(14, CW, 22, 17), beach(22, CW, CH, 17), surf(21, 0, CW, 17),
-  stamp("_palm_a", 44, -4),
-  stamp("_kneel" + x, 10, 20), rect(13, 25, 3, 2, "w"), px(14, 25, "r"),                        // armband
-  rect(22, 32, 18, 3, P2(x, "o", "a")), rect(38, 31, 4, 3, "p"), rect(20, 31, 3, 3, P2(x, "O", "A")),   // wounded
-  rect(26, 28, 4, 3, "w"), px(27, 29, "r"), px(28, 29, "r"),                                     // first-aid kit
+  sky(CW, 28, "1+2=34"), ...sea(28, CW, 44, 17), ...beach(44, CW, CH, 17), surf(43, 0, CW, 17),
+  stamp("_palm_a", 88, -14),
+  stamp("_kneel" + x, 20, 40), rect(26, 50, 6, 4, "5"), px(28, 50, "s"),                                   // armband
+  rect(44, 64, 36, 6, P2(x, "v", "h")), rect(76, 62, 8, 6, "F"), rect(40, 62, 6, 6, P2(x, "U", "G")),      // wounded
+  rect(52, 56, 8, 6, "5"), px(55, 58, "s"), px(56, 58, "s"), px(55, 57, "s"), px(55, 59, "s"),             // first-aid kit
 ])
 
 // Orders are side-neutral: one illustration each.
-const order = (name, ...items) => scene("c_" + name, { w: CW, h: CH }, ...items)
 order("turkey_shoot",
-  sky(CW, 30, "usS"), sea(30, CW, CH, 20),
-  stamp("_zero_fall", 2, -2), smoke([[9, 3, 2, 0], [6, 0, 2, 1]]),
-  stamp("_val_fall", 34, 4), smoke([[44, 11, 2, 0], [41, 8, 2, 1]]),
-  stamp("_hellcat", 22, 18), stamps2("_flak", [[30, 4], [52, 4], [18, 12]]), stamp("_splash", 52, 22))
+  sky(CW, 60, "1+2=3~4"), ...sea(60, CW, CH, 20),
+  stamp("_zero_fall", 4, -6), smokeP([[18, 6, 4, 0], [12, 0, 4, 1]]),
+  stamp("_val_fall", 68, 6), smokeP([[88, 22, 4, 0], [82, 16, 4, 1]]),
+  stamp("_hellcat", 40, 36), stamps2("_flak", [[60, 8], [104, 8], [36, 24]]), stamp("_splash", 104, 44))
 order("banzai",
-  grad(0, 0, CW, 24, "123", "v", 0.6), circ(40, 5, 2, "w"), glow("w", { r: 9, strength: 0.5 }),
-  rect(0, 24, CW, 16, "2"), hline(0, 24, CW, "3"), stamp("_palm_b", 2, 4, { swap: NIGHT }),
-  stamp("_sol_x_night", 10, 20), stamp("_sol_x_night", 26, 18), stamp("_sol_x_night", 42, 21),
-  line(23, 26, 28, 22, "9"), line(39, 24, 44, 20, "9"), line(55, 27, 60, 23, "9"))
+  vgrad(0, 0, CW, 48, "bBn", 1, 2), circ(80, 10, 4, "5"), glow("5", { r: 16, strength: 0.5 }),
+  rect(0, 48, CW, 32, "B"), hline(0, 48, CW, "n"), stamp("_palm_b", 4, 4, { swap: NIGHT }),
+  stamp("_sol_x", 20, 40, { swap: NIGHT }), stamp("_sol_x", 52, 36, { swap: NIGHT }), stamp("_sol_x", 84, 42, { swap: NIGHT }))
 order("bombardement",
-  sky(CW, 20, "u78"), sea(20, CW, CH, 21),
-  hills(22, 3, "G", 5, 30), rect(0, 26, 30, 4, "m"),
-  stamp("_boom", 4, 10), stamp("_boom", 18, 8), smoke([[12, 6, 5, 0], [24, 4, 4, 1]]),
-  stamp("_bb_far", 36, 22), poly([36, 27, 30, 25, 36, 26], "y"), stamp("_dd_far", 46, 30), poly([48, 34, 42, 32, 48, 33], "y"))
+  sky(CW, 40, "+=~YS"), ...sea(40, CW, CH, 21),
+  clip((x, y) => y < 54 && x < 70 - (54 - y) * 0.6, jungleWall(50, 72, 5)), poly([0, 52, 64, 52, 72, 58, 0, 58], "Q"), hline(0, 58, 72, "5"),
+  stamp("_boom", 8, 20), stamp("_boom", 36, 16), smokeP([[24, 12, 8, 0], [48, 8, 6, 1]]),
+  stamp("_bb_far", 72, 44), poly([72, 54, 60, 50, 72, 52], "L"), stamp("_dd_far", 92, 60), poly([96, 68, 84, 64, 96, 66], "L"))
 order("ravitaillement",
-  grad(0, 0, CW, 20, "123", "v", 0.6), circ(10, 6, 3, "w"), glow("w", { r: 8, strength: 0.4 }),
-  sea(20, CW, CH, 22, "321"), hline(0, 20, CW, "9"), (c) => { for (let i = 0; i < 14; i++) c.px(4 + i * 2, 26, "9") },
-  stamp("_ak_far", 6, 12, { swap: NIGHT }), stamp("_dd_far", 30, 15, { swap: NIGHT }), stamp("_ak_far", 40, 22, { swap: NIGHT }))
+  vgrad(0, 0, CW, 40, "bBn", 1, 2), circ(20, 12, 5, "5"), glow("5", { r: 14, strength: 0.4 }),
+  ...sea(40, CW, CH, 22, "nBbb"), hline(0, 40, CW, "N"), (c) => { for (let i = 0; i < 28; i++) c.px(8 + i * 2, 52, "N") },
+  stamp("_ak_far", 12, 24, { swap: NIGHT }), stamp("_dd_far", 60, 30, { swap: NIGHT }), stamp("_ak_far", 80, 44, { swap: NIGHT }))
 order("guetteurs",
-  sky(CW, 22), sea(22, CW, 28, 23), jungleWall(30, CW, 23),
-  stamp("_dd_far_x", 34, 16), stamp("_bb_far_x", 6, 14),
-  stamp("_kneel", 44, 24, { flip: "x" }), rect(43, 27, 3, 2, "M"),                            // binoculars
-  rect(54, 30, 8, 6, "O"), rect(55, 31, 6, 2, "q"), vline(60, 20, 10, "M"))                    // teleradio
+  sky(CW, 44), ...sea(44, CW, 56, 23), jungleWall(60, CW, 23),
+  stamp("_dd_far_x", 68, 32), stamp("_bb_far_x", 12, 28),
+  stamp("_kneel", 88, 48, { flip: "x" }), rect(86, 54, 6, 4, "M"),                              // binoculars
+  rect(108, 60, 16, 12, "U"), rect(110, 62, 12, 4, "I"), vline(120, 40, 20, "M"))                // teleradio
 order("fumee",
-  sky(CW, 22), sea(22, CW, CH, 24),
-  smoke([[6, 20, 6, 1], [14, 16, 7, 2], [24, 18, 7, 1], [32, 20, 6, 2], [10, 26, 5, 0], [22, 26, 6, 1], [30, 25, 4, 2]], "nxW"),
-  stamp("_dd", 30, 18), poly([64, 28, 66, 26, 66, 31], "w"), wake(32, 28, 8),
-  smoke([[38, 18, 2, 0], [36, 15, 2, 1]]))
+  sky(CW, 44), ...sea(44, CW, CH, 24),
+  smokeP([[12, 40, 12, 1], [28, 32, 14, 2], [48, 36, 14, 1], [64, 40, 12, 2], [20, 52, 10, 0], [44, 52, 12, 1], [60, 50, 8, 2]]),
+  stamp("_dd", 56, 36), poly([128, 56, 132, 52, 132, 62], "5"), wake(60, 56, 16),
+  smokeP([[76, 36, 4, 0], [72, 30, 4, 1]]))
 
 // Card back for face-down cards: navy blue, an anchor.
-scene("c_back", { w: CW, h: CH, bg: "b" }, box(1, 1, CW - 2, CH - 2, "B"),
-  (c) => { for (let i = -CH; i < CW; i += 6) c.line(i, CH - 1, i + CH, 0, "B") }, box(1, 1, CW - 2, CH - 2, "C"),
-  circ(32, 20, 12, "B"), ring(32, 20, 12, "C"),
-  vline(32, 11, 17, "m"), vline(33, 11, 17, "d"), ring(32, 11, 2, "m"), hline(27, 15, 12, "m"),
-  line(25, 22, 32, 28, "m", 2), line(39, 22, 32, 28, "m", 2), px(24, 21, "m"), px(40, 21, "m"))
+scene("c_back", { w: CW, h: CH, bg: "Z" },
+  (c) => { for (let i = -CH; i < CW; i += 8) c.line(i, CH - 1, i + CH, 0, "z") },
+  box(2, 2, CW - 4, CH - 4, "P"), box(4, 4, CW - 8, CH - 8, "z"),
+  circ(64, 40, 24, "z"), ring(64, 40, 24, "P"), ring(64, 40, 21, "p"),
+  rect(63, 22, 3, 34, "Q"), vline(65, 22, 34, "q"), ring(64, 21, 3, "Q"), rect(54, 29, 22, 3, "Q"), hline(54, 31, 22, "q"),
+  line(50, 44, 64, 56, "Q", 3), line(78, 44, 64, 56, "Q", 3), poly([46, 42, 52, 40, 50, 46], "Q"), poly([82, 42, 76, 40, 78, 46], "Q"))
 
 const CARDS = ["cuirasse", "destroyer", "sous_marin", "dauntless", "hellcat", "marines", "lance_flammes", "seabees", "cargo", "porte_avions", "corsair", "lvt", "code_talkers", "yamato", "garnison", "tireurs", "kamikaze", "avenger", "corpsman"]
 const ORDERS = ["turkey_shoot", "banzai", "bombardement", "ravitaillement", "guetteurs", "fumee", "back"]
-scene("contact_cards", { w: 4 * 66 + 2, h: 12 * 42 + 2, bg: "k" },
-  ...CARDS.map((n, i) => stamp("c_" + n, 2 + (i % 4) * 66, 2 + Math.floor(i / 4) * 42)),
-  ...CARDS.map((n, i) => stamp("c_" + n + "_x", 2 + ((i + 20) % 4) * 66, 2 + Math.floor((i + 20) / 4) * 42)),
-  ...ORDERS.map((n, i) => stamp("c_" + n, 2 + (i % 4) * 66, 2 + (10 + Math.floor(i / 4)) * 42)))
+scene("contact_cards", { w: 4 * 130 + 2, h: 12 * 82 + 2, bg: "k" },
+  ...CARDS.map((n, i) => stamp("c_" + n, 2 + (i % 2) * 260, 2 + Math.floor(i / 2) * 82)),
+  ...CARDS.map((n, i) => stamp("c_" + n + "_x", 132 + (i % 2) * 260, 2 + Math.floor(i / 2) * 82)),
+  ...ORDERS.map((n, i) => stamp("c_" + n, (i % 4) * 130 + 2, 2 + (10 + Math.floor(i / 4)) * 82)))
 
-// ------------------------------------------------------------------ terrains (160x72)
-const TW = 160, TH = 72
-const terrain = (name, ...items) => scene("t_" + name, { w: TW, h: TH }, ...items)
+// ------------------------------------------------------------------ terrains (320x144)
+const terrain = (name, ...items) => scene("t_" + name, { w: TW, h: TH, bg: "4" }, ...items)
+// Coconut-log pillbox: a low sand mound, rows of logs, a dark firing slit.
+const pillbox = (x, y, w) => (c) => {
+  c.ellipse(x + w / 2, y + 8, w / 2 + 8, 12, "q"); c.ellipse(x + w / 2 - 4, y + 4, w / 2, 6, "Q")
+  c.rect(x, y, w, 16, "W"); for (let ly = y; ly < y + 16; ly += 4) { c.hline(x, ly, w, "x"); c.hline(x, ly + 3, w, "w"); for (let lx = x + (ly % 8); lx < x + w; lx += 10) c.ellipse(lx, ly + 1, 1, 1, "X") }
+  c.rect(x + 6, y + 6, w - 12, 4, "k"); c.hline(x - 4, y - 2, w + 8, "Q")
+}
+const reefCoral = (y0, y1, seed) => (c) => { const r = c.rng(seed); for (let i = 0; i < 90; i++) { const x = Math.floor(r() * TW), y = y0 + Math.floor(r() * (y1 - y0)); c.ellipse(x, y, 3 + Math.floor(r() * 5), 1 + Math.floor(r() * 2), r() < 0.5 ? "q" : "T"); c.px(x - 1, y - 1, "Q") } }
+const amtrac = (x, y) => [poly([x, y + 16, x + 6, y, x + 52, y, x + 58, y + 10, x + 56, y + 18, x, y + 18], "v"), hline(x + 6, y, 46, "V"), rect(x + 2, y + 14, 52, 6, "M"),
+  (c) => { for (let tx = x + 4; tx < x + 54; tx += 6) c.rect(tx, y + 18, 3, 2, "I") }, rect(x + 38, y - 6, 10, 6, "U")]
 
 terrain("haute_mer",
-  sky(TW, 30), stamp("_cloud_a", 20, 6), stamp("_cloud_b", 110, 10), stamp("_cloud_a", 130, 2),
-  sea(30, TW, TH, 1),
-  stamp("_cv_far_x", 104, 22), stamp("_dd_far_x", 136, 26), stamp("_bb_far", 10, 24), wake(12, 30, 10),
-  stamp("_cv", 40, 40), wake(42, 50, 24), stamp("_dd", 108, 50), wake(110, 58, 14),
-  stamps2("_dot_plane", [[70, 8], [78, 12], [86, 6], [64, 14]]))
+  sky(TW, 60), stamp("_cloud_a", 40, 10), stamp("_cloud_b", 220, 18), stamp("_cloud_a", 260, 4),
+  ...sea(60, TW, TH, 1),
+  stamp("_cv_far_x", 208, 44), stamp("_dd_far_x", 272, 50), stamp("_bb_far", 20, 46), wake(24, 58, 18),
+  stamp("_cv", 80, 78), wake(84, 102, 40), stamp("_dd", 216, 98), wake(220, 118, 24),
+  stamps2("_dot_plane", [[140, 16], [156, 24], [172, 12], [128, 28]]))
 
 terrain("recif",
-  sky(TW, 18, "ush"), stamp("_cloud_b", 120, 3), hills(16, 2, "G", 2, 20), rect(0, 18, TW, 4, "m"),
-  rect(0, 22, TW, 50, "L"), rect(0, 22, TW, 10, "Q"),
-  (c) => { const r = c.rng(4); for (let i = 0; i < 70; i++) { const x = Math.floor(r() * TW), y = 36 + Math.floor(r() * 10); c.ellipse(x, y, 2 + Math.floor(r() * 3), 1, r() < 0.5 ? "d" : "D") } },   // coral heads
-  sea(48, TW, TH, 4), surf(47, 0, TW, 4), surf(36, 20, 140, 5),
-  stamp("_ss", 20, 37, { swap: { T: "o", t: "l", q: "O" } }), stamp("_boom", 24, 26),        // amtrac stuck on the reef
-  stamp("_kneel", 60, 30), stamp("_kneel", 76, 32), stamp("_sol", 96, 28), rect(56, 41, 50, 2, "Q"),
-  stamp("_ak_far", 120, 52), stamp("_splash", 140, 40))
+  sky(TW, 36, "1+2=34"), stamp("_cloud_b", 240, 6), hills(32, 3, "&", 2, 40, TW), rect(0, 36, TW, 8, "Q"),
+  vgrad(0, 44, TW, 52, "$$@", 1, 2), reefCoral(70, 92, 4),                                                   // the lagoon over the reef, coral heads
+  ...sea(96, TW, TH, 4), surf(95, 0, TW, 4), surf(72, 40, 280, 5),
+  ...amtrac(36, 68), stamp("_boom", 44, 48),                                                                // amtrac stuck on the reef
+  stamp("_kneel", 120, 56), stamp("_kneel", 152, 60), stamp("_sol", 192, 52), rect(112, 82, 100, 3, "$"),
+  stamp("_ak_far", 240, 104), stamp("_splash", 280, 78))
 
 terrain("jungle",
-  grad(0, 0, TW, 20, "sSh", "v", 0.4), jungleWall(24, TW, 1), jungleWall(44, TW, 2),
-  (c) => { for (const [vx, vy] of [[20, 0], [62, 0], [118, 0], [146, 0]]) { c.line(vx, vy, vx + 3, 30, "F"); c.line(vx + 1, vy, vx + 4, 30, "f") } },   // vines
-  stamps2("_palm_c", [[0, 8], [130, 6]]), stamps2("_palm_a", [[60, 10], [96, 16]]),
-  rect(0, 60, TW, 12, "F"), (c) => { const r = c.rng(3); for (let i = 0; i < 90; i++) c.line(Math.floor(r() * TW), 72, Math.floor(r() * TW), 52 + Math.floor(r() * 10), r() < 0.5 ? "G" : "g") },   // ferns
-  stamp("_kneel_x", 70, 46, { swap: { a: "f", A: "F", Z: "G", z: "F" } }))
+  vgrad(0, 0, TW, 40, "~4C", 1, 2), jungleWall(48, TW, 1), jungleWall(88, TW, 2),
+  (c) => { for (const [vx, vy] of [[40, 0], [124, 0], [236, 0], [292, 0]]) { c.line(vx, vy, vx + 6, 60, "a", 2); c.line(vx + 2, vy, vx + 8, 60, "c") } },   // vines
+  stamps2("_palm_c", [[0, 16], [260, 12]]), stamps2("_palm_a", [[120, 20], [192, 32]]),
+  rect(0, 120, TW, 24, "a"), (c) => { const r = c.rng(3); for (let i = 0; i < 140; i++) { const x = Math.floor(r() * TW); c.line(x, 144, x + Math.floor(r() * 12) - 6, 104 + Math.floor(r() * 20), r() < 0.5 ? "c" : "^") } },   // ferns
+  stamp("_kneel_x", 140, 92, { swap: { h: "c", H: "^", G: "A", g: "a" } }))
 
 terrain("grottes",
-  sky(TW, 20, "uss"), (c) => {
-    const top = (x) => Math.round(20 + 8 * Math.sin(x * 0.05) + 4 * Math.sin(x * 0.17))
-    for (let x = 0; x < TW; x++) { const t = top(x); for (let y = t; y < TH; y++) c.px(x, y, (y * 2 + x) % 14 < 9 ? "n" : "N"); c.px(x, t, "x") }
-  },
-  (c) => { const r = c.rng(5); for (let i = 0; i < 30; i++) { const x = Math.floor(r() * TW), y = 30 + Math.floor(r() * 30); c.line(x, y, x + 4, y + 6, "N") } },   // fissures
-  (c) => { for (const [x, y, w, h] of [[20, 36, 10, 7], [62, 30, 12, 8], [104, 40, 9, 6], [136, 32, 10, 8], [44, 52, 8, 5], [122, 56, 9, 5]]) { c.ellipse(x, y, w / 2, h / 2, "k"); c.rect(x - w / 2, y, w, h / 2, "k"); c.hline(x - w / 2, y - h / 2, w, "x") } },
-  (c) => { c.px(64, 33, "y"); c.px(106, 42, "y") }, glow("y", { r: 3, strength: 0.5 }),       // muzzle flashes
-  stamps2("_stump", [[86, 12], [30, 18]]), rect(0, 64, TW, 8, "N"))
+  sky(TW, 40, "1+2=3"),
+  flankShade((x) => Math.round(40 + 16 * Math.sin(x * 0.025) + 8 * Math.sin(x * 0.085)), 0, TW, "lmM0"),
+  (c) => { const r = c.rng(5); for (let i = 0; i < 40; i++) { const x = Math.floor(r() * TW), y = 60 + Math.floor(r() * 60); c.line(x, y, x + 8, y + 12, "0") } },   // fissures
+  (c) => { for (const [x, y, w, h] of [[40, 72, 20, 14], [124, 60, 24, 16], [208, 80, 18, 12], [272, 64, 20, 16], [88, 104, 16, 10], [244, 112, 18, 10]]) { c.ellipse(x, y, w / 2, h / 2, "k"); c.rect(x - w / 2, y, w, h / 2, "k"); c.hline(x - w / 2, y - h / 2, w, "l") } },   // cave mouths
+  px(128, 66, "K"), px(129, 66, "L"), px(212, 84, "K"), glow("KL", { r: 5, strength: 0.6 }),               // muzzle flashes
+  stamps2("_stump", [[172, 24], [60, 36]]), rect(0, 128, TW, 16, "M"))
 
-// Coconut-log pillbox: low mound, log rows, dark firing slit.
-const pillbox = (x, y, w) => (c) => {
-  c.ellipse(x + w / 2, y + 4, w / 2 + 4, 6, "d"); c.rect(x, y, w, 8, "e")
-  for (let ly = y; ly < y + 8; ly += 2) { c.hline(x, ly, w, "D"); for (let lx = x + (ly % 4); lx < x + w; lx += 5) c.px(lx, ly, "e") }
-  c.rect(x + 3, y + 3, w - 6, 2, "k"); c.hline(x - 2, y - 1, w + 4, "m")
-}
 terrain("blockhaus",
-  sky(TW, 22, "ush"), sea(22, TW, 30, 6), beach(30, TW, TH, 6), surf(30, 0, TW, 6),
-  stamps2("_stump", [[20, 16], [74, 20], [130, 14]]), stamps2("_palm_b", [[40, 8], [148, 10]]),
-  pillbox(14, 40, 30), pillbox(76, 36, 26), pillbox(118, 46, 32),
-  (c) => { for (const [x, y] of [[60, 58], [100, 62], [30, 64], [140, 66]]) { c.ellipse(x, y, 5, 2, "D"); c.ellipse(x, y + 1, 4, 1, "e") } },   // shell holes
-  (c) => { c.px(20, 43, "y"); c.px(84, 39, "y") }, glow("y", { r: 3, strength: 0.6 }))
+  sky(TW, 44, "1+2=34"), ...sea(44, TW, 60, 6), ...beach(60, TW, TH, 6), surf(60, 0, TW, 6),
+  stamps2("_stump", [[40, 32], [148, 40], [260, 28]]), stamps2("_palm_b", [[80, 16], [292, 20]]),
+  pillbox(28, 80, 60), pillbox(152, 72, 52), pillbox(236, 92, 64),
+  (c) => { for (const [x, y] of [[120, 116], [200, 124], [60, 128], [280, 132]]) { c.ellipse(x, y, 10, 4, "T"); c.ellipse(x, y + 1, 8, 2, "t") } },   // shell holes
+  px(40, 86, "K"), px(168, 78, "K"), glow("K", { r: 5, strength: 0.6 }))
 
 terrain("piste",
-  sky(TW, 24), stamp("_cloud_a", 100, 4), jungleWall(30, TW, 7), stamps2("_palm_a", [[10, 6], [140, 4]]),
-  rect(0, 34, TW, 38, "d"), rect(0, 44, TW, 16, "x"), hline(0, 44, TW, "W"), hline(0, 59, TW, "n"),
-  (c) => { for (let x = 4; x < TW; x += 12) c.hline(x, 52, 6, "w") },                          // runway centre line
-  (c) => { for (let x = 0; x < TW; x += 3) for (let y = 45; y < 59; y += 3) c.px(x + (y % 2), y, "W") },   // steel matting
-  stamp("_hellcat", 40, 34), stamp("_sbd", 80, 38), stamp("_hellcat", 120, 32),
-  rect(140, 24, 10, 10, "D"), rect(142, 18, 6, 6, "e"), rect(143, 19, 4, 2, "C"), vline(145, 12, 6, "M"),   // control tower
-  rect(4, 62, 30, 8, "o"), poly([4, 62, 19, 56, 34, 62], "O"))                                  // quonset hut
+  sky(TW, 48), stamp("_cloud_a", 200, 8), jungleWall(60, TW, 7), stamps2("_palm_a", [[20, 12], [280, 8]]),
+  rect(0, 68, TW, 76, "q"), rect(0, 88, TW, 32, "T"), hline(0, 88, TW, "W"), hline(0, 119, TW, "t"),
+  (c) => { for (let x = 0; x < TW; x += 6) for (let y = 90; y < 118; y += 6) c.rect(x + (y % 12 ? 0 : 3), y, 3, 2, "W") },   // pierced-steel matting
+  (c) => { for (let x = 8; x < TW; x += 24) c.hline(x, 104, 12, "5") },                                       // runway centre line
+  stamp("_hellcat", 80, 68), stamp("_sbd", 160, 76), stamp("_hellcat", 240, 64),
+  rect(280, 48, 20, 20, "W"), rect(284, 36, 12, 12, "x"), rect(286, 38, 8, 4, "P"), vline(290, 24, 12, "M"),    // control tower
+  rect(8, 124, 60, 16, "v"), poly([8, 124, 38, 112, 68, 124], "U"), hline(10, 116, 56, "V"))                     // quonset hut
 
 terrain("port",
-  sky(TW, 22, "ush"), hills(18, 4, "G", 3, 24), sea(24, TW, TH, 7, "cb"),
-  rect(0, 46, 70, 26, "D"), hline(0, 46, 70, "d"), (c) => { for (let px = 4; px < 70; px += 8) c.vline(px, 47, 25, "e") },   // wharf
-  rect(10, 30, 26, 16, "T"), poly([10, 30, 23, 24, 36, 30], "q"), rect(18, 38, 8, 8, "k"),     // warehouse
-  vline(52, 20, 26, "q"), line(52, 21, 66, 30, "q"), line(66, 30, 66, 40, "M"),               // crane
-  (c) => { for (const [bx, by] of [[40, 40], [47, 40], [43, 35]]) { c.rect(bx, by, 6, 5, "d"); c.box(bx, by, 6, 5, "D") } },
-  stamp("_ak", 72, 34), stamp("_dd", 116, 44), stamp("_ak_far", 120, 22))
+  sky(TW, 44, "1+2=34"), hills(36, 6, "c", 3, 48, TW), ...sea(48, TW, TH, 7, "PpZ"),
+  rect(0, 92, 140, 52, "W"), hline(0, 92, 140, "x"), (c) => { for (let px_ = 8; px_ < 140; px_ += 16) c.vline(px_, 94, 50, "w") },   // wharf
+  rect(20, 60, 52, 32, "i"), poly([20, 60, 46, 48, 72, 60], "I"), rect(36, 76, 16, 16, "k"),                    // warehouse
+  vline(104, 40, 52, "I"), line(104, 42, 132, 60, "I", 2), line(132, 60, 132, 80, "M"),                         // crane
+  (c) => { for (const [bx, by] of [[80, 80], [94, 80], [86, 70]]) { c.rect(bx, by, 12, 10, "x"); c.box(bx, by, 12, 10, "W") } },
+  stamp("_ak", 144, 66), stamp("_dd", 232, 88), stamp("_ak_far", 240, 44))
 
 terrain("volcan",
-  sky(TW, 46, "u78"), sea(46, TW, TH, 8, "cb"), smoke([[96, 4, 7, 0], [104, 8, 6, 1], [88, 10, 5, 2]]),
-  (c) => {
-    const top = (x) => Math.round(66 - 50 * Math.max(0, 1 - Math.abs(x - 96) / 70) ** 1.4)
-    for (let x = 0; x < TW; x++) { const t = top(x); c.vline(x, t, TH - t, x > 96 ? "N" : "n"); c.px(x, t, "x") }
-    for (let i = 0; i < 26; i++) { const x = 40 + i * 4, t = top(x); c.line(x, t + 2, x + (x < 96 ? -3 : 3), t + 10, "N") }   // gullies
-  },
-  rect(92, 15, 9, 2, "N"), circ(96, 14, 2, "Y"), glow("Y", { r: 4, strength: 0.5 }),
-  beach(64, TW, TH, 8), dither(0, 62, TW, 3, "n", "m", 0.5))
+  sky(TW, 92, "+=~YS"), ...sea(92, TW, TH, 8, "PpZ"), smokeP([[192, 8, 14, 0], [208, 16, 12, 1], [176, 20, 10, 2]]),
+  flankShade((x) => Math.round(132 - 100 * Math.max(0, 1 - Math.abs(x - 192) / 140) ** 1.4), 0, TW, "lmM0"),
+  (c) => { const top = (x) => Math.round(132 - 100 * Math.max(0, 1 - Math.abs(x - 192) / 140) ** 1.4); for (let i = 0; i < 26; i++) { const x = 80 + i * 8, t = top(x); c.line(x, t + 4, x + (x < 192 ? -6 : 6), t + 20, "0") } },   // gullies
+  rect(184, 30, 18, 4, "0"), circ(192, 28, 4, "L"), circ(192, 28, 2, "K"), glow("LK", { r: 8, strength: 0.5 }),
+  ...beach(128, TW, TH, 8), vgrad(0, 124, TW, 6, "Mq", 1, 2))
 
 terrain("lagon",
-  sky(TW, 16), stamp("_cloud_b", 30, 2), sea(16, TW, TH, 9),
-  ellipse(80, 46, 74, 22, "m"), ellipse(80, 47, 66, 17, "L"), ellipse(80, 48, 50, 12, "Q"),   // ring of sand round the lagoon
-  surf(24, 10, 150, 9), stamps2("_palm_b", [[14, 20], [130, 18]]), stamps2("_palm_d", [[40, 18], [100, 16], [70, 52]]),
-  stamp("_ak_far", 66, 42), stamp("_ss", 100, 50, { swap: { T: "o", t: "l", q: "O" } }))
+  sky(TW, 32), stamp("_cloud_b", 60, 4), ...sea(32, TW, TH, 9),
+  ellipse(160, 92, 148, 44, "Q"), ellipse(160, 94, 132, 34, "@"), ellipse(160, 96, 100, 24, "$"),              // ring of sand round the lagoon
+  surf(48, 20, 300, 9), stamps2("_palm_b", [[28, 36], [260, 32]]), stamps2("_palm_d", [[80, 36], [200, 32], [140, 100]]),
+  stamp("_ak_far", 132, 84), stamp("_ss", 200, 100))
 
 terrain("atoll",
-  sky(TW, 26, "ush"), stamp("_cloud_a", 108, 4), sea(26, TW, TH, 10),
-  ellipse(80, 50, 54, 12, "m"), ellipse(80, 51, 44, 8, "L"), ellipse(84, 49, 26, 6, "m"),
-  stamps2("_palm_a", [[50, 22], [90, 24]]), stamps2("_palm_d", [[70, 32], [108, 30]]),
-  surf(38, 30, 130, 10), surf(62, 30, 130, 11),
-  rect(60, 45, 40, 2, "x"), stamp("_dd_far_x", 128, 30))
+  sky(TW, 52, "1+2=34"), stamp("_cloud_a", 216, 8), ...sea(52, TW, TH, 10),
+  ellipse(160, 100, 108, 24, "Q"), ellipse(160, 102, 88, 16, "@"), ellipse(168, 98, 52, 12, "Q"),
+  stamps2("_palm_a", [[100, 40], [180, 44]]), stamps2("_palm_d", [[140, 64], [216, 60]]),
+  surf(76, 60, 260, 10), surf(124, 60, 260, 11),
+  rect(120, 90, 80, 3, "T"), stamp("_dd_far_x", 256, 60))
 
 terrain("marecage",
-  grad(0, 0, TW, 24, "Shh", "v", 0.4), jungleWall(30, TW, 12),
-  rect(0, 40, TW, 32, "B"), rect(0, 40, TW, 4, "b"),
-  (c) => { const r = c.rng(6); for (let i = 0; i < 30; i++) { const x = Math.floor(r() * TW); for (const dx of [-3, -1, 1, 3]) c.line(x, 44, x + dx, 52 + Math.floor(r() * 6), "e"); c.circ(x, 40, 4, "f"); c.circ(x - 2, 38, 2, "G") } },   // mangrove roots
-  (c) => { const r = c.rng(8); for (let i = 0; i < 40; i++) c.hline(Math.floor(r() * TW), 54 + Math.floor(r() * 18), 3, "c") },
-  stamp("_kneel", 62, 46), stamp("_kneel", 86, 48))
+  vgrad(0, 0, TW, 48, "~4C", 1, 2), jungleWall(60, TW, 12),
+  vgrad(0, 80, TW, 64, "ZzZ", 1, 2), hline(0, 80, TW, "p"),
+  (c) => { const r = c.rng(6); for (let i = 0; i < 34; i++) { const x = Math.floor(r() * TW); for (const dx of [-6, -2, 2, 6]) c.line(x, 88, x + dx, 104 + Math.floor(r() * 12), "W"); c.circ(x, 80, 8, "A"); c.circ(x - 2, 78, 5, "c"); c.circ(x - 4, 76, 2, "^") } },   // mangrove roots
+  (c) => { const r = c.rng(8); for (let i = 0; i < 60; i++) c.hline(Math.floor(r() * TW), 108 + Math.floor(r() * 36), 6, "p") },
+  stamp("_kneel", 124, 92), stamp("_kneel", 172, 96))
 
 // Landing beach: assault craft beached, Marines going in, palms behind.
 terrain("plage",
-  sky(TW, 16, "ush"), jungleWall(22, TW, 13), stamps2("_palm_c", [[20, 0], [110, 2]]), stamps2("_stump", [[70, 12]]),
-  beach(28, TW, 50, 13), sea(50, TW, TH, 13), surf(50, 0, TW, 13),
-  stamp("_ak_far", 20, 58), stamp("_dd_far", 120, 60),
-  (c) => { for (const lx of [30, 92]) { c.rect(lx, 46, 22, 7, "T"); c.rect(lx + 18, 44, 4, 9, "q"); c.hline(lx, 46, 22, "t") } },   // landing craft
-  stamp("_sol", 42, 32), stamp("_kneel", 60, 36), stamp("_sol", 102, 30), stamp("_kneel", 128, 36),
-  stamp("_splash", 70, 44), stamp("_boom", 140, 22))
+  sky(TW, 32, "1+2=34"), jungleWall(44, TW, 13), stamps2("_palm_c", [[40, 0], [220, 4]]), stamps2("_stump", [[140, 24]]),
+  ...beach(56, TW, 100, 13), ...sea(100, TW, TH, 13), surf(100, 0, TW, 13),
+  stamp("_ak_far", 40, 112), stamp("_dd_far", 240, 116),
+  (c) => { for (const lx of [60, 184]) { c.rect(lx, 92, 44, 14, "I"); c.rect(lx + 36, 88, 8, 18, "i"); c.hline(lx, 92, 44, "j"); c.hline(lx - 4, 106, 52, "5") } },   // landing craft
+  stamp("_sol", 84, 64), stamp("_kneel", 120, 72), stamp("_sol", 204, 60), stamp("_kneel", 256, 72),
+  stamp("_splash", 140, 84), stamp("_boom", 280, 44))
 
 // Campaign terrains with their own picture.
 terrain("betio",
-  sky(TW, 14, "u78"), smoke([[40, 8, 7, 0], [52, 4, 6, 1], [120, 10, 6, 0]]),
-  beach(20, TW, 34, 14), rect(0, 20, TW, 5, "e"), (c) => { for (let x = 0; x < TW; x += 4) c.vline(x, 20, 5, "D") },   // log seawall
-  stamps2("_stump", [[30, 6], [90, 4], [140, 8]]), pillbox(60, 12, 20),
-  rect(0, 34, TW, 38, "L"), rect(0, 50, TW, 22, "c"), surf(33, 0, TW, 14),
-  rect(100, 26, 6, 46, "D"), (c) => { for (let y = 28; y < 72; y += 5) c.hline(100, y, 6, "e") },   // long pier
-  stamp("_ss", 30, 44, { swap: { T: "o", t: "l", q: "O" } }), stamp("_boom", 34, 32),
-  stamp("_kneel", 60, 38), stamp("_kneel", 76, 42), stamp("_sol", 120, 40), stamp("_kneel", 140, 46),
-  rect(56, 50, 40, 2, "Q"), rect(118, 55, 30, 2, "Q"))
+  sky(TW, 28, "+=~YS"), smokeP([[80, 16, 14, 0], [104, 8, 12, 1], [240, 20, 12, 0]]),
+  ...beach(40, TW, 68, 14), rect(0, 40, TW, 10, "W"), (c) => { for (let x = 0; x < TW; x += 8) { c.vline(x, 40, 10, "x"); c.px(x + 1, 41, "X") } },   // log seawall
+  stamps2("_stump", [[60, 12], [180, 8], [280, 16]]), pillbox(120, 24, 40),
+  vgrad(0, 68, TW, 76, "$@pZ", 1, 2), surf(66, 0, TW, 14),
+  rect(200, 52, 12, 92, "W"), (c) => { for (let y = 56; y < 144; y += 10) c.hline(200, y, 12, "x") },          // the long pier
+  ...amtrac(56, 86), stamp("_boom", 68, 62),
+  stamp("_kneel", 120, 76), stamp("_kneel", 152, 84), stamp("_sol", 240, 80), stamp("_kneel", 280, 92),
+  rect(112, 100, 80, 3, "$"), rect(236, 110, 60, 3, "$"))
 
 terrain("sable_noir",
-  sky(TW, 20, "uss"),
-  (c) => { const top = (x) => Math.round(30 - 22 * Math.max(0, 1 - Math.abs(x - 24) / 30)); for (let x = 0; x < 60; x++) { const t = top(x); c.vline(x, t, 32 - t, "N") } },   // Suribachi far away
-  rect(0, 30, TW, 30, "N"), (c) => { for (let y = 34; y < 58; y += 5) for (let x = (y * 7) % 20; x < TW; x += 28) c.hline(x, y, 12, "n") },   // black sand terraces
-  sea(58, TW, TH, 15, "cb"), surf(58, 0, TW, 15),
-  stamp("_ss", 20, 52, { swap: { T: "o", t: "l", q: "O" } }), stamp("_boom", 90, 20), stamp("_boom", 130, 26),
-  stamp("_kneel", 50, 40), stamp("_kneel", 70, 44), stamp("_sol", 106, 36), stamp("_kneel", 130, 46),
-  smoke([[100, 14, 4, 0], [140, 18, 5, 1]]))
+  sky(TW, 40, "1+2=3"),
+  flankShade((x) => Math.round(x < 120 ? 60 - 44 * Math.max(0, 1 - Math.abs(x - 48) / 60) : 200), 0, 120, "mM00"),         // Suribachi far away
+  rect(0, 60, TW, 60, "M"), (c) => { for (let y = 68; y < 116; y += 10) for (let x = (y * 7) % 40; x < TW; x += 56) { c.hline(x, y, 24, "0"); c.hline(x + 4, y - 1, 16, "m") } },   // black sand terraces
+  ...sea(116, TW, TH, 15, "PpZ"), surf(116, 0, TW, 15),
+  ...amtrac(40, 100), stamp("_boom", 180, 40), stamp("_boom", 260, 52),
+  stamp("_kneel", 100, 80), stamp("_kneel", 140, 88), stamp("_sol", 212, 72), stamp("_kneel", 260, 92),
+  smokeP([[200, 28, 8, 0], [280, 36, 10, 1]]))
 
-sprite("_flag", { w: 11, h: 11 }, (c) => {
-  c.vline(0, 0, 11, "e")
-  for (let y = 0; y < 6; y++) c.hline(1, y, 9, y % 2 ? "w" : "r")
-  c.rect(1, 0, 4, 3, "6"); c.px(2, 1, "w")
-})
 terrain("suribachi",
-  sky(TW, 64, "usSh"), stamp("_cloud_a", 14, 6), stamp("_cloud_b", 130, 12),
-  (c) => {
-    const top = (x) => Math.round(62 - 46 * Math.max(0, 1 - Math.abs(x - 80) / 64) ** 1.2)
-    for (let x = 0; x < TW; x++) { const t = top(x); c.vline(x, t, TH - t, x > 80 ? "N" : "n"); c.px(x, t, "x") }
-    for (let i = 0; i < 20; i++) { const x = 30 + i * 5, t = top(x); c.line(x, t + 2, x + (x < 80 ? -2 : 2), t + 9, "N") }
-  },
-  rect(74, 15, 12, 2, "N"), line(76, 16, 84, 4, "e"),                                           // the pole, raised
-  (c) => { for (let y = 0; y < 6; y++) c.line(84 - Math.round(y * 0.1), 4 + y, 93, 5 + y, y % 2 ? "w" : "r") }, rect(84, 4, 4, 3, "6"),
-  stamp("_kneel", 70, 8), stamp("_sol", 78, 4, { flip: "x" }),
-  sea(64, TW, TH, 16, "cb"), surf(64, 0, TW, 16))
-
-const TERRAINS = ["haute_mer", "recif", "jungle", "grottes", "blockhaus", "piste", "port", "volcan", "lagon", "atoll", "marecage", "plage", "betio", "sable_noir", "suribachi"]
-scene("contact_terrains", { w: 2 * 162 + 2, h: 8 * 74 + 2, bg: "k" },
-  ...TERRAINS.map((n, i) => stamp("t_" + n, 2 + (i % 2) * 162, 2 + Math.floor(i / 2) * 74)))
+  sky(TW, 128, "1+2=3~4"), stamp("_cloud_a", 28, 12), stamp("_cloud_b", 260, 24),
+  flankShade((x) => Math.round(124 - 92 * Math.max(0, 1 - Math.abs(x - 160) / 128) ** 1.2), 0, TW, "lmM0"),
+  (c) => { const top = (x) => Math.round(124 - 92 * Math.max(0, 1 - Math.abs(x - 160) / 128) ** 1.2); for (let i = 0; i < 24; i++) { const x = 60 + i * 9, t = top(x); c.line(x, t + 4, x + (x < 160 ? -4 : 4), t + 18, "0") } },
+  rect(148, 30, 24, 4, "0"), line(152, 32, 168, 8, "W", 2),                                                     // the pole, raised
+  (c) => { for (let y = 0; y < 12; y++) c.line(168 - Math.round(y * 0.1), 8 + y, 186, 10 + y, y % 4 < 2 ? "5" : "s") }, rect(168, 8, 8, 6, "n"), (c) => { c.px(170, 10, "5"); c.px(173, 11, "5") },
+  stamp("_kneel", 136, 12), stamp("_sol", 152, 4, { flip: "x" }),
+  ...sea(128, TW, TH, 16, "PpZ"), surf(128, 0, TW, 16))
 
 // ------------------------------------------------------------------ attribute icons (value chips)
 // One-colour silhouettes: they sit on the coloured chip, holes let the chip colour through.
@@ -588,34 +593,28 @@ sprite("i_caisse", `
   kk.kkkkk.kk
   kkkkkkkkkkk`)
 
-// ------------------------------------------------------------------ initiative coin (32x32)
+// ------------------------------------------------------------------ initiative coin (64x64), struck in relief
 // coin_0 = the player (the white star on blue), coin_1 = the enemy (the red disc on white).
-const coin = (edge, rim, lit, face) => (c) => {
-  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-    const d = Math.hypot(x - 15.5, y - 15.5)
-    if (d <= 15.6) c.px(x, y, d > 14.6 ? edge : d > 12.6 ? (x + y < 28 ? lit : rim) : d > 11.7 ? edge : face)
-  }
+const starMask = (cx, cy, R, r, key) => (c) => {
+  const P = Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; return [cx + d * Math.cos(a), cy + d * Math.sin(a)] })
+  const inside = (x, y) => P.reduce((n, [x1, y1], i) => { const [x2, y2] = P[(i + 1) % 10]; return (y1 > y) !== (y2 > y) && x < x1 + (y - y1) * (x2 - x1) / (y2 - y1) ? !n : n }, false)
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (inside(x + 0.5, y + 0.5)) c.px(x, y, key)
 }
-const disc = (r, col) => (c) => { for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (Math.hypot(x - 15.5, y - 15.5) <= r) c.px(x, y, col) }
-const star = (r, col) => (c) => {
-  const pts = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r; pts.push(Math.round(15.5 + Math.cos(a) * rr), Math.round(16 + Math.sin(a) * rr)) }
-  c.poly(pts, col)
-}
-sprite("coin_0", { w: 32, h: 32 }, coin("B", "b", "c", "6"), star(10, "w"))
-sprite("coin_1", { w: 32, h: 32 }, coin("H", "5", "4", "w"), disc(7.4, "r"))
+const disc = (r, col) => (c) => { for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (Math.hypot(x - 31.5, y - 31.5) <= r) c.px(x, y, col) }
+sprite("coin_0", { w: 64, h: 64 }, coinDisc("b", "n", "N", "B"), disc(23, "n"), starMask(32, 34, 20, 8, "&"), relief("&", "5", "5", "4"))
+sprite("coin_1", { w: 64, h: 64 }, coinDisc("T", "Q", "5", "q"), disc(23, "5"), disc(14, "&"), relief("&", "s", "S", "R"))
 
-// ------------------------------------------------------------------ campaign map (320x140)
+// ------------------------------------------------------------------ campaign map (640x280)
 // Same frame as campaign.js project(): lon 118..186 (Midway at 182.6), lat 40..-16. A naval chart of the Pacific:
 // pale sea with its grid, coastlines in sand and jungle. Battle markers are HTML on top.
-const MW = 320, MH = 140
 const P = (lon, lat) => [Math.round((lon - 118) * MW / 68), Math.round((40 - lat) * MH / 56)]
 const path = (pts) => pts.flatMap(([lon, lat]) => P(lon, lat))
-const land = (pts, key = "m") => poly(path(pts), key)
-const isle = (lon, lat, rx = 1, ry = 1, key = "m") => (c) => { const [x, y] = P(lon, lat); c.ellipse(x, y, rx, ry, key) }
-scene("map_pacifique", { w: MW, h: MH, bg: "C" },
-  // Chart grid: every 10 degrees.
-  (c) => { for (let lon = 120; lon <= 180; lon += 10) { const [x] = P(lon, 0); for (let y = 0; y < MH; y += 2) c.px(x, y, "c") } for (let lat = 30; lat >= -10; lat -= 10) { const [, y] = P(120, lat); for (let x = 0; x < MW; x += 2) c.px(x, y, "c") } },
-  (c) => { const [, y] = P(120, 0); c.hline(0, y, MW, "c") },                                   // the equator, solid
+const land = (pts, key = "Q") => poly(path(pts), key)
+scene("map_pacifique", { w: MW, h: MH, bg: "P" },
+
+  // chart grid every 10 degrees, depth soundings near the coasts
+  (c) => { for (let lon = 120; lon <= 180; lon += 10) { const [x] = P(lon, 0); for (let y = 0; y < MH; y += 3) c.px(x, y, "p") } for (let lat = 30; lat >= -10; lat -= 10) { const [, y] = P(120, lat); for (let x = 0; x < MW; x += 3) c.px(x, y, "p") } },
+  (c) => { const [, y] = P(120, 0); c.hline(0, y, MW, "p") },                                   // the equator, solid
   // Asia: China, Korea, Japan, Taiwan.
   land([[118, 41], [121.5, 41], [122.2, 39.2], [121, 38.8], [122.5, 37.4], [119.2, 37.1], [120.3, 36], [122.5, 32], [121.8, 30.5], [121, 28], [119.5, 25.5], [118, 24]]),
   land([[124.4, 40], [128, 41], [129.6, 41], [129.4, 38.5], [129.4, 35.2], [127, 34.5], [126.2, 34.6], [126.6, 37.5], [125, 38.5]]),
@@ -631,18 +630,18 @@ scene("map_pacifique", { w: MW, h: MH, bg: "C" },
   land([[122, 9], [124.3, 8.8], [126.4, 9.6], [126.2, 6.3], [125.3, 5.6], [123.2, 7.5], [122.1, 7]]),                 // Mindanao
   land([[118, 10.5], [119.6, 11.5], [118.6, 9.5], [118, 9]]),                                                          // Palawan
   // Borneo, Celebes, the Moluccas at the left edge.
-  land([[118, 7], [119.3, 5.3], [118.5, 4.3], [118, 1], [118, 7]], "g"),
-  land([[120.5, 1.2], [124.9, 1.6], [121, 0.4], [120.2, -1.5], [121.5, -4.6], [120.3, -5.5], [119.4, -3.5], [119.7, 0.5]], "g"),
-  land([[127.4, 2.2], [128.6, 1.4], [128, -0.8], [127.5, 0.3]], "g"),
+  land([[118, 7], [119.3, 5.3], [118.5, 4.3], [118, 1], [118, 7]], "C"),
+  land([[120.5, 1.2], [124.9, 1.6], [121, 0.4], [120.2, -1.5], [121.5, -4.6], [120.3, -5.5], [119.4, -3.5], [119.7, 0.5]], "C"),
+  land([[127.4, 2.2], [128.6, 1.4], [128, -0.8], [127.5, 0.3]], "C"),
   // New Guinea and the Bismarcks.
-  land([[131, -1.2], [134, -0.8], [135.3, -3.3], [138, -1.6], [141, -2.6], [145.8, -4.8], [147.7, -6.2], [150.5, -10.4], [147, -10.1], [143.5, -9], [141, -9.2], [138, -8.4], [137.5, -5], [134, -3.9], [132, -2.8]], "g"),
-  land([[148, -5.6], [151, -5.2], [152.2, -4.2], [152.4, -5.8], [150.5, -6.4], [148.5, -6.1]], "g"),                  // New Britain (Rabaul)
-  land([[150.8, -2.6], [152.8, -4.2], [152.6, -4.8]], "g"),                                                            // New Ireland
+  land([[131, -1.2], [134, -0.8], [135.3, -3.3], [138, -1.6], [141, -2.6], [145.8, -4.8], [147.7, -6.2], [150.5, -10.4], [147, -10.1], [143.5, -9], [141, -9.2], [138, -8.4], [137.5, -5], [134, -3.9], [132, -2.8]], "C"),
+  land([[148, -5.6], [151, -5.2], [152.2, -4.2], [152.4, -5.8], [150.5, -6.4], [148.5, -6.1]], "C"),                  // New Britain (Rabaul)
+  land([[150.8, -2.6], [152.8, -4.2], [152.6, -4.8]], "C"),                                                            // New Ireland
   // The Solomons: Bougainville to Guadalcanal and San Cristobal.
-  land([[154.6, -5.1], [155.9, -6.4], [155.5, -6.9], [154.7, -6.1]], "g"),
-  land([[156.6, -7.0], [157.6, -7.4], [157.4, -8.0]], "g"), land([[158.1, -7.5], [159.8, -8.4], [159.5, -8.7]], "g"),
-  land([[159.6, -9.2], [160.8, -9.4], [160.4, -9.8], [159.6, -9.6]], "g"),                                             // Guadalcanal
-  land([[160.7, -8.4], [161.5, -9.6], [161, -9.3]], "g"), land([[161.3, -10.2], [162.3, -10.7], [161.6, -10.6]], "g"),
+  land([[154.6, -5.1], [155.9, -6.4], [155.5, -6.9], [154.7, -6.1]], "C"),
+  land([[156.6, -7.0], [157.6, -7.4], [157.4, -8.0]], "C"), land([[158.1, -7.5], [159.8, -8.4], [159.5, -8.7]], "C"),
+  land([[159.6, -9.2], [160.8, -9.4], [160.4, -9.8], [159.6, -9.6]], "C"),                                             // Guadalcanal
+  land([[160.7, -8.4], [161.5, -9.6], [161, -9.3]], "C"), land([[161.3, -10.2], [162.3, -10.7], [161.6, -10.6]], "C"),
   // Australia's north coast, bottom left.
   land([[130, -11.3], [132.6, -11.5], [136.8, -12.2], [136, -14.5], [135.5, -16], [130, -16]]),
   land([[141.6, -12.6], [142.5, -10.7], [143.4, -12.6], [145.3, -14.9], [145.5, -16], [141.4, -16]]),
@@ -655,15 +654,23 @@ scene("map_pacifique", { w: MW, h: MH, bg: "C" },
       [167.7, 9, 1], [167.4, 8.7], [171.4, 7.1], [169.6, 6], [171.2, 8.7], [166.8, 11.2], [168.8, 11.6],                             // Marshalls
       [173, 1.4, 1], [172.9, 3], [173.6, 0.2], [174.4, -0.6],                                                                         // Gilberts
       [166.6, 19.3, 1], [182.6, 28.2, 1], [178.5, 28.4], [184.2, 26.2], [173, -15], [178, -16], [167, -15.5], [168, -16]]           // Wake, Midway, Fiji, Vanuatu
-    for (const [lon, lat, r = 0] of dots) { const [x, y] = P(lon, lat); if (r) { c.ellipse(x, y, r + 1, r, "m"); c.px(x, y, "g") } else c.rect(x, y, 2, 1, "m") }
+    for (const [lon, lat, r = 0] of dots) { const [x, y] = P(lon, lat); if (r) { c.ellipse(x, y, r + 1, r, "m"); c.px(x, y, "C") } else c.rect(x, y, 2, 1, "m") }
   },
-  // Coast shading: a darker rim where land meets the sea.
-  (c) => { for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) if ((c.is(x, y, "m") || c.is(x, y, "g")) && (c.is(x + 1, y + 1, "C") || c.is(x, y + 1, "C"))) c.px(x, y, "d") },
-  // Jungle texture on the big islands.
-  (c) => { const r = c.rng(5); for (let i = 0; i < 500; i++) { const x = Math.floor(r() * MW), y = Math.floor(r() * MH); if (c.is(x, y, "g")) c.px(x, y, r() < 0.5 ? "G" : "f") } },
-  // Japan: the rising sun capital, a dot of red.
-  (c) => { const [x, y] = P(139.7, 35.7); c.circ(x, y, 1, "r") },
-  // Arrow off the right edge toward Pearl Harbor.
-  (c) => { const [x, y] = P(185, 21); c.line(x - 8, y, x, y, "H"); c.px(x - 1, y - 1, "H"); c.px(x - 1, y + 1, "H") },
-  // Frame like a printed chart.
-  box(0, 0, MW, MH, "H"), box(1, 1, MW - 2, MH - 2, "4"))
+  // small islands: Marianas, Bonins and Volcanos, Ryukyus, Palau, Carolines, Marshalls, Gilberts, Wake, Midway
+  (c) => {
+    const dots = [[145.7, 15.2, 2], [144.8, 13.4, 3], [145.6, 14.1, 2], [145.7, 16.7], [145.8, 18.1], [145.6, 20],
+      [141.3, 24.8, 2], [142.2, 27], [142.1, 26.6], [127.8, 26.3, 3], [128.5, 27.2], [129.5, 28.3], [130.5, 30.4], [124.2, 24.4], [125.3, 24.8],
+      [134.5, 7.4, 2], [134.25, 7], [138.1, 9.5], [151.8, 7.4, 2], [158.2, 6.9], [163, 5.3],
+      [167.7, 9, 2], [167.4, 8.7], [171.4, 7.1], [169.6, 6], [171.2, 8.7], [166.8, 11.2], [168.8, 11.6],
+      [173, 1.4, 2], [172.9, 3], [173.6, 0.2], [174.4, -0.6],
+      [166.6, 19.3, 2], [182.6, 28.2, 2], [178.5, 28.4], [184.2, 26.2], [173, -15], [178, -16], [167, -15.5], [168, -16]]
+    for (const [lon, lat, r = 0] of dots) { const [x, y] = P(lon, lat); if (r) { c.ellipse(x, y, r + 2, r, "Q"); c.ring(x, y, r + 3, "$"); c.px(x, y, "C") } else { c.rect(x, y, 3, 2, "Q"); c.px(x - 1, y + 2, "$") } }
+  },
+  // coast shading: a sand rim and a pale lagoon ring where land meets the sea
+  (c) => { const L = (x, y) => c.is(x, y, "QC^c"); for (let y = 1; y < MH - 1; y++) for (let x = 1; x < MW - 1; x++) { if (L(x, y) && (!L(x + 1, y + 1) || !L(x, y + 1))) c.px(x, y, "q"); else if (!L(x, y) && (L(x - 1, y) || L(x + 1, y) || L(x, y - 1) || L(x, y + 1))) c.px(x, y, "$") } },
+  // jungle texture on the big islands
+  (c) => { const r = c.rng(5); for (let i = 0; i < 4000; i++) { const x = Math.floor(r() * MW), y = Math.floor(r() * MH); if (c.is(x, y, "C") && c.is(x + 1, y + 1, "C")) { c.px(x, y, "^"); c.px(x + 1, y + 1, "c") } } },
+  // Japan's capital, a red dot; an arrow off the right edge toward Pearl Harbor
+  (c) => { const [x, y] = P(139.7, 35.7); c.circ(x, y, 2, "s") },
+  (c) => { const [x, y] = P(185, 21); c.line(x - 16, y, x, y, "T", 2); c.line(x - 4, y - 4, x, y, "T"); c.line(x - 4, y + 4, x, y, "T") },
+  box(0, 0, MW, MH, "T"), box(2, 2, MW - 4, MH - 4, "Q"))

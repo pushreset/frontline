@@ -21,6 +21,7 @@
   },
   malusAttr: 1,                 // attribute lowered by g.malus() (shelling, strafing, malaria)
   art: 'packs/pacifique/out/',
+  artScale: 2,                  // pictures drawn at twice the base sizes (cards 128x80)
   cover: 'suribachi',
   // Longitudes east of Greenwich, past 180°: Midway (177.4° W) is 182.6.
   map: { image: 'map_pacifique', lon: [118, 186], lat: [40, -16] },
