@@ -1,7 +1,7 @@
 # Ligne de Front · Front Line
 
-A solo tactical card game in pixel art, across several eras of history: **Verdun 1916** (First World
-War) and **Normandy 1944** (Second World War). It runs in the browser with no build step and no
+A solo tactical card game in pixel art, across several eras of history (the Gallic Wars, Verdun 1916,
+the Pacific and Normandy in 1941–1945) and one of legend: the War of the Ring in Middle-earth. It runs in the browser with no build step and no
 dependencies. Available in French and English.
 
 **Play**: https://pushreset.github.io/frontline/, or open `index.html` locally.
@@ -13,7 +13,7 @@ dependencies. Available in French and English.
 Each battle is fought over **three terrains**. Every terrain has a **threshold** to reach in four
 attributes, which depend on the era: **Tank**, **Infantry**, **Air** and **Strategy** in Normandy,
 **Artillery**, **Infantry**, **Engineering** and **Morale** at Verdun (for example 2 / 3 / 0 / 1). You play
-the Allies (in 1916, the French; in Gaul, Caesar) against an AI that plays the other side with its own deck.
+the Allies (in 1916, the French; in Gaul, Caesar; in Middle-earth, the Free Peoples) against an AI that plays the other side with its own deck.
 
 - Fill a terrain's whole threshold with your units and you **hold** it.
 - If you still hold it at the start of your next turn, it is **captured**: the opponent had a full
@@ -138,6 +138,26 @@ Island after island across a naval chart of the Pacific, from Wake (December 194
   as battles open, so each new campaign plays differently.
 - **No game over**: a lost battle is simply replayed.
 
+#### War of the Ring, Third Age 3018–3019
+
+The legendary era, on an old map of Middle-earth, from Weathertop (October 3018) to the Black Gate (March 3019).
+**14 battles**, a campaign lasts 10. You lead the Free Peoples; the AI plays the Shadow: Mordor, Isengard, Harad.
+
+- **Two roads.** After Weathertop, the Ford of Bruinen, Moria and Amon Hen, choose **Rohan** (the Fords of Isen,
+  Helm's Deep, Isengard) or **Gondor** (Ithilien, Osgiliath, Pelargir). Both meet on the Pelennor Fields; then
+  Dale or the Cross-roads, and the last stand before the Black Gate, where holding until nightfall is a victory.
+  Half the battles are defensive: the Shadow attacks first and you only have to hold.
+- **Sword, Cavalry, Bow, Magic.** The Nazgûl's black breath turns one of your units face down (worth nothing until
+  you spend an action to reveal it). Cave trolls cannot be destroyed, dwarves cannot while they stand with a
+  friend. Hobbits are a bluff with teeth: when they are turned face up they kill the strongest enemy Magic unit,
+  even the Witch-king, whom nothing else can destroy. Mountain passes leave horses useless, harbours leave only
+  bows and magic, the Dead Marshes drain your strongest unit, a captured wizard's tower lends your mages +1 Magic.
+- **Asymmetric decks**: dwarves, hobbits, Gandalf and the horn of Helm against Nazgûl, cave trolls, the drums of the
+  deep and the Eye. The Balrog joins the enemy deck in Moria, the fire of Orthanc at Helm's Deep, the mûmakil in
+  Ithilien and before the Gate, the Witch-king on the Pelennor.
+- Rewards: veterans, new cards (Aragorn, the Army of the Dead, the Ents of Fangorn, the Great Eagles) and powers
+  (the Beacons, Shadowfax, the Phial and the Mirror of Galadriel, the Black Arrow).
+
 ### Quick battle and difficulty
 
 - **Quick battle**: pick a theatre, three random terrains of that campaign, no campaign bonuses.
@@ -213,6 +233,8 @@ powers bring their own behaviour as small functions ("hooks").
      A card or terrain can borrow another picture with `art: '<key>'`. Every `art.px.js` includes
      `packs/art-lib.px.js`, the shared helpers (sizes, smooth dithered skies, hills, meadows, shadows, coins in relief)
      and their colour-key convention: define those keys in your palette, then `include("../art-lib.px.js")`.
+     A big art file can be split: `packs/terre_milieu/art.px.js` includes a shared palette, then one file per
+     set of pictures, each with its helpers in a `{ }` block and its own prefix on part names.
 2. **Register it**: add its files to `packs/index.cjs` (node) and as `<script>` tags in `index.html`
    and `assets.html`. Bump the `?v=` of the script tags on every release, otherwise browsers may mix old
    and new files.

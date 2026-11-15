@@ -317,6 +317,49 @@ for (const [id, P] of Object.entries(PACKS)) {
   E.use('normandie'); C.use('normandie');
 }
 
+// War of the Ring: Nazgûl terror, hobbits against the Witch-king, his aura, the wizard's tower, two roads to the Black Gate.
+{
+  E.use('terre_milieu'); C.use('terre_milieu');
+  assert.deepEqual([...C.roots], ['amon_sul']);
+  const lens = new Set(), roads = new Set(), walk = (id, n, path) => C.byId[id].next.length ? C.byId[id].next.forEach(x => walk(x, n + 1, [...path, x])) : (assert.equal(id, 'morannon'), lens.add(n), roads.add(path[4]));
+  C.roots.forEach(r => walk(r, 1, [r]));
+  assert.deepEqual([...lens], [10], `Middle-earth run length ${[...lens]}`);
+  assert.deepEqual([...roads].sort(), ['gues_isen', 'ithilien'], 'two roads after Amon Hen');
+  assert(C.BATTLES.every(b => !b.defend || b.first === 1), 'a defensive battle: the enemy attacks first');
+  const mk = (keys, owner, base, down = false) => keys.map((key, i) => ({ id: base + i, key, owner, down, malus: 0 }));
+  const ids = (s, t, p) => s.terrains[t].side[p].map(u => u.key);
+  // Nazgûl: a face-up enemy unit goes face down (worth 0); its owner spends an action to reveal it.
+  let s = E.newGame(['plaine', 'village', 'riviere'], {}, { first: 1 });
+  s.terrains[0].side[0] = mk(['soldats'], 0, 1000);
+  s.players[1].hand = [{ id: 1010, key: 'nazgul' }];
+  E.play(s, { kind: 'deploy', c: 1010, t: 0, u: 1000 });
+  assert.deepEqual(E.totals(s, 0, 0), [0, 0, 0, 0], 'black breath: the soldiers are face down');
+  E.play(s, { kind: 'reveal', u: 1000 });
+  assert.deepEqual(E.totals(s, 0, 0), [3, 0, 0, 0], 'revealed, they fight again');
+  // Witch-king face up: enemy Foot units on his terrain lose 1 Sword, not the archers, not his own side.
+  s = E.newGame(['plaine', 'village', 'riviere']);
+  s.terrains[0].side[1] = mk(['roi_sorcier', 'soldats'], 1, 1020);
+  s.terrains[0].side[0] = mk(['soldats', 'archers'], 0, 1030);
+  assert.deepEqual([E.totals(s, 0, 0)[0], E.totals(s, 0, 1)[0]], [2, 3], 'Witch-king: -1 Sword to the enemy foot');
+  // Hobbits turned face up: the strongest enemy Magic unit there falls, even the indestructible Witch-king.
+  s.terrains[0].side[0].push(...mk(['hobbits'], 0, 1040, true));
+  s.turn = 0; s.players[0].hand = [{ id: 1045, key: 'fleches' }];
+  assert(!E.moves(s).some(m => m.kind === 'order' && m.u === 1020), 'no arrow can kill the Witch-king');
+  E.play(s, { kind: 'reveal', u: 1040 });
+  assert.deepEqual(ids(s, 0, 1), ['soldats'], 'hobbits: the Witch-king is gone');
+  // Wizard's tower captured: your Magic units get +1 Magic elsewhere; cave trolls cannot be destroyed.
+  s = E.newGame(['tour', 'plaine', 'riviere']);
+  s.terrains[1].side[0] = mk(['elfes'], 0, 1050);
+  assert.equal(E.totals(s, 1, 0)[3], 2, 'elves: 2 Magic');
+  s.terrains[0].captured = 0;
+  assert.equal(E.totals(s, 1, 0)[3], 3, 'tower held: +1 Magic');
+  s.terrains[2].side[1] = mk(['trolls'], 1, 1060);
+  s.turn = 0; s.players[0].hand = [{ id: 1065, key: 'fleches' }];
+  for (const T of s.terrains) for (const u of T.side[1]) u.malus = 2; // worth 1: in arrow range
+  assert(!E.moves(s).some(m => m.kind === 'order' && m.u === 1060), 'trolls: hide like stone');
+  E.use('normandie'); C.use('normandie');
+}
+
 // The rule checks above test Normandy cards; the modes below run on the chosen pack.
 if (PACK !== 'normandie') { E.use(PACK); C.use(PACK); }
 
