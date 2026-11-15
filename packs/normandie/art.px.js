@@ -75,14 +75,14 @@ const KNEEL = `
   ........VVvvvV................
   .......VvVvvvvU...............
   .......UUUUUUUUU..............
-  .........EfFFFfFXxxxxxxxxjjjJ
-  .........fFkFFfWWWWWWWWWj.....
+  .........EfFFFf...............
+  .........fFkFFf...............
   .........ffFFFF...............
   .........EffFE................
   ..........EfE.................
-  .......VVvvvvvVff.............
-  ......VVvvvvvvvvFf............
-  ......VvvVvvvvvvvf............
+  .......VVvvvvvVvV.............
+  ......VVvvvvvvXxxFfxxxxxxjjjjJ
+  ......VvvVvvvvWWWWfWWWWj......
   ......VvvVvvvvvvv.............
   ......Vv8Vvvvvvv8.............
   ......VvvVvvvvvvU.............
@@ -100,7 +100,7 @@ const KNEEL = `
 const put = (grid, rows) => { const r = grid.split("\n").filter((x) => x.trim()).map((x) => x.trim()); for (const [i, s] of Object.entries(rows)) r[i] = s; return r.join("\n") }
 // German Stahlhelm: flared skirt over the ears and neck.
 const STAHL = { 0: ".........HHHH...............", 1: "........HhhhhH..............", 2: ".......HhHhhhhG.............", 3: "......GGhhhhhhGG............", 4: "......GG.EfFFFG............." }
-const STAHLK = { 0: ".........HHHH.................", 1: "........HhhhhH................", 2: ".......HhHhhhhG...............", 3: "......GGhhhhhhGG..............", 4: "......GG.EfFFFfFXxxxxxxxxjjjJ" }
+const STAHLK = { 0: ".........HHHH.................", 1: "........HhhhhH................", 2: ".......HhHhhhhG...............", 3: "......GGhhhhhhGG..............", 4: "......GG.EfFFFf" }
 sprite("_gi", { outline: "k" }, GI)
 sprite("_kneel", { outline: "k" }, KNEEL)
 sprite("_gi_x", { outline: "k", swap: AXIS }, put(GI, STAHL))
@@ -116,7 +116,7 @@ sprite("_resist", { outline: "k", swap: { V: "m", v: "M", U: "0", u: "0", 9: "0"
 sprite("_commando", { outline: "k", swap: { V: "9", v: "8", U: "7", u: "7", 9: "7" } },
   put(GI, { 0: "............................", 1: "........AAAAA...............", 2: ".......AcccccA..............", 3: "........AAAAAAk.............", 4: ".........EfFFF.............." }))
 sprite("_commando_k", { outline: "k", swap: { V: "9", v: "8", U: "7", u: "7", 9: "7" } },
-  put(KNEEL, { 0: "..............................", 1: "........AAAAA.................", 2: ".......AcccccA................", 3: "........AAAAAAk...............", 4: ".........EfFFFfFXxxxxxxxxjjjJ" }))
+  put(KNEEL, { 0: "..............................", 1: "........AAAAA.................", 2: ".......AcccccA................", 3: "........AAAAAAk...............", 4: ".........EfFFFf" }))
 // Paratrooper hanging under his canopy.
 sprite("_chute", { w: 30, h: 40 }, (c) => {
   c.ellipse(15, 13, 14, 11, "5"); c.rect(0, 13, 30, 27, "_")                                                   // the canopy, top half
@@ -332,7 +332,7 @@ unit("rangers", (x) => [
   (c) => { for (const [sx, sy, len] of [[76, 50, 44], [72, 60, 50], [80, 70, 40]]) { c.hline(sx, sy, len, "0"); c.hline(sx + 4, sy + 1, len - 10, "m") } },
   hline(68, 38, 60, "c"), hline(72, 36, 56, "^"), poly([68, 40, 128, 36, 128, 38, 68, 41], "A"),
   line(66, 42, 60, 80, "8"), line(74, 40, 70, 80, "8"), px(66, 41, "j"), px(74, 39, "j"),
-  stamp(x ? "_gi_x" : "_commando", 76, 4, x ? {} : { swap: { A: "U", c: "v" } }), stamp("_kneel" + x, 100, 12, { flip: "x" }),
+  stamp(x ? "_gi_x" : "_commando", 72, 4, x ? { flip: "x" } : { flip: "x", swap: { A: "U", c: "v" } }), stamp("_kneel" + x, 96, 12),
 ])
 unit("mortiers", (x) => [
   ...bocage(5, 36), poly([0, 70, CW, 68, CW, CH, 0, CH], "q"), hline(0, 69, CW, "T"),
@@ -343,7 +343,6 @@ unit("mortiers", (x) => [
 ])
 unit("paras", (x) => [
   sky(CW, 72, "1+2=38"), stamp("_cloud_a", 88, 44), stamp("_cloud_b", 0, 52),
-  stamp("_bomber", 4, 6, { swap: { M: "0", m: "M" } }), stamp("_bomber", 70, 14, { swap: { M: "&", m: "%" } }),
   stamp("_chute", 22, 12), stamp("_chute", 66, 4), stamp("_chute", 92, 30),
   (c) => { for (const [px_, py] of [[54, 24], [114, 12], [12, 28]]) { c.ellipse(px_, py, 3, 2, "5"); c.rect(px_ - 3, py, 7, 2, "_"); c.vline(px_, py, 4, "M") } },   // far canopies
   treeline(74, 2, "%", "&", 4, CW, 80), rect(0, 76, CW, 4, "a"),
@@ -413,8 +412,8 @@ reward("commandos",
   vgrad(0, 0, CW, 52, "bBn", 1, 2), circ(24, 14, 8, "5"), circ(28, 12, 8, "b"),
   (c) => { for (const [sx, sy] of [[16, 8], [40, 18], [66, 6], [84, 24], [120, 30], [104, 10]]) c.px(sx, sy, "N") },
   rect(0, 52, CW, 28, "B"), (c) => { for (let i = 0; i < 14; i++) c.hline((i * 26) % 100, 56 + i * 2, 10 + (i % 3) * 4, i % 2 ? "n" : "b") },
-  poly([68, 80, 80, 44, 128, 36, 128, 80], "b"), hline(80, 44, 48, "n"),
-  stamp("_lcvp", 4, 50, { swap: NIGHT }), stamp("_commando_k", 76, 12, { swap: NIGHT }), stamp("_commando", 100, 2, { swap: NIGHT }))
+  poly([66, 80, 76, 39, 128, 39, 128, 80], "b"), hline(76, 39, 52, "n"),
+  stamp("_lcvp", 4, 50, { swap: NIGHT }), stamp("_commando_k", 76, 12, { swap: NIGHT }), stamp("_commando", 104, 4, { swap: NIGHT }))
 reward("ambulance",
   ...bocage(9, 36), ...lane(62, 12),
   layer("shadow", { shade: true }, shadowAt(8, 74, 70)),
@@ -639,13 +638,12 @@ terrain("aerodrome",
     (c) => { for (let x = 8; x < 108; x += 6) for (let y = 40; y < 76; y++) if (c.is(x, y, "j")) c.px(x, y, "I") },
     ellipse(56, 76, 52, 34, "J", true), rect(0, 76, 120, 40, "_"), rect(24, 54, 64, 22, "k"), rect(24, 54, 6, 22, "i"), rect(82, 54, 6, 22, "i"),
     poly([40, 76, 48, 62, 64, 62, 72, 76], "U"), vline(56, 56, 16, "i"), hline(44, 66, 24, "i")),
-  poly([128, 74, 168, 74, 312, 144, 60, 144], "M"), line(128, 74, 60, 144, "0"), line(168, 74, 312, 144, "0"),           // runway
-  (c) => { for (let y = 78, n = 3; y < 144; y += n + 5, n += 3) c.rect(Math.round(148 + (y - 74) * 0.54) - 1, y, 2 + Math.floor(n / 3), n, "5") },
+  rect(0, 112, TW, 16, "M"), hline(0, 112, TW, "0"), hline(0, 127, TW, "0"), (c) => { for (let x = 4; x < TW; x += 28) c.rect(x, 119, 14, 2, "5") },   // runway, side on
   rect(256, 28, 24, 46, "l"), vline(278, 28, 46, "m"), rect(250, 16, 36, 12, "p"), box(250, 16, 36, 12, "M"), vline(262, 16, 12, "M"), vline(274, 16, 12, "M"),   // control tower
   rect(248, 12, 40, 4, "m"), vline(268, 0, 12, "I"), rect(262, 60, 10, 14, "k"), hline(256, 44, 24, "m"),
   vline(216, 32, 42, "I"), poly([218, 32, 242, 36, 242, 42, 218, 42], "s"), rect(224, 32, 6, 10, "5"), rect(236, 36, 6, 6, "5"),   // windsock
-  stamp("_p47", 192, 84, { flip: "x" }), line(220, 118, 218, 124, "I"), circ(218, 126, 2, "i"), line(252, 112, 256, 124, "I"), circ(256, 126, 2, "i"),
-  layer("shadow", { shade: true }, ellipse(236, 130, 40, 4, "k")),
+  layer("shadow", { shade: true }, ellipse(240, 122, 42, 3, "k")),
+  stamp("_p47", 192, 86, { flip: "x" }), line(245, 110, 245, 116, "I", 2), circ(245, 118, 3, "i"), px(245, 118, "j"), line(264, 106, 264, 118, "I"), circ(264, 119, 2, "i"),
   (c) => { for (const x of [8, 18, 28]) { c.rect(x, 88, 8, 12, "s"); c.hline(x, 88, 8, "S"); c.hline(x, 94, 8, "R") } })
 
 terrain("carrefour",
@@ -683,7 +681,6 @@ terrain("marais",
   vgrad(0, 0, TW, 60, "=~4", 1, 2),
   hills(50, 3, "6", 2, 62, TW), treeline(56, 2, "%", "&", 2, TW, 62), stamps("_dead", [[24, 12], [104, 16, { flip: "x" }], [248, 10], [292, 18, { flip: "x" }]]),
   ...water(60, 84, 2, "PpZz"),
-  stamp("_sherman", 152, 40), rect(150, 78, 112, 16, "p"), hline(152, 78, 104, "P"), hline(148, 82, 116, "Z"), hline(170, 86, 84, "p"),   // bogged tank
   (c) => {
     for (const [x, y, rx] of [[52, 92, 32], [260, 112, 40], [140, 124, 24], [300, 80, 18]]) {       // mud banks with reed beds
       c.ellipse(x, y, rx, 5, "t"); c.ellipse(x, y - 1, rx - 4, 3, "T")
@@ -712,8 +709,8 @@ terrain("omaha_easy",                                                 // high ti
   line(92, 60, 108, 44, "Q", 2), line(108, 44, 100, 34, "Q", 2),                                                          // path up the bluff
   rect(0, 60, TW, 20, "l"), (c) => { const r = c.rng(4); for (let i = 0; i < 300; i++) { const x = Math.floor(r() * TW), y = 74 + Math.floor(r() * 14); c.rect(x, y, 2, 1, r() < 0.5 ? "m" : "M") } },   // shingle
   rect(0, 88, TW, 8, "m"), ...water(96, 48, 5, "pPpZ"), surf(94), surf(104, "4"),
-  stamp("_sherman", 188, 72), rect(186, 112, 112, 6, "p"), hline(190, 110, 100, "5"),                                    // DD tank in the surf
-  smoke(236, 74, 8),
+  layer("shadow", { shade: true }, shadowAt(192, 86, 100)), stamp("_sherman", 188, 42),                                   // DD tank up on the shingle
+  smoke(244, 44, 8),
   soldiers([[16, 58, 1], [52, 60, 1], [88, 58], [124, 60, 1], [156, 58, 1]]),
   stamps("_hedgehog", [[268, 92], [24, 100], [116, 104]]), stamp("_lcvp", 44, 114),
   (c) => { for (const [x, y] of [[140, 118], [280, 126]]) c.grid(x, y, ".5.5.\n..5..\n.555.\n55455") })
@@ -792,7 +789,7 @@ terrain("bocage_dense",                                               // a wall 
   poly([0, 92, 320, 84, 320, 108, 0, 112], "T"), hline(0, 92, TW, "q"),                                                       // earth bank
   ...meadow(108, TW, 36, 9, 40),
   stamp("_sherman", 116, 52), line(192, 92, 208, 100, "I", 3), line(192, 84, 208, 92, "I", 3),                               // hedge-cutter prongs
-  scatter("_bush", 108, 52, 100, 36, 12, { rflip: "x", seed: 7 }), layer("dust", dust([[104, 88, 6], [96, 80, 5]])),
+  scatter("_bush", 108, 80, 100, 10, 8, { rflip: "x", seed: 7 }), layer("dust", dust([[104, 88, 6], [96, 80, 5]])),
   soldiers([[36, 100, 1], [260, 96]]))
 
 terrain("chemin_creux",                                               // sunken lane under a tunnel of branches

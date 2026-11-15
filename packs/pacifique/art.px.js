@@ -72,14 +72,14 @@ const KNEEL = `
   ........VcvVvV................
   .......VvVvcvvU...............
   .......UUUUUUUUU..............
-  .........EfFFFfFXxxxxxxxxjjjJ
-  .........fFkFFfWWWWWWWWWj.....
+  .........EfFFFf...............
+  .........fFkFFf...............
   .........ffFFFF...............
   .........EffFE................
   ..........EfE.................
-  .......VVvvvvvVff.............
-  ......VVvvvvvvvvFf............
-  ......VvvVvvvvvvvf............
+  .......VVvvvvvVvV.............
+  ......VVvvvvvvXxxFfxxxxxxjjjjJ
+  ......VvvVvvvvWWWWfWWWWj......
   ......VvvVvvvvvvv.............
   ......VvyVvvvvvvy.............
   ......VvvVvvvvvvU.............
@@ -97,7 +97,7 @@ const KNEEL = `
 const put = (grid, rows) => { const r = grid.split("\n").filter((x) => x.trim()).map((x) => x.trim()); for (const [i, s] of Object.entries(rows)) r[i] = s; return r.join("\n") }
 // Japanese infantry: the helmet with its neck cloth hanging behind, khaki, puttees.
 const JPHEAD = { 0: ".........HHHH...............", 1: "........HhhhhH..............", 2: ".......HhHhhhhG.............", 3: "......HHGGGGGGG.............", 4: ".....Hh..EfFFFG.............", 5: ".....hh..fFkFFf.............", 6: "......h..ffFFFFf............" }
-const JPHEADK = { 0: ".........HHHH.................", 1: "........HhhhhH................", 2: ".......HhHhhhhG...............", 3: "......HHGGGGGGG...............", 4: ".....Hh..EfFFFfFXxxxxxxxxjjjJ", 5: ".....hh..fFkFFfWWWWWWWWWj.....", 6: "......h..ffFFFF..............." }
+const JPHEADK = { 0: ".........HHHH.................", 1: "........HhhhhH................", 2: ".......HhHhhhhG...............", 3: "......HHGGGGGGG...............", 4: ".....Hh..EfFFFf", 5: ".....hh..fFkFFf", 6: "......h..ffFFFF" }
 sprite("_sol", { outline: "k" }, SOL)
 sprite("_kneel", { outline: "k" }, KNEEL)
 sprite("_sol_x", { outline: "k", swap: { ...JP, q: "h", c: "h" } }, put(SOL, JPHEAD))
@@ -298,7 +298,7 @@ unit("lance_flammes", (x) => [
   rect(88, 36, 40, 44, "M"), ellipse(108, 56, 12, 10, "k"), rect(96, 56, 26, 24, "M"), rect(98, 58, 22, 22, "k"),   // cave mouth
   ...beach(68, CW, CH, 6),
   stamp("_sol" + x, 8, 38), rect(8, 48, 8, 14, "I"), hline(8, 48, 8, "j"),
-  poly([44, 48, 76, 42, 104, 52, 108, 62, 76, 60, 44, 52], "D"), poly([44, 48, 72, 46, 92, 54, 76, 56, 44, 52], "L"), poly([44, 50, 64, 48, 76, 52, 60, 52], "K"),
+  poly([37, 51, 70, 45, 104, 53, 108, 63, 74, 62, 37, 54], "D"), poly([37, 51, 68, 48, 92, 55, 74, 58, 37, 54], "L"), poly([37, 52, 60, 50, 76, 54, 58, 55, 37, 53], "K"),   // jet from the nozzle
   glow("LK", { r: 12, strength: 0.5 }),
 ])
 unit("seabees", (x) => [
@@ -324,7 +324,7 @@ unit("porte_avions", (x) => [
 unit("corsair", (x) => [
   sky(CW, 64, "1+2=34"), jungleWall(60, CW, 9), smokeP([[104, 52, 8, 0], [112, 40, 10, 1], [100, 36, 6, 2]]),
   stamp(P2(x, "_corsair", "_george"), 16, 12),
-  line(72, 26, 96, 44, "L"), line(74, 28, 98, 46, "D"), stamp("_boom", 88, 36),
+  stamp("_boom", 88, 36),
 ])
 unit("lvt", (x) => [
   sky(CW, 24), ...sea(24, CW, 48, 10), ...beach(48, CW, CH, 10), surf(47, 0, CW, 10),
@@ -352,8 +352,8 @@ unit("garnison", (x) => [
 ])
 unit("tireurs", (x) => [
   sky(CW, 40, "1+2=34"), ...sea(40, CW, 56, 14), ...beach(56, CW, CH, 14), surf(55, 0, CW, 14),
-  stamp("_palm_c", 56, -12), stamp("_kneel" + x, 80, 4), line(96, 14, 112, 12, "M"),
-  stamp(P2(x, "_sol_x", "_sol"), 12, 44), px(114, 12, "K"),
+  stamp("_palm_c", 56, -12), stamp("_kneel" + x, 84, 50, { flip: "x" }), px(83, 61, "K"), px(82, 61, "L"),
+  stamp(P2(x, "_sol_x", "_sol"), 12, 44),
 ])
 unit("kamikaze", (x) => [
   sky(CW, 52, "1+2=3~4"), ...sea(52, CW, CH, 15),
@@ -395,8 +395,8 @@ order("ravitaillement",
   ...sea(40, CW, CH, 22, "nBbb"), hline(0, 40, CW, "N"), (c) => { for (let i = 0; i < 28; i++) c.px(8 + i * 2, 52, "N") },
   stamp("_ak_far", 12, 24, { swap: NIGHT }), stamp("_dd_far", 60, 30, { swap: NIGHT }), stamp("_ak_far", 80, 44, { swap: NIGHT }))
 order("guetteurs",
-  sky(CW, 44), ...sea(44, CW, 56, 23), jungleWall(60, CW, 23),
-  stamp("_dd_far_x", 68, 32), stamp("_bb_far_x", 12, 28),
+  sky(CW, 44), ...sea(44, CW, 66, 23), jungleWall(70, CW, 23),
+  stamp("_dd_far_x", 68, 26), stamp("_bb_far_x", 12, 16),
   stamp("_kneel", 88, 48, { flip: "x" }), rect(86, 54, 6, 4, "M"),                              // binoculars
   rect(108, 60, 16, 12, "U"), rect(110, 62, 12, 4, "I"), vline(120, 40, 20, "M"))                // teleradio
 order("fumee",

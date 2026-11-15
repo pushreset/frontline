@@ -611,7 +611,8 @@ terrain("oppidum",
   flankShade((x) => plateau(180, 56, 70, 116, 44)(x) + Math.round(1.5 * Math.sin(x / 7) + Math.sin(x / 3.1)), 0, TW, "Cc^A", plateau(180, 56, 70, 116, 44)),
   // copses on the flanks, clipped to the slope
   clip((x, y) => y > plateau(180, 56, 70, 116, 44)(x) + 3, stamp("_copse", 104, 78), stamp("_copse", 84, 92), stamp("_copse", 250, 74), stamp("_copse", 268, 88)),
-  // roofs above the wall, near ones bigger
+  // roofs above the wall, near ones bigger, standing on the hilltop behind it
+  (c) => { for (let x = 112; x < 249; x++) { const t = Math.round(56 - 9 * Math.min(1, 1.8 * Math.sin(Math.PI * (x - 112) / 137))); c.vline(x, t, 57 - t, "c"); c.px(x, t, "A") } },
   stamp("_hut_s", 128, 40), stamp("_hut", 140, 32), stamp("_hut_s", 166, 38), stamp("_hut", 188, 30),
   stamp("_hut_s", 212, 39), stamp("_hut", 226, 31), stamp("_hut_s", 248, 40),
   smoke(150, 30, 8), smoke(198, 28, 9), smoke(236, 29, 7),
@@ -963,6 +964,7 @@ terrain("camp",
 terrain("murus",
   sky(TW, 60), stamp("_cloud_a", 180, 8),
   hills(48, 4, "3", 30, 80, TW), treeline(56, 3, "%", "&", 31, TW, 80),
+  (c) => { for (let x = 0; x < TW; x++) { const t = Math.round(37 + 2 * Math.sin(x / 23) + Math.sin(x / 9)); c.vline(x, t, 50 - t, "c"); c.px(x, t, "A") } },   // ground inside the wall
   stamp("_hut", 60, 22), stamp("_hut_s", 100, 30), stamp("_hut", 220, 24), smoke(70, 20, 6), smoke(230, 22, 6),
   murus(0, TW, 46, 40), layer("wallshade", { shade: true }, rect(0, 84, TW, 2, "k")),
   // the gate: a deep passage between the wall's turned-in ends, a timber bridge over it
@@ -1045,7 +1047,7 @@ terrain("pont_rhin",
     for (let x = 0; x < TW; x++) { const y = Math.round(76 + x * 0.12); c.rect(x, y, 1, 4, x % 6 < 3 ? "X" : "x"); c.px(x, y + 4, "W") }
     for (let x = 6; x < TW; x += 18) { const y = Math.round(76 + x * 0.12); c.line(x, y + 4, x - 3, y + 26, "w", 2); c.line(x + 6, y + 4, x + 9, y + 26, "w", 2); c.line(x, y + 12, x + 6, y + 12, "W") }
   },
-  stamp("_legio", 100, 52), stamp("_legio", 124, 55), stamp("_faber", 170, 60),
+  stamp("_legio", 100, 52), stamp("_legio", 124, 55), stamp("_faber", 170, 69),
   ...meadow(124, TW, 20, 93, 40), scatter("_reed", 0, 120, TW, 8, 40, { seed: 13 }),
 )
 terrain("avaricum",
