@@ -80,8 +80,6 @@ a campaign lasts 10. You are Caesar; the AI plays the Helvetii, the Belgae, the 
   Infantry to the warriors at his side), the British **war chariots** in Britain.
 - Rewards: veterans, new cards (Tenth Legion, Siege Tower, Aquilifer, Scorpion) and powers (Commentaries,
   Celeritas, Vallum, Ballistae, Caesar's Clemency).
-- **Finer pictures.** Its cards, terrains and map are drawn at twice the resolution of the other campaigns
-  (cards 128×80, terrains 320×144, map 640×280).
 
 #### Verdun 1916
 
@@ -176,7 +174,8 @@ Progress is saved automatically in the browser. Music and sound effects are gene
 | `assets.html` | gallery of a pack's illustrations (`assets.html?pack=normandie`) |
 | `manifest.webmanifest`, `sw.js`, `icons/` | installable app (PWA): manifest, offline service worker, icons (`icons/icon.px.js` → `icons/out/`) |
 | `packs/<id>/` | one campaign each (see below); `packs/index.cjs` lists them for node |
-| `packs/<id>/art.px.js` → `out/` | each campaign's pixel art (pxl DSL); the built PNGs are committed in `out/` |
+| `packs/<id>/art.px.js` → `out/` | each campaign's pixel art (pxl DSL, cards 128×80, terrains 320×144, map 640×280); the built PNGs are committed in `out/` |
+| `packs/art-lib.px.js` | pixel-art helpers shared by every campaign's art file |
 | `packs/test/pack.js` | hidden mini campaign the simulator plays, to prove the engine is campaign-agnostic |
 | `sim.cjs`, `balance.cjs` | headless AI-vs-AI simulator, see below |
 
@@ -196,7 +195,7 @@ powers bring their own behaviour as small functions ("hooks").
      colours: `olive`, `btn`, `btnHi`, `edge`, `bg1`-`bg3`, `panel`, `panelEdge`, `tile1`, `tile2`; the
      defaults are Normandy's), `font` (titles in `'serif'` Georgia or `'roman'` Cinzel capitals instead of the
      stencil), `startSound` (a sound of `audio.js` played when a battle starts) and `artScale` (pictures drawn
-     at 2× the base sizes below, like Gaul's: the game scales them, the gallery shows their real size).
+     at 2× the base sizes below, as every campaign now is: the game scales them, the gallery shows their real size).
    - `cards.js`: `cards`, the two `decks` (player, AI), the campaign `powers` and the `rewards` pools.
    - `terrains.js`: `traits` (how a terrain plays), `terrains` (name, threshold, trait, text) and
      `quick`, the terrains a quick battle draws from.
@@ -211,7 +210,9 @@ powers bring their own behaviour as small functions ("hooks").
      `scenes/c_<card>.png` (and `c_<card>_x.png` for the AI's version), `scenes/t_<terrain>.png`, `scenes/c_back.png`, the map, `sprites/i_<icon>.png` and the two faces of the initiative coin (`sprites/coin_0.png` the
      player, `coin_1.png` the AI). Build
      with `node ~/.claude/skills/pxl-pixel-art/bin/pxl.js build packs/<id>/art.px.js --no-preview`.
-     A card or terrain can borrow another picture with `art: '<key>'`.
+     A card or terrain can borrow another picture with `art: '<key>'`. Every `art.px.js` includes
+     `packs/art-lib.px.js`, the shared helpers (sizes, smooth dithered skies, hills, meadows, shadows, coins in relief)
+     and their colour-key convention: define those keys in your palette, then `include("../art-lib.px.js")`.
 2. **Register it**: add its files to `packs/index.cjs` (node) and as `<script>` tags in `index.html`
    and `assets.html`. Bump the `?v=` of the script tags on every release, otherwise browsers may mix old
    and new files.
