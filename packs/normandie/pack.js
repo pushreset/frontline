@@ -24,6 +24,7 @@
   malusAttr: 1,                 // attribute lowered by g.malus() (Mortars, Barrage)
   // Art: <art>scenes/c_<card>.png (enemy: c_<card>_x.png), t_<terrain>.png, <map>.png, <art>sprites/i_<icon>.png
   art: 'packs/normandie/out/',
+  artScale: 2,                  // pictures drawn at twice the base sizes (cards 128x80)
   cover: 'omaha_dog',           // terrain picture behind the main menu
   map: { image: 'map_normandie', lon: [-2.0, 2.5], lat: [49.8, 48.5] },
 });
