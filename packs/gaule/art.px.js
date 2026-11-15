@@ -30,8 +30,8 @@ pal({
   D: "#c9501f", L: "#f0a43a", K: "#fbeeb0",                                         // fire
 })
 ramps("1+2=3~45", "kaAc^Cd", "kiIjJ", "kbBnN", "krRsS", "kgGhH", "kuUvV", "koOyY", "keEfF", "kwWxX", "kaAcCd", "ktTqQ", "k0Mml", "kzZpP", "12345", "&%6345", "789", "DLK")
+include("../art-lib.px.js")
 
-const CW = 128, CH = 80, TW = 320, TH = 144
 
 // ------------------------------------------------------------------ figures (about 36 px tall)
 // Legionary, facing right: Montefortino helmet with a short plume, mail shirt, the curved scutum held in front
@@ -494,72 +494,12 @@ const BACK = { S: "s", s: "R", R: "r", N: "n", n: "B", B: "b", Y: "y", y: "O", F
                H: "h", h: "G", G: "g", V: "v", v: "U", U: "u", Q: "q", q: "T", T: "t" }
 
 // ------------------------------------------------------------------ landscape helpers
-// Smooth ordered-dither gradient (Bayer 8x8): each band fades into the next over its whole height,
-// no hard checkerboard stripes. keys run top -> bottom.
-const BAYER = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60, 28, 52, 20, 62, 30, 54, 22,
-  3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21]
-// sharp: how much of each band stays flat (0 = dithered all the way, 3 = flat with a third of a band to blend).
-const vgrad = (x, y, w, h, keys, ease = 1, sharp = 3) => (c) => {
-  const n = keys.length - 1
-  for (let j = 0; j < h; j++) {
-    const t = Math.pow(j / Math.max(1, h - 1), ease) * n, i = Math.min(n - 1, Math.floor(t)), f = Math.min(1, Math.max(0, (t - i - 0.5) * sharp + 0.5))
-    for (let k = 0; k < w; k++) c.px(x + k, y + j, f * 64 > BAYER[((y + j) & 7) * 8 + ((x + k) & 7)] + 0.5 ? keys[i + 1] : keys[i])
-  }
-}
-const sky = (w, h, keys = "1+2=3~4", ease = 1.2) => vgrad(0, 0, w, h, keys, ease, 2)
-sprite("_cloud_a", `
-  ..............555.............
-  ........5555.55555............
-  ......555555555555555..5555...
-  .....5555555555555555555555...
-  ..5555555555555555555555555555
-  .55555555555555555555555554444
-  5555555555555555555444444444443
-  .4444444444455544444443333333.
-  ...333333333344433333.........`)
-sprite("_cloud_b", `
-  .......555......
-  ....555555555...
-  ..55555555555544
-  555555555554444.
-  .44444443333....`)
-sprite("_cloud_far", `
-  ....44444.....
-  ..44444444444.
-  44444443333333`)
-// Rolling hills: a silhouette from a few sine waves, filled down to `to`.
-const hills = (y, amp, key, seed = 0, to = 200, w = 400) => (c) => {
-  for (let x = 0; x < w; x++) {
-    const h = Math.round(y - amp * (0.6 * Math.sin((x + seed * 37) / 23) + 0.4 * Math.sin((x + seed * 11) / 9.5)))
-    c.vline(x, h, to - h, key)
-  }
-}
-// Tree line: rounded crowns side by side, lit on the left. Keys: crown, shadow side.
-const treeline = (y, amp, lit, dark, seed = 1, w = 400, to = 200) => (c) => {
-  const r = c.rng(seed)
-  for (let x = -4; x < w; x += 2 + Math.floor(r() * 3)) {
-    const rad = 3 + Math.floor(r() * amp), cy = y - Math.floor(r() * amp)
-    c.circ(x, cy, rad, dark); if (rad > 1) c.circ(x - 1, cy - 1, rad - 1, lit)
-    c.rect(x - rad, cy + 1, 2 * rad + 1, to - cy, dark)
-  }
-}
-// Grass: tufts painted only on the ground colour (no speckle: each mark is a blade of grass).
-sprite("_tuft_a", ".c.\ncAc")
-sprite("_tuft_b", "..C.\n.cC.\nccAc")
-sprite("_tuft_c", "d.C\ncCc")
-group("_tuft", ["_tuft_a", "_tuft_a", "_tuft_b", "_tuft_c"])
-const meadow = (y, w, h, seed = 1, n = 40) => [
-  vgrad(0, y, w, h, "dC^cAa", 0.9, 2),
-  scatter("_tuft", 0, y + 2, w, h - 2, n, { seed, on: "Cca" }),
-]
 // A pilum held by the figure stamped at (x, y): wooden shaft, long iron shank, small pyramidal head.
 const pilum = (x, y, dx = 7, len = 34) => (c) => {
   const x0 = x + 19, y0 = y + 19, x1 = x0 + dx, y1 = y0 - len, xm = x0 + Math.round(dx * 0.55), ym = y0 - Math.round(len * 0.55)
   c.line(x0, y0, xm, ym, "x"); c.line(x0 + 1, y0, xm + 1, ym, "W")
   c.line(xm, ym, x1, y1, "j"); c.px(xm, ym, "n"); c.px(x1, y1 - 1, "J"); c.px(x1, y1, "J")
 }
-// Cast shadow on the ground, falling right (light from the top left).
-const shadowAt = (x, y, w = 16) => poly([x, y, x + w, y, x + w + 6, y + 2, x + 2, y + 2], "k")
 
 // ------------------------------------------------------------------ cards (128x80)
 function unit(name, build) {
@@ -603,8 +543,6 @@ sprite("_cav_germ", { w: 64, h: 44 }, ...horseman(0, 12, false, "_horse_grey", {
 sprite("_cav_gaul", { w: 64, h: 44 }, ...horseman(0, 12, true, "_horse_dun"))
 sprite("_cav_gaul2", { w: 64, h: 44 }, ...horseman(0, 12, true, "_horse", { h: "v", H: "V", G: "U", O: "R", q: "s" }))
 
-// Dust kicked up behind a galloping horse: soft puffs, lit on top.
-const dust = (pts) => (c) => { for (const [x, y, r] of pts) { c.circ(x + 1, y + 1, r, "T"); c.circ(x, y, r, "q"); c.circ(x - 1, y - 1, Math.max(0, r - 2), "Q") } }
 unit("cavaliers", (gaul) => [
   sky(CW, 50), stamp("_cloud_a", gaul ? 70 : 10, 6), stamp("_cloud_far", gaul ? 14 : 92, 24),
   hills(40, 4, "3", gaul ? 6 : 2, 60), hills(46, 3, "6", gaul ? 1 : 8, 60), treeline(50, 2, "%", "&", gaul ? 9 : 3),
@@ -622,30 +560,6 @@ unit("cavaliers", (gaul) => [
 
 // ------------------------------------------------------------------ terrains (320x144)
 const terrain = (name, ...items) => scene("t_" + name, { w: TW, h: TH, bg: "4" }, ...items)
-// A plateau hill: steep flanks, flat top, lit on the left flank. Returns the top height at x.
-const plateau = (cx, top, half, base, slope = 26) => (x) => {
-  const d = Math.abs(x - cx) - half
-  if (d <= 0) return top
-  const t = Math.min(1, d / slope)
-  return Math.round(top + (base - top) * (t * t * (3 - 2 * t)))
-}
-const fillUnder = (f, key, to = TH, x0 = 0, x1 = TW) => (c) => { for (let x = x0; x < x1; x++) c.vline(x, f(x), to - f(x), key) }
-// Shade a landform by slope: light on the left flank, base colour on top, shadow on the right flank,
-// with dithered seams. f(x) = top height; keys = [lit, base, shade, deep].
-const flankShade = (f, x0, x1, keys, smooth = f) => (c) => {
-  for (let x = x0; x < x1; x++) {
-    const dy = smooth(x + 3) - smooth(x - 3), y0 = f(x)
-    // slope < 0: rising (left flank, faces the light); > 0: falling (right flank)
-    const t = Math.max(-1, Math.min(1, dy / 8))
-    for (let y = y0; y < TH; y++) {
-      const depth = Math.min(1, (y - y0) / 40)
-      const v = 1 + t * 1.1 + (depth > 0.9 ? 0.7 : 0)       // 0 lit .. 3 deep; darker at the foot
-      const b = (BAYER[(y & 7) * 8 + (x & 7)] / 64 - 0.5) * 0.7  // dither only near the seams
-      const k = Math.max(0, Math.min(3, Math.floor(v + 0.5 + b)))
-      c.px(x, y, keys[k])
-    }
-  }
-}
 // Roundhouse: wattle wall, a door, a tall conical thatched roof lit on the left, thatch strands following the cone.
 sprite("_hut", { outline: "k" }, `
   ..........o..........
@@ -674,10 +588,6 @@ sprite("_hut_s", { outline: "k" }, `
   oYYyyyyyyyyyOOo
   .XXxxxxwwxxxWW.
   .XXxxxxwwxxxWW.`)
-// Smoke rising from a roof, drifting right with the wind, thinning out.
-const smoke = (x, y, n = 6) => (c) => {
-  for (let i = 0; i < n; i++) { const r = 1 + Math.floor(i / 2), cx = x + Math.round(i * i * 0.35), cy = y - i * 3; c.circ(cx, cy, r, i < 2 ? "m" : "4"); if (r > 1) c.circ(cx - 1, cy - 1, r - 1, i < 2 ? "4" : "5") }
-}
 // Murus gallicus: courses of dry stone with offset joints, the ends of the timber lacing in rows,
 // a palisade of pointed stakes on top. Light from the left: the face is lit, its foot in shadow.
 const murus = (x0, x1, y, h = 9) => (c) => {
@@ -690,33 +600,6 @@ const murus = (x0, x1, y, h = 9) => (c) => {
   c.hline(x0, y + h, x1 - x0, "0")
   for (let x = x0; x < x1; x += 2) { c.vline(x, y - 4, 4, x % 4 ? "x" : "X"); c.px(x, y - 5, "W") }               // palisade
   c.hline(x0, y - 2, x1 - x0, "W")
-}
-// Field quilt: rows of patches (wheat, stubble, pasture, ploughland) divided by dark hedges, smaller with distance.
-const quilt = (y0, y1, seed = 1) => (c) => {
-  const r = c.rng(seed), crops = ["y", "d", "C", "c", "q", "Y", "^"]
-  let y = y0, row = 0
-  while (y < y1) {
-    const h = 4 + row * 2
-    let x = -Math.floor(r() * 20)
-    while (x < TW) {
-      const w = 18 + Math.floor(r() * 30) + row * 6, k = crops[Math.floor(r() * crops.length)]
-      c.rect(x, y, w, h, k)
-      if (k === "q") for (let j = y + 1; j < y + h; j += 2) c.hline(x + 1, j, w - 2, "T")                // furrows
-      if (k === "y" || k === "Y") for (let j = y + 1; j < y + h; j += 2) for (let i = x + (j % 4); i < x + w; i += 4) c.px(i, j, "O")  // sheaves
-      c.vline(x, y, h, "A"); x += w
-    }
-    c.hline(0, y + h - 1, TW, "A"); y += h; row++
-  }
-}
-// A copse: a few round crowns, lit top left, with a shadow side.
-sprite("_copse", { w: 26, h: 16 }, (c) => {
-  c.ellipse(13, 12, 12, 3, "A")
-  for (const [x, y, r] of [[6, 9, 5], [13, 6, 6], [20, 9, 5]]) { c.circ(x, y, r, "A"); c.circ(x - 1, y - 1, r - 2, "c"); c.circ(x - 2, y - 2, Math.max(1, r - 4), "C") }
-})
-// A big foreground tree to frame a landscape: trunk, round crowns lit on the top left.
-const bigTree = (x, y, r = 12) => (c) => {
-  c.rect(x - 1, y, 3, 30, "w")
-  for (const [dx, dy, rr] of [[-r * 0.6, 2, r * 0.7], [r * 0.6, 3, r * 0.7], [0, -r * 0.4, r * 0.8]]) { const cx = Math.round(x + dx), cy = Math.round(y + dy), R = Math.round(rr); c.circ(cx, cy, R, "a"); c.circ(cx - 1, cy - 1, R - 2, "A"); c.circ(cx - 2, cy - 2, Math.max(1, R - 5), "c") }
 }
 // Strip fields on a slope: alternating ripe wheat, stubble and green.
 const fields = (x0, y0, w, h, keys = "yOCd") => (c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const k = keys[Math.floor((i + j * 0.6) / 9) % keys.length]; c.px(x0 + i, y0 + j, k) } }
@@ -746,25 +629,6 @@ terrain("oppidum",
 
 
 // ------------------------------------------------------------------ initiative coin (64x64)
-// Player: a silver denarius with Caesar's laureate head. AI: a gold Arverni stater with a horse.
-const coinDisc = (rim, body, lit, dark) => (c) => {
-  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
-    const d = Math.hypot(x - 31.5, y - 31.5)
-    if (d > 30.5) continue
-    const b = BAYER[(y & 7) * 8 + (x & 7)] / 64 - 0.5
-    if (d > 28.5) { c.px(x, y, (x + y) / 63 + b * 0.5 < 0.9 ? lit : rim); continue }     // raised rim
-    if (d > 27.5) { c.px(x, y, dark); continue }
-    const v = (x + y - 63) / 50 + b * 0.35                                               // flat field, a sheen at the edge
-    c.px(x, y, d > 24 ? (v < -0.35 ? lit : v > 0.4 ? dark : body) : body)
-  }
-  for (let a = 0; a < 72; a++) { const t = a / 72 * Math.PI * 2; c.px(Math.round(31.5 + Math.cos(t) * 25.5), Math.round(31.5 + Math.sin(t) * 25.5), dark) }  // beaded border
-}
-// Relief: everything drawn in `mask` becomes `body`, lit on its top-left edges, shadowed on its bottom-right ones.
-const relief = (mask, body, lit, dark) => (c) => {
-  const m = (x, y) => c.is(x, y, mask), pts = []
-  for (let y = 0; y < c.h; y++) for (let x = 0; x < c.w; x++) if (m(x, y)) pts.push([x, y, !m(x - 1, y) || !m(x, y - 1), !m(x + 1, y) || !m(x, y + 1)])
-  for (const [x, y, tl, br] of pts) c.px(x, y, br ? dark : tl ? lit : body)
-}
 sprite("coin_0", { w: 64, h: 64 }, coinDisc("I", "j", "J", "I"),
   // Caesar's head in profile, facing right, as a row-by-row silhouette: forehead, the long nose, lips, chin, neck
   (c) => {
@@ -795,8 +659,6 @@ const GTUNIC = { Q: "h", q: "G" }                       // auxiliary tunic -> Ga
 const GREEN = { R: "G", s: "h", S: "H", r: "g" }        // red tunic -> green
 const day = (seed = 1, hor = 52) => [sky(CW, hor), stamp("_cloud_b", 10 + seed * 17 % 60, 6 + seed % 3 * 4), stamp("_cloud_far", 70 + seed * 7 % 40, 26)]
 const land = (seed = 1, y = 52) => [hills(y - 12, 4, "3", seed, 60), hills(y - 6, 3, "6", seed + 5, 60), treeline(y - 2, 2, "%", "&", seed + 2), ...meadow(y, CW, CH - y, seed, 60)]
-// Arrows or bolts in flight: short strokes along an arc.
-const volley = (x0, y0, dx, n = 6, seed = 1, k = "x") => (c) => { const r = c.rng(seed); for (let i = 0; i < n; i++) { const x = x0 + Math.floor(r() * 40) * Math.sign(dx), y = y0 + Math.floor(r() * 14); c.line(x, y, x + 4 * Math.sign(dx), y + 1, k); c.px(x + 5 * Math.sign(dx), y + 1, "J") } }
 // The sling whirled overhead: a faint circle and the stone.
 const sling = (x, y, flip = false) => (c) => { const cx = flip ? x + 11 : x + 10, cy = y - 2; for (let a = 0; a < 24; a += 2) { const t = a / 24 * Math.PI * 2; c.px(Math.round(cx + Math.cos(t) * 6), Math.round(cy + Math.sin(t) * 2), "4") } c.px(cx + 6, cy, "M") }
 
@@ -1000,13 +862,6 @@ scene("contact_cards", { w: 4 * 130 + 2, h: 10 * 82 + 2, bg: "k" },
   ...ORDERS.map((n, i) => stamp("c_" + n, (i % 4) * 130 + 2, 2 + (8 + Math.floor(i / 4)) * 82)))
 
 // ------------------------------------------------------------------ more terrain pieces
-// Water band: sky reflected light near the far bank, darker towards us, ripples as short light strokes.
-const water = (y, h, seed = 1, keys = "PpZz") => [vgrad(0, y, TW, h, keys, 1, 2),
-  (c) => { const r = c.rng(seed); for (let i = 0; i < h * 6; i++) { const x = Math.floor(r() * TW), yy = y + 1 + Math.floor(r() * (h - 2)), t = (yy - y) / h; c.hline(x, yy, 2 + Math.floor(r() * (2 + t * 6)), t < 0.4 ? "4" : "P") } }]
-// Reeds: thin stalks with a dark seed head, painted on the near bank.
-sprite("_reed_a", ".w.\n.c.\n.c.\nc.c")
-sprite("_reed_b", "w..\nc..\n.c.\n.c.\ncA.")
-group("_reed", ["_reed_a", "_reed_b"])
 // Roman leather tent (contubernium), seen from the corner, lit on the left slope.
 sprite("_tent", { outline: "k" }, `
   ......Xx......
@@ -1034,13 +889,6 @@ sprite("_wtower", { outline: "k" }, `
   ..x..x..x..`)
 // Ditch: a dark trench with a lit far lip, optional stakes (lilia) in it.
 const ditch = (y, h = 5, stakes = false) => (c) => { c.rect(0, y, TW, h, "t"); c.hline(0, y, TW, "T"); c.hline(0, y + h, TW, "A"); if (stakes) for (let x = 3; x < TW; x += 6) { c.line(x, y + h - 1, x + 2, y + 1, "X"); c.px(x + 2, y, "l") } }
-// White chalk or limestone cliff: vertical fissures, lit faces, a grassy top.
-const cliff = (x0, x1, top, base, keys = "lmM0") => (c) => {
-  const r = c.rng(x0 + top)
-  for (let x = x0; x < x1; x++) { const t = top + Math.round(Math.sin(x / 9) * 2 + Math.sin(x / 3.7)); c.vline(x, t, base - t, keys[(x % 11 < 6) ? 0 : 1]); c.px(x, t, "c"); c.px(x, t + 1, "A") }
-  for (let x = x0 + 3; x < x1; x += 4 + Math.floor(r() * 5)) c.vline(x, top + 4 + Math.floor(r() * 4), base - top - 6 - Math.floor(r() * 6), keys[2])
-  for (let x = x0; x < x1; x += 2) c.px(x, base - 1, keys[3])
-}
 // Veneti ship: tall oak hull with a high bow and stern, a leather sail; Roman galley: low, oars, a red sail.
 sprite("_veneti", { outline: "k" }, `
   ..............w.........
@@ -1245,8 +1093,6 @@ terrain("uxellodunum",
 )
 
 // ------------------------------------------------------------------ campaign map (640x280), the same lon/lat frame as pack.js
-// An antique chart: parchment land, sea in hatched teal, rivers, hachured mountains, forests in little trees, Latin names.
-const MW = 640, MH = 280
 const P = (lon, lat) => [Math.round((lon + 7) / 22 * MW), Math.round((53 - lat) / 10.5 * MH)]
 const path = (pts) => pts.flatMap(([lon, lat]) => P(lon, lat))
 const river = (pts, k = "p") => (c) => { for (let i = 0; i < pts.length - 1; i++) { const [x0, y0] = P(...pts[i]), [x1, y1] = P(...pts[i + 1]); c.line(x0, y0, x1, y1, k, i > pts.length / 2 ? 2 : 1) } }
