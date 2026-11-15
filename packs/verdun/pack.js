@@ -22,6 +22,7 @@
   },
   malusAttr: 1,                 // attribute lowered by g.malus() (shelling, gas, attrition)
   art: 'packs/verdun/out/',
+  artScale: 2,                  // pictures drawn at twice the base sizes (cards 128x80)
   cover: 'fort_douaumont',
   map: { image: 'map_verdun', lon: [5.18, 5.56], lat: [49.29, 49.15] },
   // Look of the era in the interface (CSS variables) and title lettering ('serif' or the default stencil).
