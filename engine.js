@@ -5,7 +5,7 @@
 const E = (() => {
   // Balance knobs, mutable so balance.cjs can sweep them. Defaults = the rules index.html plays.
   // thrDelta shifts every non-zero threshold (min 1); replace = deploy onto a full side by discarding one of your units.
-  const RULES = { turns: 12, thrDelta: 0, slots: 4, replace: true };
+  const RULES = { turns: 13, thrDelta: 0, slots: 4, replace: true };
   const ORDER = 'Ordre';   // the one card type the engine knows: orders are played, not deployed
   const ZERO = [0, 0, 0, 0];
   // What the AI (and the player's preview) sees instead of an enemy face-down card.
@@ -136,6 +136,21 @@ const E = (() => {
     // changing the board
     destroy(id) { destroy(this.s, id); }
     flip(id, by) { flip(this.s, id, by); }
+    // Turn a face-up unit face down: worth 0 until its owner spends an action to reveal it. Not an order,
+    // not a unit with onFlipped (revealing it again would be a free second trigger for its owner), not on a
+    // terrain its side holds (a held terrain is consolidated: concealing there stalled battles until nightfall).
+    concealable(u) {
+      const C = CARDS[u.key], f = find(this.s, u.id);
+      return !u.down && C.type !== ORDER && !C.onFlipped && !!f && this.s.terrains[f.t].holder !== f.p;
+    }
+    conceal(id) { const f = find(this.s, id); if (!f || f.u.down) return; f.u.down = true; log(this.s, { e: 'conceal', p: f.p, card: f.u.key, t: this.s.terrains[f.t].key }); }
+    // Flipping either way: a face-down card can be revealed, a face-up unit worth `max` or less in total concealed.
+    turnable(u, t, max) { return u.down || (this.concealable(u) && sum(vals(this.s, u, t)) <= max); }
+    turnOver(id, by) { const f = find(this.s, id); if (f) f.u.down ? flip(this.s, id, by) : this.conceal(id); }
+    // Destroy a face-down card, or conceal the unit if it is face up (the 'hunters': rangers, commandos...).
+    huntable(u, t, max) { return u.down ? !this.safe(t) : this.turnable(u, t, max); }
+    hunt(id) { const f = find(this.s, id); if (f) f.u.down ? destroy(this.s, id) : this.conceal(id); }
+    revealAll() { for (const T of this.s.terrains) for (const u of [...T.side[1 - this.p]]) if (u.down) flip(this.s, u.id, null); }
     move(id, to) { moveUnit(this.s, id, to); }
     swap(a, b) { const ta = find(this.s, a).t, tb = find(this.s, b).t; moveUnit(this.s, a, tb); moveUnit(this.s, b, ta); }
     malus(id, n = 1) { find(this.s, id).u.malus += n; }

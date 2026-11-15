@@ -20,12 +20,18 @@ const moveTargets = (g, t) => {
     if (g.canMove(x.u, x.t, to) && (to !== t || g.count(t) + 1 < g.cap(t))) out.push({ args: { u: x.u.id, t2: to }, steps: [g.U(x.u.id), g.T(to)] });
   return out;
 };
-// Charge: push an enemy unit of this terrain to a neighbouring one.
+// Charge: push an enemy unit of this terrain to a neighbouring one. Nowhere to fall back to: it is destroyed
+// (unless it can't be: indestructible, or on a terrain where nothing is destroyed).
 const pushTargets = (g, t) => {
   const out = [];
-  for (const e of g.foes(t)) for (const to of g.live()) if (g.canMove(e, t, to)) out.push({ args: { u: e.id, t2: to }, steps: [g.U(e.id), g.T(to)] });
+  for (const e of g.foes(t)) {
+    const to = g.live().filter(x => g.canMove(e, t, x));
+    for (const x of to) out.push({ args: { u: e.id, t2: x }, steps: [g.U(e.id), g.T(x)] });
+    if (!to.length && !g.safe(t) && !g.tough(e)) out.push({ args: { u: e.id, t2: null }, steps: [g.U(e.id)] });
+  }
   return out;
 };
+const push = (g, me, m) => { if (m.u == null) return; m.t2 == null ? g.destroy(m.u) : g.move(m.u, m.t2); };
 // Arrows: an enemy unit here with Sword left loses 1.
 const shoot = (g, t) => g.hit(g.foes(t).filter(e => up(e) && g.vals(e, t)[0] > 0));
 const wound = (g, me, m) => { if (m.u != null) g.malus(m.u); };
@@ -42,8 +48,8 @@ PACKS.terre_milieu.cards = {
   cavaliers: {
     name: { fr: "Cavaliers du Rohan", en: "Riders of Rohan" }, enemy: { fr: "Chevaucheurs de wargs", en: "Warg Riders" },
     type: "Cavalerie", v: [0,3,0,0],
-    text: { fr: "Charge : à la pose, repousse une unité adverse de ce terrain vers un terrain voisin.", en: "Charge: on deploy, push an enemy unit from this terrain to a neighbouring one." },
-    targets: pushTargets, onPlay: (g, me, m) => { if (m.u != null) g.move(m.u, m.t2); },
+    text: { fr: "Charge : à la pose, repousse une unité adverse de ce terrain vers un terrain voisin. Si elle n'a nulle part où aller, elle est détruite.", en: "Charge: on deploy, push an enemy unit from this terrain to a neighbouring one. With nowhere to go, it is destroyed." },
+    targets: pushTargets, onPlay: push,
   },
   archers: {
     name: { fr: "Archers elfes", en: "Elven Archers" }, enemy: { fr: "Archers orques", en: "Orc Archers" },
@@ -54,8 +60,8 @@ PACKS.terre_milieu.cards = {
   rodeurs: {
     name: { fr: "Rôdeurs du Nord", en: "Rangers of the North" }, enemy: { fr: "Espions dunlendings", en: "Dunlending Spies" },
     type: "Archer", v: [1,0,1,1],
-    text: { fr: "Pisteurs : à la pose, détruit une carte face cachée adverse sur ce terrain.", en: "Trackers: on deploy, destroy an enemy face-down card on this terrain." },
-    targets: (g, t) => g.safe(t) ? [] : g.hit(g.foes(t).filter(e => e.down)), onPlay: kill,
+    text: { fr: "Pisteurs : à la pose, détruit une carte face cachée adverse sur ce terrain, ou retourne face cachée une unité adverse de valeur totale 2 ou moins si l'adversaire ne tient pas ce terrain.", en: "Trackers: on deploy, destroy an enemy face-down card on this terrain, or turn face down an enemy unit worth 2 or less in total if the enemy does not hold this terrain." },
+    targets: (g, t) => g.hit(g.foes(t).filter(e => g.huntable(e, t, 2))), onPlay: (g, me, m) => { if (m.u != null) g.hunt(m.u); },
   },
   capitaine: {
     name: { fr: "Capitaine du Gondor", en: "Captain of Gondor" }, enemy: { fr: "Capitaine uruk", en: "Uruk Captain" },
@@ -90,8 +96,9 @@ PACKS.terre_milieu.cards = {
   gandalf: {
     name: { fr: "Gandalf", en: "Gandalf" }, enemy: { fr: "Saroumane", en: "Saruman" },
     type: "Magie", v: [1,1,0,3],
-    text: { fr: "Lumière blanche : à la pose, retourne toutes les cartes face cachée adverses sur ce terrain.", en: "White light: on deploy, flip every enemy face-down card on this terrain." },
-    onPlay: (g, me) => unmask(g, where(g, me).t, me.id),
+    text: { fr: "Tu ne passeras pas ! : à la pose, retourne toutes les cartes face cachée adverses sur ce terrain et renvoie une unité adverse de valeur totale 2 ou moins dans la main de son propriétaire.", en: "You shall not pass!: on deploy, flip every enemy face-down card on this terrain and send an enemy unit worth 2 or less in total back to its owner's hand." },
+    targets: (g, t) => g.hit(g.foes(t).filter(e => up(e) && g.sum(g.vals(e, t)) <= 2)),
+    onPlay: (g, me, m) => { unmask(g, where(g, me).t, me.id); if (m.u != null && g.find(m.u)) g.toHand(m.u); },
   },
   cor_helm: {
     name: { fr: "Cor de Helm", en: "Horn of Helm" }, enemy: { fr: "Cor de Helm", en: "Horn of Helm" },
@@ -106,7 +113,7 @@ PACKS.terre_milieu.cards = {
     type: "Magie", v: [0,1,0,2],
     text: { fr: "Souffle noir : à la pose, une unité adverse face visible sur ce terrain est retournée face cachée (elle vaut 0 jusqu'à ce qu'on la révèle).", en: "Black breath: on deploy, a face-up enemy unit on this terrain is turned face down (worth 0 until it is revealed)." },
     targets: (g, t) => g.hit(g.foes(t).filter(e => up(e) && g.type(e) !== 'Magie')),
-    onPlay: (g, me, m) => { if (m.u != null) g.find(m.u).u.down = true; },
+    onPlay: (g, me, m) => { if (m.u != null) g.conceal(m.u); },
   },
   trolls: {
     name: { fr: "Trolls des cavernes", en: "Cave Trolls" }, enemy: { fr: "Trolls des cavernes", en: "Cave Trolls" },
@@ -180,9 +187,9 @@ PACKS.terre_milieu.cards = {
   palantir: {
     name: { fr: "Palantír", en: "Palantír" }, enemy: { fr: "Palantír", en: "Palantír" },
     type: "Ordre", v: [0,0,0,0],
-    text: { fr: "Une pierre de vision : retourne une carte face cachée. Pioche 1.", en: "A seeing-stone: flip a face-down card. Draw 1." },
-    targets: g => g.hits([...g.mine(), ...g.theirs()].filter(x => x.u.down)),
-    onPlay: (g, me, m) => { g.flip(m.u, null); g.draw(1); },
+    text: { fr: "Une pierre de vision : retourne une carte, une des tiennes face cachée ou une adverse dans un sens ou dans l'autre (pour la mettre face cachée : valeur totale 2 ou moins, sur un terrain que l'adversaire ne tient pas). Pioche 1.", en: "A seeing-stone: flip a card, one of your face-down ones or an enemy one either way (to turn it face down: worth 2 or less in total, on a terrain the enemy does not hold). Draw 1." },
+    targets: g => g.hits([...g.mine().filter(x => x.u.down), ...g.theirs().filter(x => g.turnable(x.u, x.t, 2))]),
+    onPlay: (g, me, m) => { g.turnOver(m.u, null); g.draw(1); },
   },
   // Campaign rewards (Free Peoples only).
   aragorn: {
@@ -250,9 +257,9 @@ PACKS.terre_milieu.powers = {
   },
   miroir: {
     name: { fr: "Miroir de Galadriel", en: "Mirror of Galadriel" },
-    text: { fr: "Ce qui fut, ce qui est, ce qui sera : retourne toutes les cartes face cachée adverses.", en: "Things that were, that are, that yet may be: flip every enemy face-down card." },
-    targets: g => g.theirs().some(x => x.u.down) ? [{ args: {}, steps: [] }] : [],
-    onPlay: g => g.terrains().forEach(X => [...X.side[1 - g.p]].forEach(u => { if (u.down) g.flip(u.id, null); })),
+    text: { fr: "Ce qui fut, ce qui est, ce qui sera : retourne toutes les cartes face cachée adverses, puis retourne face cachée une unité adverse au choix, sur un terrain qu'il ne tient pas.", en: "Things that were, that are, that yet may be: flip every enemy face-down card, then turn an enemy unit of your choice face down, on a terrain the enemy does not hold." },
+    targets: g => g.hits(g.theirs().filter(x => x.u.down || g.concealable(x.u))),
+    onPlay: (g, me, m) => { g.revealAll(); const f = g.find(m.u); if (f && g.concealable(f.u)) g.conceal(m.u); },
   },
 };
 // Campaign rewards rolled as battles open: 30 % veteran, 25 % new card, 25 % power, 20 % nothing.

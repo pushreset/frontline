@@ -44,9 +44,9 @@ PACKS.normandie.cards = {
   p47: {
     name: { fr: "P-47 Thunderbolt", en: "P-47 Thunderbolt" }, enemy: { fr: "Fw 190", en: "Fw 190" },
     type: "Air", v: [1,0,2,0],
-    text: { fr: "À la pose : retourne une carte face cachée adverse sur ce terrain.", en: "On deploy: flip an enemy face-down card on this terrain." },
-    targets: (g, t) => g.hit(g.foes(t).filter(e => e.down), t),
-    onPlay: (g, me, m) => { if (m.u != null) g.flip(m.u, me.id); },
+    text: { fr: "À la pose : retourne une carte adverse sur ce terrain, dans un sens ou dans l'autre (pour la mettre face cachée : valeur totale 2 ou moins, sur un terrain que l'adversaire ne tient pas).", en: "On deploy: flip an enemy card on this terrain, either way (to turn it face down: worth 2 or less in total, on a terrain the enemy does not hold)." },
+    targets: (g, t) => g.hit(g.foes(t).filter(e => g.turnable(e, t, 2))),
+    onPlay: (g, me, m) => { if (m.u != null) g.turnOver(m.u, me.id); },
   },
   spitfire: {
     name: { fr: "Spitfire", en: "Spitfire" }, enemy: { fr: "Bf 109", en: "Bf 109" },
@@ -104,9 +104,9 @@ PACKS.normandie.cards = {
   recon: {
     name: { fr: "Reconnaissance", en: "Reconnaissance" }, enemy: { fr: "Reconnaissance", en: "Reconnaissance" },
     type: "Ordre", v: [0,0,0,0],
-    text: { fr: "Retourne une carte face cachée. Pioche 1.", en: "Flip a face-down card. Draw 1." },
-    targets: g => g.hits([...g.mine(), ...g.theirs()].filter(x => x.u.down)),
-    onPlay: (g, me, m) => { g.flip(m.u, null); g.draw(1); },
+    text: { fr: "Retourne une carte, une des tiennes face cachée ou une adverse dans un sens ou dans l'autre (pour la mettre face cachée : valeur totale 2 ou moins, sur un terrain que l'adversaire ne tient pas). Pioche 1.", en: "Flip a card, one of your face-down ones or an enemy one either way (to turn it face down: worth 2 or less in total, on a terrain the enemy does not hold). Draw 1." },
+    targets: g => g.hits([...g.mine().filter(x => x.u.down), ...g.theirs().filter(x => g.turnable(x.u, x.t, 2))]),
+    onPlay: (g, me, m) => { g.turnOver(m.u, null); g.draw(1); },
   },
   opsecrete: {
     name: { fr: "Opération secrète", en: "Covert Operation" }, enemy: { fr: "Opération secrète", en: "Covert Operation" },
@@ -124,8 +124,8 @@ PACKS.normandie.cards = {
   sabotage: {
     name: { fr: "Sabotage", en: "Sabotage" }, enemy: { fr: "Sabotage", en: "Sabotage" },
     type: "Ordre", v: [0,0,0,0],
-    text: { fr: "Renvoie une carte face cachée adverse dans la main de son propriétaire.", en: "Return an enemy face-down card to its owner's hand." },
-    targets: g => g.hits(g.theirs().filter(x => x.u.down)),
+    text: { fr: "Renvoie dans la main de son propriétaire une carte adverse face cachée, ou une unité adverse de valeur totale 2 ou moins.", en: "Return to its owner's hand an enemy face-down card, or an enemy unit worth 2 or less in total." },
+    targets: g => g.hits(g.theirs().filter(x => x.u.down || g.sum(g.vals(x.u, x.t)) <= 2)),
     onPlay: (g, me, m) => g.toHand(m.u),
   },
   echange: {
@@ -181,9 +181,9 @@ PACKS.normandie.cards = {
   commandos: {
     name: { fr: "Commandos", en: "Commandos" }, enemy: { fr: "Commandos", en: "Commandos" },
     type: "Infanterie", v: [0,2,0,1],
-    text: { fr: "À la pose : détruit une carte face cachée adverse sur ce terrain.", en: "On deploy: destroy an enemy face-down card on this terrain." },
-    targets: (g, t) => g.safe(t) ? [] : g.hit(g.foes(t).filter(e => e.down), t),
-    onPlay: (g, me, m) => { if (m.u != null) g.destroy(m.u); },
+    text: { fr: "À la pose : détruit une carte face cachée adverse sur ce terrain, ou retourne face cachée une unité adverse de valeur totale 2 ou moins si l'adversaire ne tient pas ce terrain.", en: "On deploy: destroy an enemy face-down card on this terrain, or turn face down an enemy unit worth 2 or less in total if the enemy does not hold this terrain." },
+    targets: (g, t) => g.hit(g.foes(t).filter(e => g.huntable(e, t, 2))),
+    onPlay: (g, me, m) => { if (m.u != null) g.hunt(m.u); },
   },
   ambulance: {
     name: { fr: "Ambulance", en: "Ambulance" }, enemy: { fr: "Ambulance", en: "Ambulance" },
@@ -213,9 +213,9 @@ PACKS.normandie.powers = {
   },
   renseignement: {
     name: { fr: "Renseignement", en: "Intelligence" },
-    text: { fr: "Retourne toutes les cartes face cachée adverses.", en: "Flip every enemy face-down card." },
-    targets: g => g.theirs().some(x => x.u.down) ? [{ args: {}, steps: [] }] : [],
-    onPlay: g => g.terrains().forEach(X => [...X.side[1 - g.p]].forEach(u => { if (u.down) g.flip(u.id, null); })),
+    text: { fr: "Retourne toutes les cartes face cachée adverses, puis retourne face cachée une unité adverse au choix, sur un terrain qu'il ne tient pas.", en: "Flip every enemy face-down card, then turn an enemy unit of your choice face down, on a terrain the enemy does not hold." },
+    targets: g => g.hits(g.theirs().filter(x => x.u.down || g.concealable(x.u))),
+    onPlay: (g, me, m) => { g.revealAll(); const f = g.find(m.u); if (f && g.concealable(f.u)) g.conceal(m.u); },
   },
   barrage: {
     name: { fr: "Tir de barrage", en: "Barrage" },

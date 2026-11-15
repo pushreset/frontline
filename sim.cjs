@@ -51,12 +51,12 @@ for (const [id, P] of Object.entries(PACKS)) {
   assert.equal(at(true, [0, 0, 0], 0), 0, 'total: third terrain to the player');
   assert.equal(at(true, [0, 0, 1], 1), 0, 'total: third terrain to the AI, the player still wins');
   assert.equal(at(true, [1, 1, null], 1), 1, 'total: the AI wins on two');
-  // Who starts (newGame's `first`): that side takes the first turn, night falls after 12 turns each either way.
+  // Who starts (newGame's `first`): that side takes the first turn, night falls after E.TURNS turns each either way.
   for (const first of [0, 1]) {
     const s = E.newGame(undefined, {}, { first });
     assert.equal(s.turn, first, 'the first player takes the first turn');
-    for (let i = 0; i < 2 * E.TURNS; i++) { assert.equal(s.winner, null, 'no night before 12 turns each'); E.play(s, { kind: 'pass' }); }
-    assert(s.timeout && s.players.every(P => P.turns === E.TURNS), 'night after 12 turns each');
+    for (let i = 0; i < 2 * E.TURNS; i++) { assert.equal(s.winner, null, 'no night before the last turn'); E.play(s, { kind: 'pass' }); }
+    assert(s.timeout && s.players.every(P => P.turns === E.TURNS), 'night after the last turn');
   }
 }
 { // Normandy map: 3 beaches, runs of 8-10 battles ending in Paris, sibling branches closed on victory.
@@ -357,6 +357,37 @@ for (const [id, P] of Object.entries(PACKS)) {
   s.turn = 0; s.players[0].hand = [{ id: 1065, key: 'fleches' }];
   for (const T of s.terrains) for (const u of T.side[1]) u.malus = 2; // worth 1: in arrow range
   assert(!E.moves(s).some(m => m.kind === 'order' && m.u === 1060), 'trolls: hide like stone');
+  // Charge: the pushed unit goes to a neighbouring terrain; with nowhere to go it is destroyed, unless nothing can be destroyed there.
+  s = E.newGame(['plaine', 'village', 'muraille']);
+  s.turn = 0; s.players[0].hand = [{ id: 1070, key: 'cavaliers' }];
+  s.terrains[0].side[1] = mk(['soldats'], 1, 1071);
+  const pushes = u => E.moves(s).filter(m => m.kind === 'deploy' && m.c === 1070 && m.u === u);
+  assert.deepEqual(pushes(1071).map(m => m.t2), [1], 'charge: pushed to the free neighbour');
+  s.terrains[1].side[1] = mk(['soldats', 'soldats', 'soldats', 'soldats'], 1, 1072);
+  assert.deepEqual(pushes(1071).map(m => m.t2), [null], 'charge: neighbour full, the push destroys');
+  E.play(s, pushes(1071)[0]);
+  assert.deepEqual(ids(s, 0, 1), [], 'charge: nowhere to go, destroyed');
+  s.turn = 0; s.players[0].hand = [{ id: 1070, key: 'cavaliers' }];
+  s.terrains[2].side[1] = mk(['soldats'], 1, 1076);
+  assert.equal(E.moves(s).filter(m => m.kind === 'deploy' && m.c === 1070 && m.t === 2 && m.u === 1076).length, 0, 'charge: nothing is destroyed on the walls');
+  // Rangers: destroy a face-down card, or turn a face-up unit worth 2 or less face down.
+  s = E.newGame(['plaine', 'village', 'riviere']);
+  s.turn = 0; s.players[0].hand = [{ id: 1080, key: 'rodeurs' }, { id: 1081, key: 'palantir' }];
+  s.terrains[0].side[1] = [...mk(['archers', 'soldats'], 1, 1082), ...mk(['elfes'], 1, 1084, true)];
+  s.terrains[1].side[1] = mk(['hobbits'], 1, 1085);
+  const aims = c => E.moves(s).filter(m => m.c === c && m.u != null).map(m => m.u).sort();
+  assert.deepEqual(aims(1080), [1082, 1084], 'rangers: the archers (2) or the face-down card, not the soldiers (3)');
+  E.play(s, E.moves(s).find(m => m.c === 1080 && m.u === 1082));
+  assert(s.terrains[0].side[1][0].down && s.log.some(l => l.e === 'conceal'), 'rangers: the archers are face down');
+  s.turn = 0; s.players[0].hand = [{ id: 1081, key: 'palantir' }, { id: 1086, key: 'soldats' }];
+  s.terrains[2].side[0] = mk(['soldats'], 0, 1087, true);
+  assert.deepEqual(aims(1081), [1082, 1084, 1087], 'palantir: enemy face-down cards, your face-down card, never the soldiers (3) nor the hobbits');
+  E.play(s, E.moves(s).find(m => m.c === 1081 && m.u === 1082));
+  assert(!s.terrains[0].side[1][0].down, 'palantir: the archers are revealed');
+  // A terrain its side holds is consolidated: no unit there can be turned face down, a face-down card can still be hunted.
+  s.turn = 0; s.players[0].hand = [{ id: 1080, key: 'rodeurs' }];
+  s.terrains[0].holder = 1;
+  assert.deepEqual(aims(1080), [1084], 'held terrain: the rangers only hunt the face-down card');
   E.use('normandie'); C.use('normandie');
 }
 

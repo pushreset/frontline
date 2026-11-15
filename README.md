@@ -24,7 +24,7 @@ the Allies (in 1916, the French; in Gaul, Caesar; in Middle-earth, the Free Peop
 - **Who starts** is decided before the terrains are dealt: a coin is tossed (Allied star, you start;
   eagle, the AI starts) in a quick battle, while each campaign battle follows its scenario (you, the AI,
   or the same coin toss).
-- If nobody has two by **nightfall** (12 turns each), each open terrain goes to the side that filled
+- If nobody has two by **nightfall** (13 turns each), each open terrain goes to the side that filled
   the larger share of its threshold. Without a majority of two terrains, the defender (the AI) keeps
   its ground and wins.
 
@@ -34,12 +34,17 @@ You start with 5 cards, draw 1 at the start of each turn, and can hold up to 7. 
 **one** action:
 
 - **Deploy a unit face up** on a terrain. It adds its values to your side, and many units have a power
-  that triggers when they are played (the Firefly destroys a light tank, the P-47 flips a face-down
+  that triggers when they are played (the Firefly destroys a light tank, the P-47 flips an enemy
   card, the Engineers move one of your units…).
 - **Play a card face down.** It is worth **0** and its power is inactive: it is a bluff. The opponent
   only sees "???" and has to guess.
 - **Reveal** one of your face-down cards: it gets its real values back. That costs your action, so
   bluffing is never free. A bluffed order that gets revealed is simply lost.
+- **Turned face down.** Many powers that hunt bluffs also work the other way: rangers, commandos or
+  destroyers destroy a face-down card *or* turn a face-up enemy unit worth 2 or less face down; scouts,
+  spotter planes and intelligence orders flip an enemy card either way. A unit turned face down is worth 0
+  until its owner spends an action to reveal it. Never on a terrain its side holds (a held position is
+  consolidated), and never a unit with a reveal trigger, like mines.
 - **Play an order**: Artillery, Air Strike, Reconnaissance, Smoke Screen, Redeployment…
 - **Resupply**: discard the selected card and draw 2.
 
@@ -72,7 +77,7 @@ a campaign lasts 10. You are Caesar; the AI plays the Helvetii, the Belgae, the 
   Bibracte, the Sambre, Atuatuca and Alesia are defensive battles.
 - **Infantry, Cavalry, Missile, Engineering.** Legionaries throw their pilum (1 Missile) and lock shields:
   a legionary cannot be destroyed while another face-up infantry unit stands with him (testudo). Cavalry
-  charges push an enemy unit onto the next terrain. Fords hold horsemen, forests hide units, a captured camp
+  charges push an enemy unit onto the next terrain, and destroy it if it has nowhere to go. Fords hold horsemen, forests hide units, a captured camp
   strengthens your infantry everywhere, the murus gallicus makes face-down cards worth 2, sea fights are won
   by archers and engineers only, Alesia's siege lines let nothing be destroyed.
 - **Asymmetric decks**: Roman scorpions, the eagle, engineers and circumvallation; Gallic soldurii that cannot
@@ -148,7 +153,8 @@ The legendary era, on an old map of Middle-earth, from Weathertop (October 3018)
   Dale or the Cross-roads, and the last stand before the Black Gate, where holding until nightfall is a victory.
   Half the battles are defensive: the Shadow attacks first and you only have to hold.
 - **Sword, Cavalry, Bow, Magic.** The Nazgûl's black breath turns one of your units face down (worth nothing until
-  you spend an action to reveal it). Cave trolls cannot be destroyed, dwarves cannot while they stand with a
+  you spend an action to reveal it). Riders of Rohan charge an enemy unit onto the next terrain and destroy it if
+  there is no room; Gandalf sends one back to its owner's hand (you shall not pass). Cave trolls cannot be destroyed, dwarves cannot while they stand with a
   friend. Hobbits are a bluff with teeth: when they are turned face up they kill the strongest enemy Magic unit,
   even the Witch-king, whom nothing else can destroy. Mountain passes leave horses useless, harbours leave only
   bows and magic, the Dead Marshes drain your strongest unit, a captured wizard's tower lends your mages +1 Magic.
@@ -270,7 +276,8 @@ firefly: {
 - **`g`** reads the board with `foes(t)`, `allies(t)`, `mine()`, `theirs()`, `live()`, `type(u)`,
   `vals(u, t)`, `totals(t)`, `count(t)`, `cap(t)`, `adjacent(a, b)`, `canMove(u, from, to)`, `safe(t)`,
   `tough(u)`, `has(u, tag)`, `traitHas(t, tag)`, and changes it with `destroy`, `flip`, `move`, `swap`,
-  `malus`, `draw`, `smoke`, `putDown`, `toHand`. `g.hit(units)` / `g.hits([{ u, t }])` turn units into
+  `malus`, `draw`, `smoke`, `putDown`, `toHand`, `conceal` (face down, with `concealable(u)`), `turnOver`
+  (either way, with `turnable(u, t, max)`), `hunt` (destroy if face down, else conceal, with `huntable`), `revealAll`. `g.hit(units)` / `g.hits([{ u, t }])` turn units into
   targets; `g.U(id)`, `g.T(t)`, `g.H(id)` build the click steps.
 
 `packs/normandie/`, `packs/verdun/` and `packs/pacifique/` are full references; `packs/test/pack.js` shows mechanics Normandy does not have

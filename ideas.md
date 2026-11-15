@@ -2,7 +2,7 @@
 
 ## Nouvelles campagnes
 
-Contraintes du moteur : 4 attributs, 3 terrains par bataille, 12 tours. Voir « Adding a campaign » dans le README.
+Contraintes du moteur : 4 attributs, 3 terrains par bataille, 13 tours. Voir « Adding a campaign » dans le README.
 
 ### Pacifique 1942–1945 — fait : `packs/pacifique/` (Wake → Okinawa, routes Nimitz et MacArthur)
 Reste possible : la guerre en Birmanie, ou une campagne côté japonais (Pearl Harbor, Malaisie, Singapour).
